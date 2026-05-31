@@ -38,7 +38,10 @@ against it.
 3. Split code into data, calculations, and actions; maximize data/calculations
    and minimize actions.
 4. Parse at boundaries into trusted internal shapes; do not pass raw external
-   data inward.
+   data inward. Where the language has a dominant, mature schema/validation
+   library (Pydantic in Python, Zod in TypeScript), parse with it rather than
+   hand-rolling validators, unless the project already standardizes on another.
+   Where no clear leader exists, hand-roll against the same discipline.
 5. Make illegal states unrepresentable with explicit alternatives, not
    flag/null combinations.
 6. Model workflows as `Input -> Result<Output, Error>` pipelines where errors
@@ -120,6 +123,8 @@ Use these when the shortcut thought appears:
   abstraction.
 - About to name a method `process`, `handle`, `execute`, `manage`, or `run`:
   name its role in the domain process instead.
+- About to hand-roll boundary validation in a language with a de-facto standard:
+  reach for it (Pydantic, Zod, ...) instead, honoring any existing project choice.
 
 ## Handoffs
 
