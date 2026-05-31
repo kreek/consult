@@ -1,36 +1,31 @@
 import * as os from "node:os";
 import * as path from "node:path";
-import type { ExecutionProfile, ProjectEvalConfig } from "do-eval";
+import type { ProjectEvalConfig } from "do-eval";
 
 const provider = process.env["CONSULT_EVAL_PROVIDER"] ?? "openai";
 const model = process.env["CONSULT_EVAL_MODEL"] ?? "gpt-5.5";
 const judgeModel = process.env["CONSULT_EVAL_JUDGE_MODEL"] ?? "gpt-5.5";
 const reasoningEffort = process.env["CONSULT_EVAL_REASONING_EFFORT"] ?? "medium";
 const codexReasoningArgs = ["-c", `model_reasoning_effort="${reasoningEffort}"`];
+const epochs = Number(process.env["CONSULT_EVAL_EPOCHS"] ?? 1);
 
 const CONSULT_REPO_ROOT = path.resolve(import.meta.dirname, "..");
 
-const baselineCodexAgent: ExecutionProfile["agent"] = {
+// One bare codex agent. Consult is NOT configured here — it is applied through
+// the profile's setup.layers (a codex plugin-install layer + a skill-library
+// layer). do-eval's per-profile baseline strips those layers (`bareProfileOf`)
+// while keeping this agent verbatim, so the auto-derived baseline is genuinely
+// bare codex and `lift` measures exactly what Consult adds.
+const codexAgent = {
   harness: "codex",
   provider,
   model,
   codex: {
     isolateHome: true,
     ignoreUserConfig: true,
-    extraArgs: ["--disable", "plugins", ...codexReasoningArgs],
+    extraArgs: codexReasoningArgs,
   },
-};
-
-const consultCodexAgent: ExecutionProfile["agent"] = {
-  harness: "codex",
-  provider,
-  model,
-  codex: {
-    isolateHome: true,
-    pluginMarketplaces: [CONSULT_REPO_ROOT],
-    extraArgs: ["-c", 'plugins."consult@consult".enabled=true', ...codexReasoningArgs],
-  },
-};
+} as const;
 
 const skillLayerCapabilities = [
   "accessibility",
@@ -58,26 +53,27 @@ const skillLayerCapabilities = [
 
 const config: ProjectEvalConfig = {
   profiles: {
-    codexBaseline: {
-      id: "codexBaseline",
-      label: "Codex baseline",
-      agent: baselineCodexAgent,
-      factors: {
-        harness: "codex",
-        provider,
-        model,
-        reasoningEffort,
-        layers: [],
-      },
-    },
     codexWithConsultSkills: {
       id: "codexWithConsultSkills",
       label: "Codex + Consult skills",
-      agent: consultCodexAgent,
+      agent: codexAgent,
       setup: {
         layers: [
+          // Registers the Consult codex plugin marketplace and enables it.
+          // do-eval injects `pluginMarketplaces: [source]` and
+          // `-c plugins."consult@consult".enabled=true` from this layer (the
+          // layer id is the codex plugin slug: consult@consult).
           {
             id: "consult",
+            kind: "plugin",
+            mode: "install",
+            runtime: "codex",
+            source: CONSULT_REPO_ROOT,
+            capabilities: skillLayerCapabilities,
+          },
+          // Mirrors the canonical skill files into the workdir's .codex/skills.
+          {
+            id: "consult-skills",
             kind: "skill-library",
             runtime: "codex",
             source: "../agents/.agents/skills",
@@ -101,56 +97,11 @@ const config: ProjectEvalConfig = {
       },
     },
   },
-  benches: {
-    smoke: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      reuseBaseline: true,
-      requireJudge: true,
-      requiredDeterministicScores: {
-        baseline_isolation: 100,
-        consult_activation: 100,
-      },
-    },
-    core: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      epochs: 3,
-      reuseBaseline: true,
-    },
-    allSkills: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      epochs: 1,
-      reuseBaseline: true,
-    },
-    routing: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      epochs: 3,
-      reuseBaseline: true,
-    },
-    engineeringMaturity: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      epochs: 1,
-      reuseBaseline: true,
-    },
-    largeProject: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      epochs: 1,
-      reuseBaseline: true,
-    },
-    linkShortener: {
-      profiles: ["codexBaseline", "codexWithConsultSkills"],
-      baseline: "codexBaseline",
-      epochs: 1,
-      reuseBaseline: true,
-    },
-  },
   defaultProfile: "codexWithConsultSkills",
   defaultPlugin: "engineering-maturity",
+  // Global epoch count. Per-suite repetition (formerly the 3-epoch core/routing
+  // benches) is recovered at the script layer via CONSULT_EVAL_EPOCHS.
+  epochs,
   runsDir: process.env["CONSULT_EVAL_RUNS_DIR"] ?? path.join(os.homedir(), ".cache", "consult", "eval", "runs"),
   judge: {
     provider: "openai-codex",
@@ -167,7 +118,7 @@ const config: ProjectEvalConfig = {
     maxToolCalls: 200,
     maxBlockedCalls: 0,
   },
-  defaultLaunchType: "bench",
+  defaultLaunchType: "suite",
 };
 
 export default config;

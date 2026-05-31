@@ -3234,6 +3234,7 @@ snapshots:
       '@mariozechner/pi-tui': 0.67.68
       tsx: 4.22.3
       yaml: 2.9.0
+      zod: 4.4.3
 
   eastasianwidth@0.2.0: {}
 

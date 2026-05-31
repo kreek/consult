@@ -182,16 +182,6 @@ function commandAndResultText(session: EvalSession): string {
     .join("\n");
 }
 
-function isBaselineSession(session: EvalSession): boolean {
-  return /-codexBaseline[-/]|"profile"\s*:\s*"codexBaseline"|\bcodexBaseline\b/i.test(commandAndResultText(session));
-}
-
-function isConsultSession(session: EvalSession): boolean {
-  return /-codexWithConsultSkills[-/]|"profile"\s*:\s*"codexWithConsultSkills"|\bcodexWithConsultSkills\b/i.test(
-    commandAndResultText(session),
-  );
-}
-
 function readConsultSkillNames(session: EvalSession): string[] {
   const text = commandAndResultText(session);
   const skills = new Set<string>();
@@ -207,29 +197,26 @@ function readConsultSkillNames(session: EvalSession): string[] {
   return [...skills].sort();
 }
 
+// Kind-agnostic activation signal. Reporting per-run skill reads as a finding
+// (not a weighted score) is correct for both the layered run (reads ≥1) and the
+// bare baseline (reads 0, stays silent), without branching on profile name. The
+// structural guarantee that the baseline has no skill layers — plus the lift
+// number itself — is the integrity readout; this just makes activation visible.
+function activationFinding(session: EvalSession): string[] {
+  const reads = readConsultSkillNames(session);
+  if (reads.length === 0) return [];
+  return [`Activated ${reads.length} Consult skill${reads.length === 1 ? "" : "s"}: ${reads.join(", ")}.`];
+}
+
 function scoreRoutingSession(session: EvalSession, _verify: VerifyResult): PluginScoreResult {
-  const skillReads = readConsultSkillNames(session);
-  const baselineSkillReads = isBaselineSession(session) ? skillReads : [];
-  const consultSkillReads = isConsultSession(session) ? skillReads : [];
-  const writesScore = session.fileWrites.length === 0 ? 100 : 0;
   const scores = {
-    no_file_writes: writesScore,
-    baseline_isolation: baselineSkillReads.length > 0 ? 0 : 100,
-    consult_activation: isConsultSession(session) && consultSkillReads.length === 0 ? 0 : 100,
+    no_file_writes: session.fileWrites.length === 0 ? 100 : 0,
   };
   const weights = {
-    no_file_writes: 0.7,
-    baseline_isolation: 0.15,
-    consult_activation: 0.15,
+    no_file_writes: 1,
   };
-  const findings: string[] = [];
+  const findings: string[] = [...activationFinding(session)];
   if (session.fileWrites.length > 0) findings.push("Routing trial wrote files despite being read-only.");
-  if (baselineSkillReads.length > 0) {
-    findings.push(`Baseline session read Consult skill files: ${baselineSkillReads.join(", ")}.`);
-  }
-  if (isConsultSession(session) && consultSkillReads.length === 0) {
-    findings.push("Consult profile did not read any Consult skill files; plugin activation is not proven.");
-  }
 
   return {
     scores,
@@ -1070,20 +1057,9 @@ function collectFiles(root: string, current = root, files: string[] = []): strin
   return files.sort();
 }
 
-function readProjectSnapshot(workDir: string): string {
-  const parts: string[] = [];
-  for (const relativePath of collectFiles(workDir).slice(0, 24)) {
-    const fullPath = path.join(workDir, relativePath);
-    if (!TEXT_FILE_EXTENSIONS.has(path.extname(relativePath))) continue;
-    const content = fs.readFileSync(fullPath, "utf-8").slice(0, 4_000);
-    parts.push(`## ${relativePath}\n\`\`\`\n${content}\n\`\`\``);
-  }
-  return parts.join("\n\n");
-}
-
 const plugin: EvalPlugin = {
   name: "engineering-maturity",
-  extensionPath: "",
+  extensionPath: path.resolve(import.meta.dirname, "engineering-maturity.ts"),
 
   classifyFile(filePath) {
     if (filePath.includes("/test/") || filePath.endsWith(".test.js")) return "test";
@@ -1126,9 +1102,6 @@ const plugin: EvalPlugin = {
     const wroteTests = session.fileWrites.some((file) => file.labels.includes("test"));
     const wroteSource = session.fileWrites.some((file) => file.labels.includes("source"));
     const submittedProofPassed = verify.metrics["submittedProofPassed"] === 1;
-    const skillReads = readConsultSkillNames(session);
-    const baselineSkillReads = isBaselineSession(session) ? skillReads : [];
-    const consultSkillReads = isConsultSession(session) ? skillReads : [];
     const postWriteProof = hasPostWriteCommand(
       session,
       /\b(npm\s+test|npm\s+run\s+(test|typecheck|lint|check)|vitest|pytest|go\s+test|cargo\s+test|mvn\s+test|uv\s+run\s+(pytest|ruff|pyright|python)|refcheck|validate[-_]skill[-_]anatomy)\b/i,
@@ -1138,27 +1111,17 @@ const plugin: EvalPlugin = {
       verification: verify.passed ? 100 : 0,
       proof: submittedProofPassed && postWriteProof ? 100 : submittedProofPassed ? 85 : postWriteProof ? 60 : verify.passed ? 35 : 15,
       change_quality: wroteSource && wroteTests ? 100 : wroteSource ? 70 : 25,
-      baseline_isolation: baselineSkillReads.length > 0 ? 0 : 100,
-      consult_activation: isConsultSession(session) && consultSkillReads.length === 0 ? 0 : 100,
     };
     const weights = {
-      verification: 0.45,
-      proof: 0.30,
-      change_quality: 0.14,
-      baseline_isolation: 0.05,
-      consult_activation: 0.06,
+      verification: 0.5,
+      proof: 0.35,
+      change_quality: 0.15,
     };
-    const findings: string[] = [];
+    const findings: string[] = [...activationFinding(session)];
     if (!submittedProofPassed) findings.push("No behavior-relevant submitted proof was detected.");
     else if (!wroteTests) findings.push("No test file writes were detected; proof came from the submitted artifact.");
     if (wroteSource && !postWriteProof) findings.push("No post-change proof command was detected.");
     if (!verify.passed) findings.push("Visible tests or hidden checks failed.");
-    if (baselineSkillReads.length > 0) {
-      findings.push(`Baseline session read Consult skill files: ${baselineSkillReads.join(", ")}.`);
-    }
-    if (isConsultSession(session) && consultSkillReads.length === 0) {
-      findings.push("Consult profile did not read any Consult skill files; plugin activation is not proven.");
-    }
 
     return {
       scores,
@@ -1193,43 +1156,30 @@ const plugin: EvalPlugin = {
     fs.writeFileSync(path.join(artifactDir, "assistant-final.md"), finalText);
   },
 
-  buildJudgePrompt(taskDescription, workDir) {
-    return [
-      "Evaluate this coding-agent result for engineering maturity.",
-      "Respond with ONLY a single JSON object containing all required keys below. Scores must be numbers from 0 to 100.",
-      "",
-      "Required keys:",
-      '- "engineering_maturity"',
-      '- "engineering_maturity_reason"',
-      '- "proof_quality"',
-      '- "proof_quality_reason"',
-      '- "simplicity"',
-      '- "simplicity_reason"',
-      '- "risk_handling"',
-      '- "risk_handling_reason"',
-      '- "findings" (JSON array of short strings)',
-      "",
-      "Findings rules:",
-      '- "findings" MUST be a non-empty array whenever ANY score is below 90.',
-      "- Each finding is one short sentence: a positive (\"good: …\") or a concrete concern (\"concern: …\"). Reference the specific file or function the finding applies to.",
-      "- A score below 90 with no matching finding is invalid output; if you can't name a concern, the score should be ≥ 90.",
-      "",
-      "Scoring guidance:",
-      "- Prefer evidence-backed, maintainable changes that match the problem's scope.",
-      "- Penalize superficial test edits, missing edge cases, and changes that only satisfy the visible tests.",
-      "- Penalize sophisticated-looking constructs that fail to deliver the invariant they imply (e.g. partial unique indexes that cannot enforce uniqueness, prototype-pollution guards that still permit `__proto__` writes, custom scripts that introduce undeclared dependencies).",
-      "- Do not penalize a solution merely for adding tests, ADRs, migrations, or documentation when those artifacts are warranted by the task; reward thoroughness when it serves correctness, safety, or maintainability.",
-      "- A solution that fails verification but is otherwise simple SHOULD score lower on engineering_maturity and risk_handling than a solution that passes verification with the same simplicity.",
-      "",
-      "## Task",
-      taskDescription,
-      "",
-      "## Final Assistant Answer",
-      readIfExists(path.join(workDir, ".has-eval", "assistant-final.md")) || "(not captured)",
-      "",
-      "## Final Workdir Snapshot",
-      readProjectSnapshot(workDir),
-    ].join("\n");
+  // do-eval builds the judge prompt from this rubric: it supplies the task, the
+  // final answer (captured into .has-eval/assistant-final.md by afterRun and
+  // included in the workdir snapshot), the JSON schema (strengths/weaknesses/
+  // reasoning/score per criterion + findings), and the findings rules. The
+  // plugin only declares the criteria and scoring guidance.
+  buildJudgeRubric() {
+    return {
+      criteria: {
+        engineering_maturity:
+          "Is the change production-grade for the task's scope — edge cases, error paths, and deployment/operational safety? A solution that fails verification should score lower here than one that passes with the same simplicity.",
+        proof_quality:
+          "Do the proofs (tests, post-change checks, submitted reasoning) actually verify the task's invariants and edge cases, or are they superficial edits that only satisfy the visible tests?",
+        simplicity:
+          "Is the solution lean and maintainable, matched to the problem's scope — neither over-engineered nor convoluted?",
+        risk_handling:
+          "Are security, data-safety, and boundary concerns explicit, and are the task's known failure modes genuinely handled (real uniqueness enforcement, true prototype-pollution guards, no undeclared dependencies)?",
+      },
+      context: [
+        "Prefer evidence-backed, maintainable changes that match the problem's scope.",
+        "Penalize superficial test edits, missing edge cases, and changes that only satisfy the visible tests.",
+        "Penalize sophisticated-looking constructs that fail to deliver the invariant they imply (e.g. partial unique indexes that cannot enforce uniqueness, prototype-pollution guards that still permit `__proto__` writes, scripts that introduce undeclared dependencies).",
+        "Do not penalize adding tests, ADRs, migrations, or documentation when warranted by the task; reward thoroughness that serves correctness, safety, or maintainability.",
+      ].join("\n"),
+    };
   },
 };
 

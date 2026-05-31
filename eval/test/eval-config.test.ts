@@ -36,7 +36,6 @@ const expectedReadmeSkills = [
 const checkedFixtureExtensions = new Set([".html", ".js", ".json", ".md", ".sql", ".txt", ".ts"]);
 const suites = loadFileSuites(evalDir);
 const profiles = config.profiles ?? {};
-const benches = config.benches ?? {};
 const coreTrials = new Set([
   "proof-first-bugfix",
   "security-boundary-fix",
@@ -106,102 +105,38 @@ function routingVerify(): VerifyResult {
 }
 
 describe("Consult eval config", () => {
-  it("defines a baseline Codex profile and a Codex profile with the Consult plugin", () => {
-    const baseline = profiles["codexBaseline"];
+  it("defines a single Codex profile that activates Consult through strippable layers", () => {
+    expect(Object.keys(profiles)).toEqual(["codexWithConsultSkills"]);
     const withConsult = profiles["codexWithConsultSkills"];
-    if (!baseline || !withConsult) throw new Error("Expected Codex profiles");
+    if (!withConsult) throw new Error("Expected the Consult profile");
 
-    expect(baseline.agent.harness).toBe("codex");
-    expect(baseline.factors.layers).toEqual([]);
-    expect(baseline.agent.codex?.isolateHome).toBe(true);
-    expect(baseline.agent.codex?.ignoreUserConfig).toBe(true);
-    expect(baseline.agent.codex?.pluginMarketplaces ?? []).toEqual([]);
-    expect(baseline.agent.codex?.extraArgs).toEqual([
-      "--disable",
-      "plugins",
-      "-c",
-      'model_reasoning_effort="medium"',
-    ]);
-    expect(baseline.factors["reasoningEffort"]).toBe("medium");
-
+    // The agent is bare codex — no marketplace, no enable flag. Consult is
+    // applied entirely through setup.layers, so do-eval's bareProfileOf (strips
+    // layers, keeps the agent) yields a genuinely bare baseline for lift.
     expect(withConsult.agent.harness).toBe("codex");
     expect(withConsult.agent.codex?.isolateHome).toBe(true);
-    expect(withConsult.agent.codex?.ignoreUserConfig).not.toBe(true);
+    expect(withConsult.agent.codex?.ignoreUserConfig).toBe(true);
+    expect(withConsult.agent.codex?.pluginMarketplaces ?? []).toEqual([]);
+    expect(withConsult.agent.codex?.extraArgs ?? []).not.toContain('plugins."consult@consult".enabled=true');
+    expect(withConsult.agent.codex?.extraArgs).toEqual(["-c", 'model_reasoning_effort="medium"']);
+
+    const setupLayers = withConsult.setup?.layers ?? [];
+    const pluginLayer = setupLayers.find((layer) => layer.kind === "plugin");
+    const skillLayer = setupLayers.find((layer) => layer.kind === "skill-library");
+    expect(pluginLayer).toMatchObject({ id: "consult", kind: "plugin", mode: "install", runtime: "codex" });
+    expect(skillLayer).toMatchObject({ kind: "skill-library", runtime: "codex", source: "../agents/.agents/skills" });
+
+    const marketplaceSource = path.resolve(evalDir, pluginLayer?.source ?? "");
+    expect(fs.existsSync(path.join(marketplaceSource, "plugin", ".codex-plugin", "plugin.json"))).toBe(true);
+    expect(fs.existsSync(path.resolve(evalDir, skillLayer?.source ?? ""))).toBe(true);
+
     expect(withConsult.factors.layers).toEqual([
-      expect.objectContaining({
-        id: "consult",
-        kind: "plugin",
-        runtime: "codex",
-      }),
+      expect.objectContaining({ id: "consult", kind: "plugin", runtime: "codex" }),
     ]);
-    expect(withConsult.setup?.layers).toEqual([
-      expect.objectContaining({
-        id: "consult",
-        kind: "skill-library",
-        runtime: "codex",
-        source: "../agents/.agents/skills",
-      }),
-    ]);
-    expect(fs.existsSync(path.resolve(evalDir, withConsult.setup?.layers?.[0]?.source ?? ""))).toBe(true);
-    const marketplaceSource = withConsult.agent.codex?.pluginMarketplaces?.[0];
-    expect(marketplaceSource, "Consult profile must register the local repo as a codex plugin marketplace").toBeDefined();
-    expect(fs.existsSync(path.resolve(marketplaceSource ?? ""))).toBe(true);
-    expect(fs.existsSync(path.join(marketplaceSource ?? "", "plugin", ".codex-plugin", "plugin.json"))).toBe(true);
-    expect(withConsult.agent.codex?.extraArgs).toEqual(
-      expect.arrayContaining(["-c", expect.stringContaining('plugins."consult@consult".enabled=true')]),
-    );
-    expect(withConsult.agent.codex?.extraArgs).toEqual(
-      expect.arrayContaining(["-c", 'model_reasoning_effort="medium"']),
-    );
     expect(withConsult.factors["reasoningEffort"]).toBe("medium");
+    expect(config.defaultProfile).toBe("codexWithConsultSkills");
+    expect(config.defaultLaunchType).toBe("suite");
     expect(config.judge?.thinking).toBe("medium");
-  });
-
-  it("makes the all-skills bench compare against an explicit baseline", () => {
-    const bench = benches["allSkills"];
-    if (!bench) throw new Error("Expected allSkills bench");
-    expect(bench.baseline).toBe("codexBaseline");
-    expect(bench.profiles).toEqual(["codexBaseline", "codexWithConsultSkills"]);
-    expect(getSuite("allSkills").length).toBeGreaterThan(0);
-    expect(bench.epochs).toBe(1);
-  });
-
-  it("keeps smoke cheap and focused on harness wiring", () => {
-    const bench = benches["smoke"];
-    if (!bench) throw new Error("Expected smoke bench");
-    expect(bench.baseline).toBe("codexBaseline");
-    expect(bench.profiles).toEqual(["codexBaseline", "codexWithConsultSkills"]);
-    expect(bench.requireJudge).toBe(true);
-    expect(bench.requiredDeterministicScores).toEqual({
-      baseline_isolation: 100,
-      consult_activation: 100,
-    });
-    expect(getSuite("smoke").map((entry) => entry.trial)).toEqual(["routing-checkout-payment"]);
-  });
-
-  it("adds a routing bench that compares Consult against the same baseline", () => {
-    const bench = benches["routing"];
-    if (!bench) throw new Error("Expected routing bench");
-    expect(bench.baseline).toBe("codexBaseline");
-    expect(bench.profiles).toEqual(["codexBaseline", "codexWithConsultSkills"]);
-    expect(getSuite("routing").map((entry) => entry.trial)).toEqual([
-      "routing-checkout-payment",
-      "routing-worker-retry",
-      "routing-settings-copy",
-      "routing-customer-email-migration",
-    ]);
-  });
-
-  it("adds a one-trial large project bench", () => {
-    const bench = benches["largeProject"];
-    if (!bench) throw new Error("Expected largeProject bench");
-    expect(bench.baseline).toBe("codexBaseline");
-    expect(bench.profiles).toEqual(["codexBaseline", "codexWithConsultSkills"]);
-    expect(bench.epochs).toBe(1);
-    expect(getSuite("largeProject").map((entry) => entry.trial)).toEqual([
-      "large-checkout-workflow",
-      "large-link-shortener",
-    ]);
   });
 
   it("defines lightweight, core, and all-skills suites", () => {
@@ -212,15 +147,6 @@ describe("Consult eval config", () => {
       "largeProject",
       "linkShortener",
       "regressionCheck",
-      "routing",
-      "smoke",
-    ]);
-    expect(Object.keys(benches).sort()).toEqual([
-      "allSkills",
-      "core",
-      "engineeringMaturity",
-      "largeProject",
-      "linkShortener",
       "routing",
       "smoke",
     ]);
@@ -401,8 +327,8 @@ describe("Consult eval config", () => {
     const result = maturityPlugin.scoreSession(session, routingVerify());
 
     expect(result.scores["no_file_writes"]).toBe(100);
-    expect(result.scores["baseline_isolation"]).toBe(100);
-    expect(result.scores["consult_activation"]).toBe(100);
+    expect(result.scores).not.toHaveProperty("baseline_isolation");
+    expect(result.scores).not.toHaveProperty("consult_activation");
     expect(result.scores).not.toHaveProperty("routing");
     expect(result.scores).not.toHaveProperty("exclusions");
     expect(result.scores).not.toHaveProperty("proof_plan");
@@ -486,79 +412,13 @@ describe("Consult eval config", () => {
     expect(result.findings).toContain("No behavior-relevant submitted proof was detected.");
   });
 
-  it("flags baseline sessions that read Consult skill files", () => {
+  it("reports Consult skill reads as a finding, not a weighted score", () => {
     const session = stubSession([], {
       toolCalls: [
         {
           timestamp: 1,
           name: "command_execution",
-          arguments: { command: "/bin/zsh -lc pwd" },
-          resultText: "/tmp/run-proof-first-bugfix-default-codexBaseline-123/workdir\n",
-          wasBlocked: false,
-        },
-        {
-          timestamp: 2,
-          name: "command_execution",
-          arguments: {
-            command:
-              "/bin/zsh -lc \"sed -n '1,120p' /repo/agents/.agents/skills/scaffolding/SKILL.md\"",
-          },
-          resultText: "# Scaffolding\n",
-          wasBlocked: false,
-        },
-      ],
-    });
-
-    const result = maturityPlugin.scoreSession(session, {
-      passed: true,
-      output: "ok",
-      metrics: { submittedProofPassed: 1 },
-    });
-
-    expect(result.scores["baseline_isolation"]).toBe(0);
-    expect(result.findings).toContain("Baseline session read Consult skill files: scaffolding.");
-  });
-
-  it("flags Consult sessions that never read a Consult skill file", () => {
-    const session = stubSession([], {
-      toolCalls: [
-        {
-          timestamp: 1,
-          name: "command_execution",
-          arguments: { command: "/bin/zsh -lc pwd" },
-          resultText: "/tmp/run-proof-first-bugfix-default-codexWithConsultSkills-123/workdir\n",
-          wasBlocked: false,
-        },
-      ],
-    });
-
-    const result = maturityPlugin.scoreSession(session, {
-      passed: true,
-      output: "ok",
-      metrics: { submittedProofPassed: 1 },
-    });
-
-    expect(result.scores["consult_activation"]).toBe(0);
-    expect(result.findings).toContain("Consult profile did not read any Consult skill files; plugin activation is not proven.");
-  });
-
-  it("accepts Consult sessions that read a focused Consult skill file", () => {
-    const session = stubSession([], {
-      toolCalls: [
-        {
-          timestamp: 1,
-          name: "command_execution",
-          arguments: { command: "/bin/zsh -lc pwd" },
-          resultText: "/tmp/run-proof-first-bugfix-default-codexWithConsultSkills-123/workdir\n",
-          wasBlocked: false,
-        },
-        {
-          timestamp: 2,
-          name: "command_execution",
-          arguments: {
-            command:
-              "/bin/zsh -lc \"sed -n '1,120p' .codex/skills/proof/SKILL.md\"",
-          },
+          arguments: { command: "/bin/zsh -lc \"sed -n '1,120p' .codex/skills/proof/SKILL.md\"" },
           resultText: "# Proof\n",
           wasBlocked: false,
         },
@@ -571,8 +431,35 @@ describe("Consult eval config", () => {
       metrics: { submittedProofPassed: 1 },
     });
 
-    expect(result.scores["consult_activation"]).toBe(100);
-    expect(result.findings).not.toContain("Consult profile did not read any Consult skill files; plugin activation is not proven.");
+    // Activation is observable as a finding (correct for the layered run) and is
+    // not a weighted score that would otherwise tank the bare baseline's overall.
+    expect(result.findings).toContain("Activated 1 Consult skill: proof.");
+    expect(result.scores).not.toHaveProperty("consult_activation");
+    expect(result.scores).not.toHaveProperty("baseline_isolation");
+  });
+
+  it("stays silent on activation when no Consult skills are read (the bare baseline)", () => {
+    const session = stubSession([], {
+      toolCalls: [
+        {
+          timestamp: 1,
+          name: "command_execution",
+          arguments: { command: "/bin/zsh -lc pwd" },
+          resultText: "/tmp/workdir\n",
+          wasBlocked: false,
+        },
+      ],
+    });
+
+    const result = maturityPlugin.scoreSession(session, {
+      passed: true,
+      output: "ok",
+      metrics: { submittedProofPassed: 1 },
+    });
+
+    expect(result.findings.some((finding) => finding.startsWith("Activated"))).toBe(false);
+    expect(result.scores).not.toHaveProperty("consult_activation");
+    expect(result.scores).not.toHaveProperty("baseline_isolation");
   });
 
   it("does not count skill loads as a deterministic score dimension", () => {
