@@ -6,6 +6,19 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.6.0] (2026-05-31)
+
+### Changed
+
+- Steered `domain-modeling` toward each language's standard parsing library. The
+  skill described parsing at boundaries in language-agnostic terms, so at
+  modeling time the model hand-rolled validators instead of reaching for the
+  ecosystem's dominant tool (Pydantic in Python, Zod in TypeScript); that
+  knowledge only lived in `code-review`'s language references, too late to shape
+  the model. Core idea #4 now names the rule and a new tripwire reinforces it,
+  guarded so it does not misfire where no clear leader exists or the project
+  already standardized on another.
+
 ## [11.5.1] (2026-05-29)
 
 ### Changed
