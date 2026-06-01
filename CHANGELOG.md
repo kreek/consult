@@ -6,6 +6,19 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.7.0] (2026-06-01)
+
+### Changed
+
+- Aligned `workflow` with active-host mechanics. Consult now states that it owns
+  engineering judgment and proof while the active agent host owns tool
+  invocation, permission prompts, built-in skill workflows, and final response
+  shape. The close step still requires outcome, evidence, and remaining risk,
+  but no longer forces fixed labels.
+- Removed the installable Claude instruction file and stopped shipped scaffold
+  guidance from depending on `AGENTS.md`, keeping agent instruction files
+  maintainer-only rather than part of the Consult skill library.
+
 ## [11.6.0] (2026-05-31)
 
 ### Changed

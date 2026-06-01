@@ -41,26 +41,32 @@ description: Use first for every coding task to route risks, choose skills, and 
    leave the user with a clearer model of the system, the change, and the
    evidence. An agent that cannot clearly explain its change should stop and
    clarify, not push further.
-3. **Autonomous by default; consult before significant or durable decisions.**
+3. **Consult owns engineering judgment; the host owns mechanics.** Use Consult
+   to decide what must be understood, approved, reviewed, and proven. Follow
+   the active agent host for tool invocation, sandbox or permission prompts,
+   built-in skill workflows, and final response shape. If host mechanics and
+   Consult prose pull in different directions, preserve the Consult outcome
+   requirement inside the host's required format.
+4. **Autonomous by default; consult before significant or durable decisions.**
    Proceed on routine, local, and disposable implementation. A decision is
    significant or durable when it commits to substantial modules or components,
    non-trivial logic or algorithms, deliberate behavior changes, caller-facing
    contracts, shared structure, structural dependencies, data models, or
    boundaries future work will rely on. Those get plan or shape sign-off before
    implementation.
-4. **Default to the smallest honest solution.** Implement only what was asked,
+5. **Default to the smallest honest solution.** Implement only what was asked,
    prefer established tools, start with the happy path unless safety or data
    loss demands edge cases now, and add abstractions only after real semantic
    duplication appears.
-5. **Compose over inherit.** Build behavior from small data transformations
+6. **Compose over inherit.** Build behavior from small data transformations
    and explicit interfaces. Reach for inheritance only when a framework or
    interop boundary requires it.
-6. **Don't repeat yourself.** Each rule or piece of behavior gets one
+7. **Don't repeat yourself.** Each rule or piece of behavior gets one
    authoritative, well-named home, and the rest of the system reuses it
    instead of restating it: one place to change a behavior, one place to
    understand it. This is about duplicated *intent*, not code that merely
    looks similar.
-7. **Adopt before build.** Before writing code for a solved problem, audit
+8. **Adopt before build.** Before writing code for a solved problem, audit
    the ecosystem. For structural runtime choices, ground the options in
    project sources, applicable best practices, or current official sources
    when you are unsure or facing a novel problem; then ask before selecting or
@@ -141,12 +147,9 @@ description: Use first for every coding task to route risks, choose skills, and 
    behavior with specs via `proof`, then run a `code-review` self-review pass (at
    least once) and fix what it finds. Repeat until the specs pass and the review
    finds nothing to fix; only then do any needed documentation or release work.
-8. **Close with scope and evidence.** Present the close under these labels:
-
-   - **Changed:** <what changed>
-   - **Why it's better:** <how it improves on what came before>
-   - **Evidence:** <what was proven; what remains unproven>
-   - **Needs your attention:** <decisions, risks, what to review>
+8. **Close with scope and evidence.** Name what changed, why it matters, what
+   evidence proves it, and what still needs attention. Follow the active host's
+   final-answer rules.
 
 ## Verification
 
