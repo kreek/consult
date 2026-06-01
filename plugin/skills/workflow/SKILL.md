@@ -141,12 +141,9 @@ description: Use first for every coding task to route risks, choose skills, and 
    behavior with specs via `proof`, then run a `code-review` self-review pass (at
    least once) and fix what it finds. Repeat until the specs pass and the review
    finds nothing to fix; only then do any needed documentation or release work.
-8. **Close with scope and evidence.** Present the close under these labels:
-
-   - **Changed:** <what changed>
-   - **Why it's better:** <how it improves on what came before>
-   - **Evidence:** <what was proven; what remains unproven>
-   - **Needs your attention:** <decisions, risks, what to review>
+8. **Close with scope and evidence.** Name what changed, why it matters, what
+   evidence proves it, and what still needs attention. Follow the active host's
+   final-answer rules.
 
 ## Verification
 

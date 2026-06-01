@@ -9,7 +9,7 @@ authoritative framework / runtime / tooling docs.
 Languages and ordering below mirror the stack catalog
 (`references/stacks/<language>/`); the catalog is the source of
 truth for which languages Consult scaffolds. Package-manager defaults
-live in `AGENTS.md`.
+are named below when they are part of the scaffold decision.
 
 ## TypeScript / Node
 
