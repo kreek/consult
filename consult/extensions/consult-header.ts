@@ -8,9 +8,9 @@ const ANSI_PATTERN = /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d
 const CONSULT_VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
 
 const LOGO_LINES = [
-  "┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸",
-  "┃  ┃ ┃┃┗┫┗━┓┃ ┃┃   ┃ ",
-  "┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸ ╹ ",
+  "┏━╸┏━┓┏┓╻┏━┓╻ ╻╻ ╺┳╸",
+  "┃  ┃ ┃┃┗┫┗━┓┃ ┃┃  ┃ ",
+  "┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸╹ ",
 ];
 
 function plainLength(text) {

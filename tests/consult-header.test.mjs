@@ -45,9 +45,9 @@ describe("Consult Pi startup header", () => {
     const lines = renderConsultHeader(80, "test-model", "test-provider");
     const plainText = lines.join("\n");
 
-    expect(plainText).toContain("┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸");
-    expect(plainText).toContain("┃  ┃ ┃┃┗┫┗━┓┃ ┃┃   ┃ ");
-    expect(plainText).toContain("┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸ ╹ ");
+    expect(plainText).toContain("┏━╸┏━┓┏┓╻┏━┓╻ ╻╻ ╺┳╸");
+    expect(plainText).toContain("┃  ┃ ┃┃┗┫┗━┓┃ ┃┃  ┃ ");
+    expect(plainText).toContain("┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸╹ ");
     expect(plainText).not.toContain(" / __ )/ __ \\");
     expect(plainText).toContain(`(test-provider) test-model · consult ${consultPackage.version}`);
     expect(plainText).not.toContain("test-model · repo");
@@ -61,7 +61,7 @@ describe("Consult Pi startup header", () => {
   it("colors the startup logo with pi's context green", () => {
     const lines = renderConsultHeader(80, "test-model", "test-provider");
 
-    expect(lines.join("\n")).toContain("\x1b[38;2;181;189;104m┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸");
+    expect(lines.join("\n")).toContain("\x1b[38;2;181;189;104m┏━╸┏━┓┏┓╻┏━┓╻ ╻╻ ╺┳╸");
   });
 
   it("installs the startup header when a UI session starts", async () => {
@@ -74,7 +74,7 @@ describe("Consult Pi startup header", () => {
     expect(ctx.ui.calls).toHaveLength(1);
     const component = ctx.ui.calls[0]({}, { fg: (_name, text) => text });
     const rendered = component.render(80).join("\n");
-    expect(rendered).toContain("┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸");
+    expect(rendered).toContain("┏━╸┏━┓┏┓╻┏━┓╻ ╻╻ ╺┳╸");
     expect(rendered).toContain(`(test-provider) test-model · consult ${consultPackage.version}`);
     expect(rendered).not.toContain("test-model · consult\n");
   });
