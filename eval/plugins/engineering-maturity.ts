@@ -1156,30 +1156,34 @@ const plugin: EvalPlugin = {
     fs.writeFileSync(path.join(artifactDir, "assistant-final.md"), finalText);
   },
 
-  // do-eval builds the judge prompt from this rubric: it supplies the task, the
-  // final answer (captured into .has-eval/assistant-final.md by afterRun and
-  // included in the workdir snapshot), the JSON schema (strengths/weaknesses/
-  // reasoning/score per criterion + findings), and the findings rules. The
-  // plugin only declares the criteria and scoring guidance.
-  buildJudgeRubric() {
-    return {
-      criteria: {
-        engineering_maturity:
-          "Is the change production-grade for the task's scope — edge cases, error paths, and deployment/operational safety? A solution that fails verification should score lower here than one that passes with the same simplicity.",
-        proof_quality:
-          "Do the proofs (tests, post-change checks, submitted reasoning) actually verify the task's invariants and edge cases, or are they superficial edits that only satisfy the visible tests?",
-        simplicity:
-          "Is the solution lean and maintainable, matched to the problem's scope — neither over-engineered nor convoluted?",
-        risk_handling:
-          "Are security, data-safety, and boundary concerns explicit, and are the task's known failure modes genuinely handled (real uniqueness enforcement, true prototype-pollution guards, no undeclared dependencies)?",
-      },
-      context: [
-        "Prefer evidence-backed, maintainable changes that match the problem's scope.",
-        "Penalize superficial test edits, missing edge cases, and changes that only satisfy the visible tests.",
-        "Penalize sophisticated-looking constructs that fail to deliver the invariant they imply (e.g. partial unique indexes that cannot enforce uniqueness, prototype-pollution guards that still permit `__proto__` writes, scripts that introduce undeclared dependencies).",
-        "Do not penalize adding tests, ADRs, migrations, or documentation when warranted by the task; reward thoroughness that serves correctness, safety, or maintainability.",
-      ].join("\n"),
-    };
+  buildJudgePrompt(taskDescription, workDir) {
+    const finalAnswerPath = path.join(workDir, ".has-eval", "assistant-final.md");
+    const finalAnswer = fs.existsSync(finalAnswerPath) ? fs.readFileSync(finalAnswerPath, "utf8").trim() : "";
+
+    return [
+      "Evaluate this coding-agent run. Respond with ONLY a JSON object.",
+      "",
+      "## Task",
+      taskDescription.trim(),
+      "",
+      "## Final answer",
+      finalAnswer || "No final answer was captured.",
+      "",
+      "## Evaluation Criteria",
+      "Score each dimension 0-100 and include a <criterion>_reason string:",
+      '- "engineering_maturity": Production-grade for scope: edge cases, error paths, and deployment/operational safety. A solution that fails verification should score lower than one that passes with the same simplicity.',
+      '- "proof_quality": Proofs verify task invariants and edge cases rather than only satisfying visible tests.',
+      '- "simplicity": Lean and maintainable for the problem scope; neither over-engineered nor convoluted.',
+      '- "risk_handling": Security, data-safety, and boundary concerns are explicit and known failure modes are genuinely handled.',
+      '- "findings": Notable observations as a string array.',
+      "",
+      "Prefer evidence-backed, maintainable changes that match the problem's scope.",
+      "Penalize superficial test edits, missing edge cases, and changes that only satisfy visible tests.",
+      "Penalize sophisticated-looking constructs that fail to deliver the invariant they imply.",
+      "Do not penalize adding tests, ADRs, migrations, or documentation when warranted by the task.",
+      "",
+      "Respond with ONLY the JSON object.",
+    ].join("\n");
   },
 };
 
