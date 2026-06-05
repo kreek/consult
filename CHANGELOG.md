@@ -6,6 +6,12 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.7.2] (2026-06-05)
+
+### Changed
+
+- Tightened the Pi startup header logo spacing between the `L` and `T`.
+
 ## [11.7.1] (2026-06-05)
 
 ### Changed
