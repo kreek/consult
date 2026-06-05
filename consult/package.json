@@ -1,6 +1,6 @@
 {
   "name": "consult",
-  "version": "11.7.0",
+  "version": "11.7.1",
   "description": "Consult for Pi: Consult skills and runtime extensions in one package.",
   "packageManager": "pnpm@10.33.0",
   "type": "module",

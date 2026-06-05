@@ -6,6 +6,15 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.7.1] (2026-06-05)
+
+### Changed
+
+- Updated the Pi startup header to use the compact Future-font Consult logo and
+  show only provider, model, and Consult package version below it.
+- Collapsed the proof widget after passing runs so approval prompts keep the
+  proof count visible without repeating the individual test list.
+
 ## [11.7.0] (2026-06-01)
 
 ### Changed
