@@ -1,17 +1,16 @@
-import path from "node:path";
+// Renders Consult's Pi startup header and session context line.
+import { readFileSync } from "node:fs";
 
 const RESET = "\x1b[0m";
-const BOLD = "\x1b[1m";
 const ACCENT = "\x1b[38;2;181;189;104m";
 const DIM = "\x1b[2m";
 const ANSI_PATTERN = /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
+const CONSULT_VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
 
 const LOGO_LINES = [
-  "   ______ ____   _   __ _____ __  __ __  ______",
-  "  / ____// __ \\ / | / // ___// / / // / /_  __/",
-  " / /    / / / //  |/ / \\__ \\/ / / // /   / /   ",
-  "/ /___ / /_/ // /|  / ___/ / /_/ // /___/ /    ",
-  "\\____/ \\____//_/ |_//____/ \\____//_____/_/     ",
+  "┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸",
+  "┃  ┃ ┃┃┗┫┗━┓┃ ┃┃   ┃ ",
+  "┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸ ╹ ",
 ];
 
 function plainLength(text) {
@@ -28,17 +27,18 @@ function color(text, code) {
   return `${code}${text}${RESET}`;
 }
 
-function projectName() {
-  return path.basename(process.cwd()) || "session";
-}
-
-export function renderConsultHeader(width, contextText) {
-  const title = color("CONSULT", BOLD + ACCENT);
-  const context = color(contextText, DIM);
+/**
+ * Render the Consult startup header for Pi.
+ *
+ * The only text below the ASCII logo is the active model and the installed
+ * Consult package version, keeping the header from repeating the product name.
+ */
+export function renderConsultHeader(width, model, provider) {
+  const modelText = provider ? `(${provider}) ${model}` : model;
+  const context = color(`${modelText} · consult ${CONSULT_VERSION}`, DIM);
   return [
     "",
     ...LOGO_LINES.map((line) => center(color(line, ACCENT), width)),
-    center(title, width),
     center(context, width),
     "",
   ];
@@ -48,7 +48,7 @@ function installHeader(ctx) {
   ctx.ui.setHeader((tui) => ({
     render(width) {
       const model = ctx.model?.id ?? "no model selected";
-      return renderConsultHeader(width, `${model} · ${projectName()}`);
+      return renderConsultHeader(width, model, ctx.model?.provider);
     },
     invalidate() {
       tui.requestRender?.();

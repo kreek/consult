@@ -1,6 +1,10 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import consultHeader, { renderConsultHeader } from "../consult/extensions/consult-header.ts";
+
+const consultPackage = JSON.parse(readFileSync(new URL("../consult/package.json", import.meta.url), "utf8"));
 
 function makePi() {
   const handlers = new Map();
@@ -23,7 +27,7 @@ function makeContext() {
 
   return {
     hasUI: true,
-    model: { id: "test-model" },
+    model: { id: "test-model", provider: "test-provider" },
     ui: {
       calls,
       setHeader(value) {
@@ -37,15 +41,17 @@ function makeContext() {
 }
 
 describe("Consult Pi startup header", () => {
-  it("renders the selected large Consult ASCII header with session context and no border", () => {
-    const lines = renderConsultHeader(80, "test-model · repo");
+  it("renders the selected large Consult ASCII header with provider, model, and Consult version only", () => {
+    const lines = renderConsultHeader(80, "test-model", "test-provider");
     const plainText = lines.join("\n");
 
-    expect(plainText).toContain("   ______ ____   _   __ _____ __  __ __  ______");
-    expect(plainText).toContain("  / ____// __ \\ / | / // ___// / / // / /_  __/");
-    expect(plainText).toContain("\\____/ \\____//_/ |_//____/ \\____//_____/_/");
+    expect(plainText).toContain("┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸");
+    expect(plainText).toContain("┃  ┃ ┃┃┗┫┗━┓┃ ┃┃   ┃ ");
+    expect(plainText).toContain("┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸ ╹ ");
     expect(plainText).not.toContain(" / __ )/ __ \\");
-    expect(plainText).toContain("test-model · repo");
+    expect(plainText).toContain(`(test-provider) test-model · consult ${consultPackage.version}`);
+    expect(plainText).not.toContain("test-model · repo");
+    expect(plainText).not.toContain("\x1b[1m\x1b[38;2;181;189;104mCONSULT");
     expect(plainText).not.toContain("practical guidance");
     expect(plainText).not.toContain("proven software");
     expect(plainText).not.toContain("╭");
@@ -53,9 +59,9 @@ describe("Consult Pi startup header", () => {
   });
 
   it("colors the startup logo with pi's context green", () => {
-    const lines = renderConsultHeader(80, "test-model · repo");
+    const lines = renderConsultHeader(80, "test-model", "test-provider");
 
-    expect(lines.join("\n")).toContain("\x1b[38;2;181;189;104m   ______ ____   _   __ _____ __  __ __  ______");
+    expect(lines.join("\n")).toContain("\x1b[38;2;181;189;104m┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸");
   });
 
   it("installs the startup header when a UI session starts", async () => {
@@ -67,7 +73,10 @@ describe("Consult Pi startup header", () => {
 
     expect(ctx.ui.calls).toHaveLength(1);
     const component = ctx.ui.calls[0]({}, { fg: (_name, text) => text });
-    expect(component.render(80).join("\n")).toContain("CONSULT");
+    const rendered = component.render(80).join("\n");
+    expect(rendered).toContain("┏━╸┏━┓┏┓╻┏━┓╻ ╻╻  ╺┳╸");
+    expect(rendered).toContain(`(test-provider) test-model · consult ${consultPackage.version}`);
+    expect(rendered).not.toContain("test-model · consult\n");
   });
 
   it("registers commands to toggle the startup header for the current session", async () => {
