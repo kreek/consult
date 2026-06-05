@@ -50,6 +50,10 @@ export function renderWidget(snap: WidgetSnapshot, theme: WidgetTheme, width: nu
   if (snap.summary.duration) parts.push(theme.fg("dim", snap.summary.duration));
   if (parts.length > 0) lines.push(`  ${parts.join(theme.fg("dim", " | "))}`);
 
+  if (snap.summary.failed === 0 && snap.summary.passed > 0) {
+    return lines;
+  }
+
   const sortedTests = [...snap.summary.tests].sort((left, right) => Number(left.passed) - Number(right.passed));
   const displayedTests = sortedTests.slice(0, 7);
 
