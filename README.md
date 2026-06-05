@@ -96,9 +96,10 @@ Developing inside this repository with a local plugin copy also duplicates skill
 ### Pi
 
 ```sh
-pi install github:kreek/consult
+pi install git:github.com/kreek/consult
 ```
 
+`github:` is not a Pi package source prefix; use `git:` for GitHub shorthand.
 After installing, run `/reload` inside Pi. Consult includes bundled skills plus
 runtime extensions for `/proof` and `/consult:self-review`.
 

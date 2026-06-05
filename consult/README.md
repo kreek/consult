@@ -13,8 +13,10 @@ Consult skills are bundled in this package under `skills/`. There are no separat
 ## Install
 
 ```sh
-pi install github:kreek/consult
+pi install git:github.com/kreek/consult
 ```
+
+`github:` is not a Pi package source prefix; use `git:` for GitHub shorthand.
 
 Then in Pi:
 
