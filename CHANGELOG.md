@@ -18,6 +18,9 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Removed the installable Claude instruction file and stopped shipped scaffold
   guidance from depending on `AGENTS.md`, keeping agent instruction files
   maintainer-only rather than part of the Consult skill library.
+- Aligned the Pi package version with the other Consult plugin packages, fixed
+  its startup header to spell CONSULT instead of ABP, and corrected the Pi GitHub
+  install source prefix in the docs.
 
 ## [11.6.0] (2026-05-31)
 
