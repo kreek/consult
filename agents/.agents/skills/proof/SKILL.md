@@ -9,205 +9,199 @@ description: Use for proof and tests, claims, invariants, behavior specs, edge c
 
 `NO ENGINEERING CLAIM WITHOUT A NAMED PROOF.`
 
-A named proof is a Proof Contract whose check would fail if the claim were false.
+Prove every non-trivial claim before you call it done. A proof is a named check
+that would fail if the claim were false — point to that check, or mark the claim
+unproven. "The tests pass" doesn't count until you can say which test would
+break if you were wrong.
 
 ## When to Use
 
-Completion gate:
+As a completion gate, before any reply that says or implies the work is done,
+fixed, ready to commit, ready for a PR, or passing:
 
-- Before your next response would state or imply that work is done, fixed,
-  ready to commit, ready for a PR, or passing. Do not settle for a vague
-  `unproven`; name both the claim and the missing evidence.
+- Name the claim and the check that backs it. If there is no check, say what is
+  unproven and which evidence is missing — don't just write `unproven` and move
+  on.
 
-Main skill when the requested work is proof itself:
+As the main skill, when the task is the proof itself:
 
-- Adding or reviewing behavior-focused tests that prove a feature, bug
-  fix, refactor, flaky test fix, or untested behavior.
-- Deciding what deserves coverage and which boundary the proof should
-  enter through.
-- Converting an agreed spec, domain model, contract, or root-cause
-  finding into Proof Contracts and executable checks.
+- Writing or reviewing behavior tests for a feature, bug fix, refactor, flaky
+  test, or any untested behavior.
+- Deciding what needs coverage and which boundary the test should enter through.
+- Turning an agreed spec, domain model, contract, or root-cause finding into
+  Proof Contracts and runnable checks.
 
 ## When NOT to Use
 
-- Pure formatting, typo fixes, or mechanical file moves with no behavior,
-  data, or contract claim.
-- Mechanical refactors with no behavior surface (rename, file move,
-  comment-only edits) verified by tooling or exact artifact inspection.
-  Behavior-preserving refactors that change an observable boundary still need
-  `proof`.
-- Investigating an unconfirmed bug or symptom where the cause is not yet
-  established. Use `debugging` until there is a claim to assert, then
-  return for the Proof Contract.
-- Reviewing changes for design, complexity, naming, or structure. Use
-  `code-review`. Load `proof` only when the question is whether evidence
-  is sufficient.
-- Load testing, profiling, or benchmark design. Use `performance`.
-- Pure toolchain setup (test runner, lint, typecheck baseline). Use
-  `scaffolding`.
+- Formatting, typo fixes, or file moves that change no behavior, data, or
+  contract.
+- Mechanical refactors with no behavior surface — renames, file moves,
+  comment-only edits — that tooling or a direct look at the result already
+  confirms. (If the refactor changes something a caller can observe, you still
+  need `proof`.)
+- Chasing a bug whose cause you haven't pinned down. Use `debugging` first; come
+  back once you have a claim to prove.
+- Judging design, complexity, naming, or structure. Use `code-review`. Reach for
+  `proof` only when the open question is whether the evidence is enough.
+- Load testing, profiling, or benchmarks. Use `performance`.
+- Setting up the test runner, linter, or typecheck baseline. Use `scaffolding`.
 
 ## Where Proof Enters
 
-Component handoffs are the primary proof target. A handoff is where one
-module, layer, or process passes data to another and the receiver assumes a
-contract. Prove behavior where data shape, value, state, or error shape
-changes observably. Tests should still pass against any implementation that
-preserves the contract.
+Test at boundaries. A boundary is any point where one part of the system hands
+data to another and the receiver expects a certain shape — between modules,
+layers, or processes. (This skill also calls these handoffs.) Put the proof
+where the data's shape, value, state, or error visibly changes. A good boundary
+test passes against any implementation that keeps the same contract, so it
+survives refactors.
 
-The outermost caller-visible boundary (HTTP endpoint, CLI, UI, public API)
-is the outermost handoff and always counts as one: it is the seam between
-the system and its caller, and its contract is what the user actually
+The outermost boundary is the one your caller sees: the HTTP endpoint, CLI, UI,
+or public API. It always counts, because its behavior is what the user actually
 depends on.
 
-Handoff tests usually cover internal helpers. Add dedicated unit tests for
-non-trivial pure logic, not for every function a handoff test already
-drives.
+Boundary tests usually exercise the helpers beneath them for free. Add a
+separate unit test only for non-trivial pure logic — not for every function a
+boundary test already drives.
 
 ## Core Ideas
 
-1. A proof is an explicit obligation tied to a claim. When you cannot prove
-   a claim, mark it `unproven`. Silence is not proof.
-2. Test-first is optional. Behavior-changing claims need executable proof,
-   but new tests are not automatic. Do not add tests for mechanical,
-   prose-only, or tooling-guaranteed facts. Do not test static text that
-   only changes when someone edits that file by hand.
-3. Proof scales with claim weight. A typo fix needs nothing. A new endpoint
-   needs a contract test. A subtle bug fix needs a regression guard.
-4. Completion is a claim. A passing check counts only when it proves the
-   latest request was satisfied.
-5. Proof should teach the behavior, not only satisfy a checker. A good proof
-   reads like a specification of the system contract for the next developer.
-6. Different claims need different evidence. Data claims need invariants.
-   Behavior claims need boundary checks. Bug fixes need root-cause evidence
-   and a regression guard. Refactors need before/after behavior preservation.
-7. Keep tests focused on one behavior. Use real collaborators inside the
-   boundary; mock only true system boundaries. Do not test framework,
-   language, runtime behavior, or static copy unless your code makes it a
-   contract.
-8. Flaky tests are bugs in the test, code, or environment. Do not hide them
-   with sleeps or retries.
+1. Every claim owes a check. If you can't point to one, mark the claim
+   `unproven`. Silence is not proof.
+2. You don't have to write the test first, and you don't always have to write
+   one. Behavior changes need a runnable check; mechanical edits, prose, and
+   facts the tooling already guarantees do not. Never test static text that only
+   changes when someone hand-edits the file.
+3. Match the proof to the claim. A typo fix needs nothing. A new endpoint needs
+   a contract test. A subtle bug fix needs a regression test that fails before
+   the fix and passes after.
+4. "Done" is a claim too. A green check counts only when it proves the latest
+   request was met.
+5. Write the proof so it teaches the behavior. The next developer should read it
+   and learn how the system is meant to work, not just see a checkmark.
+6. Different claims need different evidence: data claims need an invariant;
+   behavior claims need a boundary check; bug fixes need root-cause evidence and
+   a regression test; refactors need the same behavior before and after.
+7. One behavior per test. Use the real collaborators on the inside; mock only
+   true system edges such as the network, clock, or filesystem. Don't test the
+   framework, the language, or static copy unless your code makes it a contract.
+8. A flaky test is a bug — in the test, the code, or the environment. Fix it;
+   don't bury it under sleeps or retries.
 
 ## Proof Contract
 
-For every non-trivial engineering claim, record:
+For each non-trivial claim, write down these five things. Filling them in is
+what "naming a proof" means, and other skills (`domain-modeling`, `refactoring`)
+hand work back here expecting it.
 
-- Claim: the behavior, invariant, contract, or root cause asserted.
-- Data invariant: the data shape, state rule, or type boundary that
-  makes bad states impossible or visible.
-- Boundary: where the proof enters: the point where the claim becomes
-  observable.
-- Check: the executable validation that would fail if the claim were
+- **Claim** — the behavior, invariant, contract, or root cause you assert.
+- **Data invariant** — the shape, state rule, or type that makes bad states
+  impossible, or at least visible.
+- **Boundary** — where the claim becomes observable, i.e. where the check
+  enters.
+- **Check** — the runnable test or command that would fail if the claim were
   false.
-- Evidence: command/result, test name, observed failure/pass, artifact
-  inspection, or explicit reason the proof could not be run.
+- **Evidence** — what you actually saw: the command and its output, the test
+  name and pass/fail, the artifact you inspected, or a plain reason you couldn't
+  run it.
 
 ## Workflow
 
-1. List the claims introduced or relied on by the change. Keep features a
-   caller or user observes, external contracts, domain invariants, refactor
-   preservation claims, and real error cases. Drop speculative edge cases,
-   framework guarantees, and language semantics.
-2. For each remaining claim, fill the Proof Contract before declaring
-   the work complete.
-3. Map each named requirement to the artifact that satisfies it and the
-   check that proves it. A passing command is incomplete proof if it does
-   not exercise the named artifact.
-4. For data, wiring, config, generated output, or documents, prove the
-   artifact the way the system uses it: run, load, parse, render, or inspect
-   it. Do not add brittle tests that only assert literal text.
-5. For removals or replacements, prove the behavior that remains or replaces
-   the old surface. Do not write tests for ghosts. Verify cleanup with
-   targeted search rather than tests. The exception: if the removal returns
-   an explicit rejection (404, 410, deprecation error), test the rejection.
-   It is new behavior.
-6. Load only the narrow reference needed:
-   - `references/data-shape-boundaries.md` for worked handoff examples:
-     pipeline seams, parser/validator edges, middleware chains, sans-IO
-     protocols, and functional-core/imperative-shell crossings.
-   - `references/recipes.md` when the proof shape is domain-specific.
-   - `references/removals.md` for removals and replacements.
-   - `references/test-theater.md` when tests assert implementation shape
-     instead of behavior.
-7. When a claim needs a test, name the behavior in caller language and assert
-   the observable result.
-8. Choose the narrowest check that can prove the claim. Prefer a single test
-   by name or line. Fall back to one test file. Run the package or full suite
-   only when the narrow check is clean and you suspect wider drift.
+1. List the claims this change makes or relies on. Keep the ones a caller or
+   user can observe, external contracts, domain invariants, "still behaves the
+   same" refactor claims, and real error cases. Drop imagined edge cases,
+   framework guarantees, and language behavior.
+2. Fill a Proof Contract for each remaining claim before you call the work done.
+3. Tie every named requirement to the artifact that satisfies it and the check
+   that proves it. A green command isn't proof if it never runs that artifact.
+4. For data, config, wiring, generated output, or documents, prove them the way
+   the system uses them — run, load, parse, render, or inspect — not by
+   asserting their literal text.
+5. For a removal or replacement, prove the behavior that remains, not the thing
+   you deleted. Don't write tests for ghosts; confirm the old code is gone with a
+   search instead. Exception: if removing something now returns an explicit
+   rejection (404, 410, a deprecation error), test that rejection — it is new
+   behavior.
+6. Pull in only the one reference you need:
+   - `references/data-shape-boundaries.md` — worked boundary examples:
+     pipelines, parsers, validators, middleware, sans-IO protocols, and
+     functional-core/imperative-shell splits.
+   - `references/recipes.md` — when the proof shape is specific to a domain.
+   - `references/removals.md` — for removals and replacements.
+   - `references/test-theater.md` — when a test asserts how the code is built
+     instead of what it does.
+7. When a claim needs a test, name it in the caller's words and assert the result
+   the caller sees.
+8. Use the narrowest check that proves the claim. Start with a single test by
+   name or line; fall back to one test file; run the whole package or suite only
+   after the narrow check is green and you suspect wider breakage.
 
 ## Before Saying Done
 
-1. Re-read the latest user request and corrections; name the acceptance in
-   caller language.
-2. Inspect any artifact the request mentions after the last edit and confirm
-   the proof reads or exercises it.
-3. Run or inspect the fresh proof chosen in the workflow.
-4. Report the actual state: proven, partially proven, blocked, or unproven.
+1. Re-read the latest request and any corrections. State what "done" means in the
+   caller's words.
+2. Look at any file or artifact the request named, as it stands after your last
+   edit, and confirm your proof actually reads or runs it.
+3. Run or inspect the check you picked in the workflow — freshly, not from memory
+   of an earlier run.
+4. Say where things really stand: proven, partly proven, blocked, or unproven.
 
 ## Verification
 
-- [ ] Every non-trivial behavior, invariant, contract, root-cause, or
-      refactor claim has a Proof Contract.
-- [ ] At least one proof check enters at each component handoff where data
-      shape, value, state, or error shape changes observably, plus the
-      outermost caller boundary, and would fail if the claim were false.
-- [ ] Test names and assertions describe observable behavior, not private
-      methods, call choreography, framework behavior, or static copy that would
-      be identical under every condition.
-- [ ] Mocks appear only at true system boundaries or have a documented reason.
-- [ ] Tests are order-independent and do not rely on arbitrary sleeps.
-- [ ] Named files, scripts, configs, commands, or documents from the request
-      are mapped to artifacts and checks.
-- [ ] Smoke checks, helper-only checks, and proofs of adjacent behavior are
-      labeled as partial. They do not count as acceptance.
+- [ ] Every non-trivial behavior, invariant, contract, root-cause, or refactor
+      claim has a Proof Contract.
+- [ ] A check enters at each boundary where the data's shape, value, state, or
+      error visibly changes, plus the outermost caller boundary — and each would
+      fail if the claim were wrong.
+- [ ] Test names and assertions describe what the caller observes, not private
+      methods, call order, framework behavior, or static text that never varies.
+- [ ] Mocks sit only at true system edges, or carry a written reason.
+- [ ] Tests pass in any order and don't depend on sleeps.
+- [ ] Every file, script, config, command, or document the request named is tied
+      to an artifact and a check.
+- [ ] Smoke checks, helper-only checks, and proofs of nearby behavior are flagged
+      as partial — they don't count as acceptance.
 
 ## Tripwires
 
-- A green command, suite, or smoke check that does not exercise the artifact
-  the user asked for (or only hits a helper or adjacent behavior) is partial,
-  not proof. Name and run the check that would fail if the requested change
-  itself were wrong.
-- About to run the full suite for an isolated edit: run the single relevant
-  test, line filter, or test file first.
-- If a broad suite fails for unrelated drift, switch to the targeted proof and
+- A green check that never touches what you changed (or only hits a helper or
+  nearby behavior) is partial, not proof. Run the check that would fail if this
+  change were wrong.
+- About to run the whole suite for a one-line edit? Run the single relevant test,
+  line, or file first.
+- If a broad suite fails on unrelated drift, switch to the targeted check and
   report the broad failure separately.
-- If unit tests would mostly restate helper internals already covered through a
-  handoff, skip them; test the contract so refactors can preserve behavior
-  without rewriting proof.
-- Name the invariant or boundary behavior when static types seem to cover the
-  claim.
-- Capture the command, observed output, and proven claim when manual proof is
-  the practical check. This often fits config, build wiring, generated files,
-  and static data.
-- Rewrite, move, or delete tests that assert implementation shape instead of
-  observable behavior. Load `references/test-theater.md` for the test-theater
-  taxonomy.
+- If unit tests would just restate helpers a boundary test already covers, skip
+  them and test the contract instead, so refactors don't have to rewrite proof.
+- When static types seem to already prove it, name the invariant or boundary
+  behavior the types don't cover.
+- When the practical check is manual, record the command, the output, and the
+  claim it proves. Common for config, build wiring, and generated files.
+- Rewrite or delete tests that assert how the code is built instead of what it
+  does. See `references/test-theater.md`.
 
 ## Handoffs
 
-- Use `specify` to convert the agreed ADR, RFC, tech spec, or note's proof
-  obligations into Proof Contracts before claiming completion.
-- Use `domain-modeling` to shape invariants and make invalid states
-  unrepresentable.
-- Use `debugging` when the proof depends on root-cause evidence.
-- Use `api` when the claim is a public contract.
-- Use `refactoring` for behavior-preservation evidence and when test
-  placement reveals coupled concerns that need simplification before they
-  can be cleanly proven; pair with `architecture` when the coupling
-  spans module boundaries.
-- Use `error-handling` when the error envelope, message content, or
-  recovery contract that proof must assert at the boundary is itself
-  unsettled; that skill owns the contract, this skill owns the proof.
-- Use `security` when proof requires abuse cases or trust-boundary
-  checks.
+- `specify` — turn an agreed ADR, RFC, spec, or note's proof obligations into
+  Proof Contracts before you claim done.
+- `domain-modeling` — shape the invariants and make invalid states impossible to
+  represent.
+- `debugging` — when the proof hinges on root-cause evidence.
+- `api` — when the claim is a public contract.
+- `refactoring` — for before/after behavior evidence, and when a test that's hard
+  to place is telling you the code is tangled and should be simplified first. Add
+  `architecture` when the tangle crosses module boundaries.
+- `error-handling` — when the error shape, message, or recovery the proof must
+  assert isn't settled yet. That skill owns the contract; this one owns the
+  proof.
+- `security` — when the proof needs abuse cases or trust-boundary checks.
 
 ## References
 
-- Data-shape boundaries (worked examples for pipelines, parsers,
-  validators, middleware, sans-IO, and functional core):
-  `references/data-shape-boundaries.md`.
+- Worked boundary examples (pipelines, parsers, validators, middleware, sans-IO,
+  functional core): `references/data-shape-boundaries.md`.
 - Proof recipes by claim type: `references/recipes.md`.
 - Removals and replacements: `references/removals.md`.
 - Test-theater traps: `references/test-theater.md`.
-- The `consult` Pi package includes the `/proof` runtime command. It
-  runs a red-green-refactor cycle when behavior tests are the right proof
-  vehicle; runtime output counts only toward the claims it covers.
+- The `consult` Pi package ships a `/proof` runtime command that runs a
+  red-green-refactor cycle when behavior tests are the right tool. Its output
+  counts only toward the claims it actually covers.
