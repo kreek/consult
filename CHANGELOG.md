@@ -6,6 +6,15 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.7.3] (2026-06-05)
+
+### Changed
+
+- Rewrote the `proof` skill in plainer, task-first language — leading with
+  "prove every non-trivial claim before you call it done" — while keeping its
+  structure, the Proof Contract fields, cross-skill referrals, and reference
+  links unchanged.
+
 ## [11.7.2] (2026-06-05)
 
 ### Changed
