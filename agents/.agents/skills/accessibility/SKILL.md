@@ -83,21 +83,15 @@ description: Use for accessible UI, WCAG, ARIA, keyboard, focus, contrast, and i
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Use native controls: `<button type="button">` for actions, `<a href>` for
-  navigation, not clickable divs/spans or `role="button"` substitutes.
-- Use native `<dialog>` + `.showModal()` where supported; do not hand-roll a
-  focus trap inside native dialog.
-- Keep visible button text in the accessible name; avoid conflicting
-  `aria-label` values unless the control is icon-only.
-- Use `<nav>` with links for site navigation; reserve `role="menu"` for
-  application command menus.
-- Replace `outline: none` with a measured 2px focus outline and Forced Colors
-  fallback.
-- Let native ARIA states announce controls; reserve `aria-live` for separate
-  status text.
-- Fix tab order by DOM order; positive `tabindex` has no safe use.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "A styled div works as a button" | Use native controls: `<button type="button">` for actions, `<a href>` for navigation, not clickable divs/spans or `role="button"` substitutes. | A design-system control that already proves semantics and keyboard behavior. |
+| "Hand-roll the modal focus trap" | Use native `<dialog>` + `.showModal()` where supported; do not hand-roll a focus trap inside native dialog. | Target browsers lack `<dialog>` support and the fallback is documented. |
+| "Add an `aria-label` to be safe" | Keep visible button text in the accessible name; conflicting `aria-label` values only for icon-only controls. | The control is icon-only. |
+| "Navigation is a menu, use `role='menu'`" | Use `<nav>` with links for site navigation; reserve `role="menu"` for application command menus. | It is a real application command menu. |
+| "Remove the ugly focus outline" | Replace `outline: none` with a measured 2px focus outline and Forced Colors fallback. | An equivalent focus indicator meeting contrast is applied. |
+| "Announce it with `aria-live` on the control" | Let native ARIA states announce controls; reserve `aria-live` for separate status text. | A separate status region reporting async results. |
+| "Fix the order with `tabindex='1'`" | Fix tab order by DOM order; positive `tabindex` has no safe use. | None. |
 
 ## Handoffs
 

@@ -26,9 +26,9 @@ description: Use for databases, schemas, migrations, indexes, transactions, quer
 1. Schema, migration, and destructive data changes are the user's call.
    Route schema and migration changes through `contract-first`; data
    deletion and non-reversible backfills need the same approval for data
-   safety. An approving design or RFC is not that approval; the concrete
-   schema, migration, or destructive change gets its own sign-off before
-   landing.
+   safety. An approving design or RFC approves the direction, not the
+   concrete shapes; the concrete schema, migration, or destructive change
+   gets its own sign-off before landing.
 2. Use the project's existing database unless the task is choosing a store.
    For greenfield defaults and store-selection caveats, use `architecture`.
 3. Expand, migrate, verify, switch, then contract in separate
@@ -94,21 +94,17 @@ description: Use for databases, schemas, migrations, indexes, transactions, quer
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Use the target engine's online mechanism or document why production size and
-  write rate cannot matter.
-- Measure lock behavior on representative load or assume the worst case.
-- Ship the backfill plan now or leave the schema expand-only.
-- Decide soft-delete lifecycle once and enforce reads, indexes, and schema
-  around it.
-- Observe a full traffic cycle before dropping an index.
-- Enforce correctness invariants with DB constraints, not application checks.
-- Add supporting indexes in the same migration when access paths are known.
-- Check target-engine semantics for partial, expression, deferrable, exclusion,
-  and specialized indexes before relying on them.
-- Load `security` before adding password, token, API key, MFA, recovery-code, or
-  sensitive-PII storage.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "The table is small, ALTER it in place" | Use the target engine's online mechanism or document why production size and write rate cannot matter. | Size and write rate are verified negligible and the reasoning is recorded. |
+| "The migration will be quick" | Measure lock behavior on representative load or assume the worst case. | None. |
+| "We can backfill later" | Ship the backfill plan now or leave the schema expand-only. | None. |
+| "Just add a `deleted_at` column" | Decide soft-delete lifecycle once and enforce reads, indexes, and schema around it. | The project already has an enforced soft-delete convention. |
+| "This index looks unused, drop it" | Observe a full traffic cycle before dropping an index. | The table itself is being removed as dead schema. |
+| "The app already checks uniqueness" | Enforce correctness invariants with DB constraints; application checks race under concurrency. | The invariant is advisory and duplicates are explicitly acceptable. |
+| "Add the index when it gets slow" | Add supporting indexes in the same migration when access paths are known. | The access path is speculative and the omission is justified in the migration. |
+| "Partial/expression indexes work the same everywhere" | Check target-engine semantics for partial, expression, deferrable, exclusion, and specialized indexes before relying on them. | The behavior was verified on the target engine. |
+| "It's just another column" | Load `security` before adding password, token, API key, MFA, recovery-code, or sensitive-PII storage. | The column holds no credentials or sensitive data. |
 
 ## Handoffs
 

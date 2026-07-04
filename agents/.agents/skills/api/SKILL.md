@@ -107,21 +107,15 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Treat field renames and removals as breaking unless a successor contract or
-  deprecation path exists.
-- Pick status by origin: consumer problems are `4xx`; service/upstream problems
-  are `5xx`.
-- Define response and error shape in the contract before returning handler
-  internals.
-- Define bounded pagination, stable ordering, and invalid-token behavior before
-  the endpoint can grow.
-- Define idempotency key scope, replay window, duplicate response, and conflict
-  semantics before retrying mutations.
-- Sign, timestamp, replay-protect, version, and deduplicate external webhooks.
-- Keep route-specific validation, ownership, and domain rules in handler/domain
-  code; use middleware for transport-wide concerns.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Renaming this field is harmless" | Treat field renames and removals as breaking unless a successor contract or deprecation path exists. | The field never shipped to any caller. |
+| "Any error can be a 400 (or a 500)" | Pick status by origin: consumer problems are `4xx`; service/upstream problems are `5xx`. | None. |
+| "Return whatever the handler has" | Define response and error shape in the contract before returning handler internals. | None. |
+| "The list is small, skip pagination" | Define bounded pagination, stable ordering, and invalid-token behavior before the endpoint can grow. | The collection is provably bounded, such as an enum-sized set. |
+| "Callers can just retry the mutation" | Define idempotency key scope, replay window, duplicate response, and conflict semantics first, or document the mutation as unsafe to retry. | The mutation is naturally idempotent and documented as such. |
+| "It's just an outgoing webhook" | Sign, timestamp, replay-protect, version, and deduplicate external webhooks. | Delivery stays inside one trust boundary. |
+| "Put the check in middleware so it's global" | Keep route-specific validation, ownership, and domain rules in handler/domain code; use middleware for transport-wide concerns. | The concern is genuinely transport-wide, such as logging, tracing, or rate limits. |
 
 ## Handoffs
 

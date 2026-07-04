@@ -126,23 +126,19 @@ blocks the finding or fix.
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Passing tests prove only what they assert; still review safety, data, and
-  dead-surface risk.
-- Style is not blocking unless it hides ambiguity, behavior risk, or unsafe
-  control flow.
-- Fewer files is simpler only when behavior, data, effects, and lifecycles stay
-  uncoupled.
-- Compatibility shims need owner, caller, removal condition, and proof.
-- Trusting the author changes how you write findings, not how thoroughly you
-  review.
-- Test theater is a finding; load `proof` for the detailed taxonomy.
-- Speculative abstraction waits for a real caller or requirement.
-- Dead defensive code should become a boundary assertion or be removed.
-- A refactor with observable behavior change is a feature change.
-- Bundled reformatting or unrelated edits should be split before deep review.
-- Oversized durable generated code is comprehension debt.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Tests pass, so the diff is fine" | Passing tests prove only what they assert; still review safety, data, and dead-surface risk. | None. |
+| "Flag every style nit" | Style is not blocking unless it hides ambiguity, behavior risk, or unsafe control flow. | The repo's own lint gate makes it a CI failure. |
+| "Fewer files means simpler" | Fewer files is simpler only when behavior, data, effects, and lifecycles stay uncoupled. | None. |
+| "The shim is harmless, keep it" | Compatibility shims need owner, caller, removal condition, and proof. | All four are recorded. |
+| "The author is careful, skim this one" | Trusting the author changes how you write findings, not how thoroughly you review. | None. |
+| "The tests look thorough" | Test theater is a finding; load `proof` for the detailed taxonomy. | Tests assert caller-observable behavior at real boundaries. |
+| "The abstraction might be useful later" | Speculative abstraction waits for a real caller or requirement. | The requirement exists and is named. |
+| "Defensive code never hurts" | Dead defensive code should become a boundary assertion or be removed. | The guarded state is reachable and tested. |
+| "It's labeled a refactor" | A refactor with observable behavior change is a feature change; review it as one. | Behavior preservation has before/after evidence. |
+| "Review the whole bundle in one pass" | Bundled reformatting or unrelated edits should be split before deep review. | The bundle is small enough for one focused review. |
+| "It's generated code, wave it through" | Oversized durable generated code is comprehension debt; make split/scope a finding. | Regenerable artifacts such as lockfiles, sampled for obvious risk. |
 
 ## Handoffs
 

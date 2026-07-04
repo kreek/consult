@@ -79,21 +79,16 @@ description: Use for refactoring, behavior-preserving change, tests, and safe re
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Name behavior-preservation proof and add characterization where coverage is
-  missing.
-- Split structural and behavioral changes before committing.
-- Extract a helper/layer only after naming the behavior, state, effect, or
-  boundary being separated.
-- Treat shorter code as simpler only when it does not hide state, effects,
-  compatibility, ownership, or independent behavior.
-- Commit renames separately from extractions when possible.
-- Put opportunistic tweaks in separate behavior commits or leave them out.
-- Prove no callers remain before deleting old paths, or use expand-contract
-  migration.
-- Replace big-bang rewrites with the next safe slice or branch-by-abstraction
-  path.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "It's just a refactor, no tests needed" | Name the behavior-preservation proof and add characterization where coverage is missing. | A mechanical rename the tooling already verifies. |
+| "Fix the behavior while I'm in here" | Split structural and behavioral changes before committing; every commit is one or the other. | None. |
+| "Extract a helper to shorten this" | Extract only after naming the behavior, state, effect, or boundary being separated. | The coupling being separated is already named. |
+| "Shorter code is simpler" | Treat shorter as simpler only when it does not hide state, effects, compatibility, ownership, or independent behavior. | None. |
+| "Bundle the rename with the extraction" | Commit renames separately from extractions when possible. | The tool makes them one inseparable mechanical step. |
+| "Sneak in this small tweak" | Put opportunistic tweaks in separate behavior commits or leave them out. | None. |
+| "Nobody uses the old path anymore" | Prove no callers remain before deleting old paths, or use expand-contract migration. | Verification already proves traffic and callers have moved. |
+| "A rewrite would be faster" | Replace big-bang rewrites with the next safe slice or branch-by-abstraction path. | The scope is small, disposable, and the user approved a rewrite. |
 
 ## Handoffs
 

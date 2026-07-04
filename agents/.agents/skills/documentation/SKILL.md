@@ -100,21 +100,17 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Link generated or authoritative sources and write only missing context.
-- Keep README to purpose, install/run, minimal usage, and links onward.
-- Teach terms and prerequisites before using them in steps or reference.
-- Encode rules in names, types, schemas, or tests before adding comments.
-- Route CHANGELOG, release notes, migration notes, and version manifests to
-  `release`.
-- Ask before editing docs for an implementation change unless docs were
-  requested or validation requires them.
-- Write concrete behavior, constraints, non-goals, and proof; templates do not
-  replace acceptance criteria.
-- Delete stale prose or mark it with a tracked rewrite owner.
-- Split long sentences and keep the concrete decision, contract, workflow, or
-  reader action.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Restate the API details in prose" | Link generated or authoritative sources and write only the missing context. | The source of truth is unlinkable and the fact is stable. |
+| "A longer README looks more thorough" | Keep README to purpose, install/run, minimal usage, and links onward. | None. |
+| "Readers will figure out the terms" | Teach terms and prerequisites before using them in steps or reference. | The doc's stated audience already owns those terms. |
+| "Add a comment explaining this" | Encode rules in names, types, schemas, or tests first; comment only the why that remains non-obvious. | The reason cannot be expressed in code or tests. |
+| "Note the release details in the README" | Route CHANGELOG, release notes, migration notes, and version manifests to `release`. | None. |
+| "I'll update the docs while I'm here" | Ask before editing docs for an implementation change. | Docs were requested, or a repo validator requires the update. |
+| "The template is filled in, so the spec is done" | Write concrete behavior, constraints, non-goals, and proof; templates do not replace acceptance criteria. | None. |
+| "Leave the stale paragraph for now" | Delete stale prose or mark it with a tracked rewrite owner. | None. |
+| "Long sentences sound professional" | Split long sentences; keep the concrete decision, contract, workflow, or reader action. | None. |
 
 ## Handoffs
 

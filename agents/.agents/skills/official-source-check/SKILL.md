@@ -1,6 +1,6 @@
 ---
 name: official-source-check
-description: Use when external behavior must be checked against official sources.
+description: "Use for version-sensitive framework, library, SDK, or platform behavior: upgrades, deprecations, current APIs."
 ---
 
 # Official Source Check

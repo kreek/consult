@@ -1,6 +1,6 @@
 ---
 name: contract-first
-description: Use when caller-facing interfaces or shared structure need approval before implementation.
+description: Use before locking in public functions, types, endpoints, schemas, CLI flags, event payloads, or shared structure.
 ---
 
 # Contract First
@@ -58,8 +58,8 @@ description: Use when caller-facing interfaces or shared structure need approval
 6. **Record the decision.** List each proposed surface (signature, flags,
    schema, event payload, file format, or output shape) with its evidence,
    state the compatibility impact, and get one approve/revise/reject. An
-   approving design or RFC is not this approval; this list is. Silence is not
-   approval.
+   approving design or RFC approves the direction, not the concrete shapes;
+   this list is the approval. Silence is not approval.
 7. **Implement only the approved shape.** If implementation discovers a
    materially different contract, reopen the gate.
 
@@ -73,6 +73,15 @@ description: Use when caller-facing interfaces or shared structure need approval
 - [ ] The proposed interfaces were listed for the user, who approved, revised,
       or rejected them before implementation landed.
 - [ ] Implementation matches the approved shape, or the gate was reopened.
+
+## Tripwires
+
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "The design doc already covers this interface" | An approving design or RFC approves the direction, not the concrete shapes. List each concrete surface with evidence and get one approve/revise/reject. | The exact signature, schema, or surface was itself listed and approved. |
+| "I'll implement it first and show the interface after" | Stop before implementation lands; propose the concrete shape and wait for the decision. | The surface is purely internal with no caller-facing or shared boundary. |
+| "No objection means it's approved" | Silence is not approval; wait for an explicit approve, revise, or reject. | None. |
+| "The rename is implied by the approved shape" | Compatibility (renames, removals, shims, deprecation paths) needs its own explicit decision. | The approval already named that compatibility path. |
 
 ## Optional Runtime Backstop
 

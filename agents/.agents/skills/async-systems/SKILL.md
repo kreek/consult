@@ -106,17 +106,13 @@ failure handling are left implicit.
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Pass stable IDs and immutable parameters across async boundaries; reload
-  request/session/thread-local state inside the job only when needed.
-- Name retryable errors, retry budget, backoff, and terminal behavior.
-- Make exhausted or rescued work visible by re-raising, marking terminal, or
-  recording failure.
-- Enqueue after transaction commit or use transactional outbox/enqueue when the
-  job reads transaction-written state.
-- Isolate user-facing work from bulk queues with priority, concurrency,
-  timeout, or separate workers.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Pass the session/request object to the job" | Pass stable IDs and immutable parameters across async boundaries; reload live state inside the job when needed. | The payload already is stable IDs and immutable data. |
+| "Retries will sort it out" | Name retryable errors, retry budget, backoff, and terminal behavior. | The policy is already defined at this boundary. |
+| "Rescue the job failure and log it" | Make exhausted or rescued work visible by re-raising, marking terminal, or recording failure. | Best-effort work with an explicit drop policy. |
+| "Enqueue inside the transaction" | Enqueue after commit or use transactional outbox/enqueue when the job reads transaction-written state. | The job reads none of the transaction's writes. |
+| "One queue is enough for everything" | Isolate user-facing work from bulk queues with priority, concurrency, timeout, or separate workers. | The workload is uniform with no user-facing latency expectation. |
 
 ## Handoffs
 

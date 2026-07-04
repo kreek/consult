@@ -23,7 +23,8 @@ recoverable, scoped, and honest.
   committing approved work. Use `commit`.
 - Reviewing implementation correctness; use `code-review`.
 - Refactor planning; use `refactoring`.
-- CI failure triage; use the relevant CI/GitHub workflow.
+- CI failure triage; use `debugging` to reproduce and root-cause the failing
+  check.
 
 ## Core Ideas
 

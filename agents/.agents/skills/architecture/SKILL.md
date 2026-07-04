@@ -71,8 +71,8 @@ description: Use for architecture decisions, module boundaries, coupling, layeri
    it returns, what it must never expose.
 3. If the surface is caller-facing or the structure is shared, recommend one
    option and route to `contract-first` before implementation. An approving
-   `specify` design or RFC approves the direction, not the concrete module
-   boundaries, shared structure, or project layout. Get sign-off on those
+   design or RFC approves the direction, not the concrete shapes: module
+   boundaries, shared structure, and project layout still get sign-off
    before code locks them in.
 4. Sketch the internal data path: where external data enters, where it is
    parsed into a trusted shape, where domain work happens, where output data
@@ -113,20 +113,15 @@ description: Use for architecture decisions, module boundaries, coupling, layeri
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Group by capability before adding controller/service/repository/DTO layers.
-- Share code only when the reused value has the same meaning and rules in both
-  contexts.
-- Add repositories, factories, services, or aggregates only when they protect a
-  real domain rule or boundary.
-- Keep feature-specific business rules at the handler/domain boundary; use
-  middleware for transport-wide concerns.
-- Decide the boundary before using `refactoring` to move files.
-- Ask before locking in shared package/module/project structure; do not ask
-  for private file moves that do not establish a boundary.
-- Add a layer only when it separates an independent change axis, process,
-  deploy, trust, persistence, transport, or proven duplication.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Start with controller/service/repository/DTO layers" | Group by capability first; add horizontal layers only where a real technical boundary justifies them. | The layer maps to a process, deploy, trust, persistence, or transport boundary. |
+| "These two features look the same, share the code" | Share code only when the reused value has the same meaning and rules in both contexts. | One domain rule with one authoritative home. |
+| "Add a repository/factory/aggregate for structure" | Add DDD patterns only when they protect a real domain rule, workflow, or boundary. | The pattern guards a named invariant. |
+| "Put the business rule in middleware so it's global" | Keep feature-specific rules at the handler/domain boundary; middleware is for transport-wide concerns. | The concern is genuinely transport-wide. |
+| "Move the files now, decide the boundary later" | Decide the boundary before using `refactoring` to move files. | The move is private organization that creates no shared boundary. |
+| "Create the shared package; asking can wait" | Ask before locking in shared package/module/project structure future work will depend on. | Private file moves that establish no boundary. |
+| "Another layer will make this cleaner" | Add a layer only when it separates an independent change axis, process, deploy, trust, persistence, transport, or proven duplication. | The axis is real and named. |
 
 ## Handoffs
 

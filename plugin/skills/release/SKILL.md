@@ -104,27 +104,20 @@ description: Use only on request/approval for release prep, or when validation r
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Load `release` only for an explicit release-prep decision, not because a
-  future release might exist.
-- Prepare deploy, rollback, promotion, approval, flag, DNS, and infrastructure
-  actions for a human operator.
-- Prove a release script's scope matches the selected release units before
-  using it to bump artifacts.
-- Ask before keeping lockfile or package-manager changes produced by validation.
-- Map monorepo package/version streams before choosing versions.
-- Check registry state and dependency resolution before trusting local packages.
-- Check committed lockfiles, bundled dependencies, plugin metadata, resource
-  paths, tarball contents, and publish order, not only manifests.
-- Validate manifests, dependency resolution, dry-run packaging, changelog, and
-  publish order before any tag plan.
-- Treat shared staging, config, and feature-flag changes as environment
-  mutations unless they are local to this working tree.
-- Name rollback for data, caches, config, and external side effects.
-- Keep canary/progressive gates or name the equivalent.
-- Default feature flags off unless they are kill-switches for existing behavior.
-- Give temporary flags an owner, expiry, and cleanup work.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "This might need a release, start release work" | Load `release` only for an explicit release-prep decision, not because a future release might exist. | The user asked for release prep. |
+| "I can run the deploy/rollback myself" | Prepare deploy, rollback, promotion, approval, flag, DNS, and infrastructure actions for a human operator. | The user explicitly directed the agent to run that command against a non-shared environment. |
+| "The release script knows what to bump" | Prove the script's scope matches the selected release units before using it to bump artifacts. | The script's scope is already proven for these units. |
+| "Keep whatever the validation run changed" | Ask before keeping lockfile or package-manager changes produced by validation. | The user requested those exact changes. |
+| "One version bump covers the monorepo" | Map monorepo package/version streams before choosing versions. | Documented repo policy mandates lockstep bumps. |
+| "Local packages look right, publish" | Check registry state and dependency resolution before trusting local packages. | A dry run already validated against the registry. |
+| "The manifest is updated, we're done" | Check committed lockfiles, bundled dependencies, plugin metadata, resource paths, tarball contents, and publish order, not only manifests. | None. |
+| "Tag it now, validate later" | Validate manifests, dependency resolution, dry-run packaging, changelog, and publish order before any tag plan. | None. |
+| "Staging config is safe to change" | Treat shared staging, config, and feature-flag changes as environment mutations. | The change is local to this working tree. |
+| "Reverting the code is rollback enough" | Name rollback for data, caches, config, and external side effects. | The release touches none of those. |
+| "Skip the canary this once" | Keep canary/progressive gates or name the equivalent. | An equivalent gate is named. |
+| "Default the new flag on" | Default feature flags off, and give temporary flags an owner, expiry, and cleanup work. | The flag is a kill-switch for existing behavior. |
 
 ## Handoffs
 

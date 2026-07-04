@@ -105,15 +105,14 @@ to the full checklist.
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Use the requested artifact name, or ask before substituting a nearby config.
-- Wire `typecheck` to a real type checker or established equivalent.
-- Verify requirement -> artifact -> command mapping, not only command success.
-- Initialize git and `.gitignore` before feature code unless blocked.
-- Present Approve, Refine, and Cancel choices before scaffold mutation.
-- Ask before researching or selecting structural runtime dependencies; do not
-  turn small dev-only utilities into scaffold gates.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "A similar config file will do" | Use the requested artifact name, or ask before substituting a nearby config. | The user approved the substitute. |
+| "`node --check` counts as typecheck" | Wire `typecheck` to a real type checker or established equivalent. | The language has no type checker and the documented equivalent is used. |
+| "The command passed, so the scaffold works" | Verify the requirement -> artifact -> command mapping, not only command success. | None. |
+| "Set up git later" | Initialize git and `.gitignore` before feature code. | The user or environment blocks repo creation and the skip is reported. |
+| "Approval would slow this down, just create the files" | Present Approve, Refine, and Cancel choices before scaffold mutation. | The request already specified every material setup choice. |
+| "I'll pick the framework/ORM myself" | Ask before researching or selecting structural runtime dependencies. | The user or selected stack already named the choice, or it is a small dev-only utility. |
 
 ## Handoffs
 

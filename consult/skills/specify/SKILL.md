@@ -1,6 +1,6 @@
 ---
 name: specify
-description: "Use for design-partner mode: discovery, tradeoffs, decisions, and agreed design artifacts."
+description: "Use to design before building: discovery, tradeoffs, ADRs, RFCs, tech specs, and decisions needing user agreement."
 ---
 
 # Specify
@@ -114,25 +114,22 @@ proposed, so the build inherits an explicit list of what still needs sign-off.
       residue or deferrable details.
 - [ ] Caller-facing interfaces have `contract-first` approval before
       implementation, or implementation remains out of scope.
-- [ ] An approved design or RFC approves the direction, not the concrete
-      interfaces or domain structure. Those still get `contract-first` and
+- [ ] An approving design or RFC approves the direction, not the concrete
+      shapes. Interfaces and domain structure still get `contract-first` and
       `domain-modeling` applied during build, with sign-off on the concrete
       shapes.
 - [ ] Any artifact records the agreed shape and has a purpose-fit destination.
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- A design written before reading code is speculation.
-- Building the whole thing to discover the shape turns discovery into
-  unapproved implementation.
-- A design file is not approval for a contract, migration, config surface, or
-  caller dependency.
-- A question barrage is less useful than one recommended decision and notes.
-- Design-partner means the agent proposes concrete options; the human approves,
-  revises, or rules them out.
-- Open questions should not wait for code review when they block the design.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "I already know what the design should be" | A design written before reading code is speculation. Read and cite the current surface first. | Greenfield work where the adjacent convention is named instead. |
+| "I'll build it to discover the shape" | Ask first, keep spikes local, small, and disposable; building the whole thing turns discovery into unapproved implementation. | The user approved a disposable spike. |
+| "The design file exists, so the contract is approved" | A design file is not approval for a contract, migration, config surface, or caller dependency; get the explicit decision. | The user explicitly approved those decisions in the artifact. |
+| "Ask about everything at once" | Ask the smallest question that changes the shape; one recommended decision with notes beats a question barrage. | None. |
+| "The human should come up with the design" | Design-partner means the agent proposes concrete options; the human approves, revises, or rules them out. | None. |
+| "Leave the open question for code review" | Open questions that block the design get asked now. | The question is a deferrable detail that does not change the shape. |
 
 ## Handoffs
 

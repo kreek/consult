@@ -72,8 +72,8 @@ against it.
 7. Get sign-off on the durable domain shape. When the core model, shared
    invariants, or a state machine future work will bind to is concrete, list it
    for the user to approve, revise, or reject before implementation. An
-   approving design or RFC is not this approval. Do not gate disposable or
-   purely local shapes. Silence is not approval.
+   approving design or RFC approves the direction, not the concrete shapes.
+   Do not gate disposable or purely local shapes. Silence is not approval.
 
 ## Crosscutting Hazards
 
@@ -109,22 +109,16 @@ Load the matching reference whenever time or money appears in the diff.
 
 ## Tripwires
 
-Use these when the shortcut thought appears:
-
-- Parse once at each external boundary into a trusted shape.
-- Model allowed states as explicit variants instead of boolean flag
-  combinations.
-- Split nullable meanings into named states unless absence has one clear
-  meaning.
-- Convert request JSON to an internal domain shape before domain work.
-- Move database, network, clock, randomness, logging, and mutation effects to
-  the shell.
-- Add generic wrappers only after repeated domain meaning proves the
-  abstraction.
-- About to name a method `process`, `handle`, `execute`, `manage`, or `run`:
-  name its role in the domain process instead.
-- About to hand-roll boundary validation in a language with a de-facto standard:
-  reach for it (Pydantic, Zod, ...) instead, honoring any existing project choice.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Validate it again wherever it's used" | Parse once at each external boundary into a trusted shape; internal code takes the parsed type. | A second boundary genuinely receives external data. |
+| "Add another boolean flag" | Model allowed states as explicit variants instead of flag combinations. | The flag is one independent toggle with no illegal combinations. |
+| "Null can mean 'missing' and 'not loaded' here" | Split nullable meanings into named states. | Absence has one clear meaning. |
+| "Pass the request JSON through to the domain" | Convert request JSON to an internal domain shape before domain work. | A pure passthrough proxy with no domain logic. |
+| "Call the database from the domain function" | Move database, network, clock, randomness, logging, and mutation effects to the shell. | The function is the shell. |
+| "A generic wrapper will save time later" | Add generic wrappers only after repeated domain meaning proves the abstraction. | The repetition already shares one domain meaning and rule set. |
+| "Name it `process`, `handle`, or `execute`" | Name the method's role in the domain process: `settleInvoice`, `expireHold`. | A framework or interop boundary requires the generic name. |
+| "Hand-roll the boundary validator" | Use the language's de-facto schema library (Pydantic, Zod, ...), honoring any existing project choice. | No clear ecosystem leader exists; hand-roll with the same discipline. |
 
 ## Handoffs
 
