@@ -35,8 +35,9 @@ description: Good test skill
 
 ## Tripwires
 
-- Run the check before making a completion claim.
-- Mark research notes as non-completion claims.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Skip the check" | Run the check before making a completion claim. | Research notes with no completion claim. |
 `;
 
 const BAD_SKILL = `---
@@ -84,11 +85,62 @@ description: Long tripwire table
 
 ## Tripwires
 
-- Use the skill when the shortcut appears.
-- Keep the corrective action positive.
-- Move rare exceptions to references.
-- Keep this list shorter than the main guidance.
-- Omit this section when no row pays for its tokens.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "Shortcut one" | Use the skill when the shortcut appears. | None. |
+| "Shortcut two" | Keep the corrective action positive. | None. |
+| "Shortcut three" | Move rare exceptions to references. | None. |
+| "Shortcut four" | Keep this list shorter than the main guidance. | None. |
+| "Shortcut five" | Omit this section when no row pays for its tokens. | None. |
+`;
+
+const EM_DASH_SKILL = `---
+name: dashy
+description: Em dash and drifted approval sentence fixture
+---
+
+# Dashy
+
+An approving design or RFC is not this approval — the phrasing drifted.
+
+## When to Use
+
+- trigger
+
+## When NOT to Use
+
+- other
+
+## Verification
+
+- [ ] check
+`;
+
+const ROUTER_SKILL = `---
+name: workflow
+description: Router fixture
+---
+
+# Workflow
+
+## When to Use
+
+- always
+
+## When NOT to Use
+
+- never
+
+## Verification
+
+- [ ] check
+
+## Workflow
+
+   | Skill | Load when |
+   | --- | --- |
+   | \`good\` | always |
+   | \`ghost-skill\` | never |
 `;
 
 let tmp;
@@ -274,6 +326,49 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("long-tripwires/SKILL.md");
     expect(result.stdout).toContain("Tripwires must not be the longest section");
+  });
+
+  it("rejects bullet-format tripwires sections", () => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    makeSkill(skillsDir, "bullets", GOOD_SKILL.replace(/## Tripwires[\s\S]*$/, "## Tripwires\n\n- A bullet tripwire.\n"));
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("bullets/SKILL.md");
+    expect(result.stdout).toContain("Tripwires must use the '| Trigger | Do this instead | False alarm |' table format");
+  });
+
+  it("rejects em dashes and drifted approval sentences", () => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    const skill = makeSkill(skillsDir, "dashy", EM_DASH_SKILL);
+    mkdirSync(join(skill, "references"), { recursive: true });
+    writeFileSync(join(skill, "references/notes.md"), "A reference — with an em dash.\n", "utf8");
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("dashy/SKILL.md");
+    expect(result.stdout).toContain("em dash found -- use a period, colon, comma, or parentheses instead");
+    expect(result.stdout).toContain("dashy/references/notes.md");
+    expect(result.stdout).toContain("'approving design or RFC' used without the canonical sentence");
+  });
+
+  it("cross-checks the workflow routing table against the skill set", () => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    makeSkill(skillsDir, "workflow", ROUTER_SKILL);
+    makeSkill(skillsDir, "good");
+    makeSkill(skillsDir, "orphan", GOOD_SKILL.replace("name: good", "name: orphan"));
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("workflow/SKILL.md");
+    expect(result.stdout).toContain("routing table names 'ghost-skill' but no such skill exists");
+    expect(result.stdout).toContain("skill 'orphan' is not referenced by the workflow router");
   });
 
   it("reports plugin drift when a skill mirror is missing", () => {

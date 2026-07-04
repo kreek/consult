@@ -22,6 +22,14 @@ const MAX_TOTAL_DESCRIPTION_LENGTH = 2000;
 
 const NAME_RE = /^name:\s+[a-z][a-z0-9-]*\s*$/m;
 const ATTRIBUTION_RE = /\b[Pp]er\s+(?:[A-Z][a-z]+\s+)?[A-Z][a-z]+\b/;
+const EM_DASH = "—";
+// One authoritative phrasing of the direction-vs-shapes approval rule. Skills
+// that invoke the concept must carry this sentence verbatim so the semantics
+// cannot drift file by file.
+const APPROVAL_CONCEPT_RE = /approving design or RFC/i;
+const CANONICAL_APPROVAL_SENTENCE =
+  "An approving design or RFC approves the direction, not the concrete shapes";
+const TRIPWIRES_TABLE_HEADER_RE = /^\|\s*Trigger\s*\|\s*Do this instead\s*\|\s*False alarm\s*\|/m;
 function scriptDir() {
   return dirname(fileURLToPath(import.meta.url));
 }
@@ -119,10 +127,24 @@ export function validateSkillFile(path) {
     problems.push("obsolete section: ## Red Flags -- fold into ## Tripwires");
   }
   if (/^\|\s*Excuse\s*\|\s*Reality\s*\|/m.test(body)) {
-    problems.push("obsolete table header: use positive Tripwires bullets");
+    problems.push("obsolete table header: use the '| Trigger | Do this instead | False alarm |' Tripwires table");
+  }
+  if (sectionRe("Tripwires").test(body) && !TRIPWIRES_TABLE_HEADER_RE.test(body)) {
+    problems.push("Tripwires must use the '| Trigger | Do this instead | False alarm |' table format");
   }
   if (tripwiresTooLong(body)) {
     problems.push("Tripwires must not be the longest section -- keep only high-probability skip/avoidance failures");
+  }
+
+  if (body.includes(EM_DASH)) {
+    problems.push("em dash found -- use a period, colon, comma, or parentheses instead");
+  }
+
+  const flattened = body.replace(/\s+/g, " ");
+  if (APPROVAL_CONCEPT_RE.test(flattened) && !flattened.includes(CANONICAL_APPROVAL_SENTENCE)) {
+    problems.push(
+      `'approving design or RFC' used without the canonical sentence: "${CANONICAL_APPROVAL_SENTENCE}"`,
+    );
   }
 
   const attributionLines = bodyWithoutReferenceSections(body)
@@ -133,6 +155,52 @@ export function validateSkillFile(path) {
   }
 
   return problems.length > 0 ? { path, problems } : null;
+}
+
+export function validateSkillReferences(skillDir) {
+  const referencesDir = join(skillDir, "references");
+  const findings = [];
+  for (const path of walkFiles(referencesDir)) {
+    if (!path.endsWith(".md")) continue;
+    if (readFileSync(path, "utf8").includes(EM_DASH)) {
+      findings.push({
+        path,
+        problems: ["em dash found -- use a period, colon, comma, or parentheses instead"],
+      });
+    }
+  }
+  return findings;
+}
+
+// The workflow skill's tables route to every other skill. Cross-check both
+// directions so the router and the skill set cannot drift apart: every
+// backticked name in a workflow table row must be a real skill, and every
+// skill must be reachable from the workflow body.
+export function validateWorkflowRouting(skillsDir) {
+  const workflowFile = join(skillsDir, "workflow", "SKILL.md");
+  if (!existsSync(workflowFile)) return [];
+
+  const body = readFileSync(workflowFile, "utf8");
+  const problems = [];
+  const skillNames = readdirSync(skillsDir)
+    .sort()
+    .filter((name) => existsSync(join(skillsDir, name, "SKILL.md")));
+
+  const routedNames = [...body.matchAll(/^\s*\|\s*`([a-z][a-z0-9-]*)`\s*\|/gm)].map((match) => match[1]);
+  for (const name of routedNames) {
+    if (!skillNames.includes(name)) {
+      problems.push(`routing table names '${name}' but no such skill exists`);
+    }
+  }
+
+  for (const name of skillNames) {
+    if (name === "workflow") continue;
+    if (!body.includes(`\`${name}\``)) {
+      problems.push(`skill '${name}' is not referenced by the workflow router`);
+    }
+  }
+
+  return problems.length > 0 ? [{ path: workflowFile, problems }] : [];
 }
 
 export function validateSkills(skillsDir) {
@@ -149,7 +217,10 @@ export function validateSkills(skillsDir) {
 
     const finding = validateSkillFile(skillFile);
     if (finding) findings.push(finding);
+    findings.push(...validateSkillReferences(join(skillsDir, name)));
   }
+
+  findings.push(...validateWorkflowRouting(skillsDir));
 
   if (totalDescriptionLength > MAX_TOTAL_DESCRIPTION_LENGTH) {
     findings.push({
@@ -509,6 +580,8 @@ description: >-
 
 Per Rich Hickey, prefer values over places.
 
+An approving design or RFC is not this approval — the shapes drift here.
+
 ## Overview
 
 Stuff.
@@ -520,6 +593,64 @@ Stuff.
 
 ## Red Flags
 - "Probably fine"
+
+## Tripwires
+- Bullet tripwires are no longer allowed.
+`,
+    );
+    writeFixture(
+      join(tmp, "bad/references/notes.md"),
+      "A reference — with an em dash.\n",
+    );
+    writeFixture(
+      join(tmp, "workflow/SKILL.md"),
+      `---
+name: workflow
+description: Router fixture for the routing cross-check.
+---
+
+# Workflow
+
+## When to Use
+
+- always
+
+## When NOT to Use
+
+- never
+
+## Verification
+
+- [ ] check
+
+## Workflow
+
+   | Skill | Load when |
+   | --- | --- |
+   | \`good\` | always |
+   | \`ghost-skill\` | never |
+`,
+    );
+    writeFixture(
+      join(tmp, "orphan/SKILL.md"),
+      `---
+name: orphan
+description: Skill missing from the router fixture.
+---
+
+# Orphan
+
+## When to Use
+
+- trigger
+
+## When NOT to Use
+
+- other
+
+## Verification
+
+- [ ] check
 `,
     );
 
@@ -559,7 +690,13 @@ description: ${longDescription}
       "per <expert>",
       "Common Rationalizations",
       "Red Flags",
-      "positive Tripwires bullets",
+      "obsolete table header",
+      "Tripwires must use the '| Trigger | Do this instead | False alarm |' table format",
+      "em dash found",
+      "bad/references/notes.md",
+      "canonical sentence",
+      "routing table names 'ghost-skill' but no such skill exists",
+      "skill 'orphan' is not referenced by the workflow router",
       "description total too long",
     ]) {
       if (!rendered.includes(expected)) {
