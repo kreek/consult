@@ -33,6 +33,18 @@ engineering decisions yourself (plus you'll actually know how the code works).
   and a rollback plan.
 - Organize work into clear, reviewable changes humans can trust and maintain.
 
+## Ceremony scales with stakes
+
+Consult is not a fixed approval pipeline. The `workflow` skill classifies each
+task by significance (how much other code it impacts) and durability (how
+costly it is to reverse), then sets the involvement level from those stakes.
+Low-stakes, disposable work runs autonomously with no gates. Approval gates
+(design direction, caller-facing interfaces, durable data shapes, migrations)
+fire only when the output is significant or hard to change, and each gate asks
+one decision question, not a barrage. If Consult feels like it is asking too
+often on routine work, that is a bug: the eval suite tracks interruption count
+per trial, and reports of gate fatigue are worth filing.
+
 ## Install
 
 Most users should install the package for their primary agent. Use the manual
