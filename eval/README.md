@@ -49,6 +49,17 @@ being scored. Intended skill coverage lives in each trial manifest's `features:`
 list so suite coverage has one source of truth without leaking skill names into
 the agent-visible task.
 
+**Zero-weight readouts: trigger rate and interruption count.** Each run also
+records two regression-grade numbers that deliberately carry zero weight in the
+overall score: `skill_triggering` (the share of the trial's intended `features:`
+skills the agent actually read) and `non_interruption` (100 minus 25 per
+assistant message that ends by asking the user a question). Under-triggering and
+gate fatigue are Consult's two field failure modes; these readouts make both
+visible per run and diffable across runs, and a bench can gate on them via
+`requiredDeterministicScores`, without letting either number distort the lift
+comparison (the bare baseline reads no skills by construction). Per-run skill
+names live in the workdir's `.has-eval/consult-metrics.json`.
+
 ## Setup
 
 This package depends on the local `do-eval` checkout through `package.json`:

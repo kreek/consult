@@ -5,6 +5,7 @@ import { loadFileSuites, readTrialManifest, type EvalSession, type VerifyResult 
 import { describe, expect, it } from "vitest";
 import config from "../eval.config.js";
 import maturityPlugin, {
+  countQuestionMessages,
   extractFinalAssistantText,
   extractInitialUserPrompt,
 } from "../plugins/engineering-maturity.js";
@@ -517,6 +518,106 @@ describe("Consult eval config", () => {
     });
 
     expect(result.scores["change_quality"]).toBe(70);
+  });
+
+  it("counts assistant messages that end by asking the user a question", () => {
+    const rawLines = [
+      messageLine("user", "Fix the bug."),
+      messageLine("assistant", "Before I implement, should I use expand-contract for this migration?"),
+      messageLine("assistant", "Done. The fix is in src/cart.js and the regression test passes."),
+      messageLine("assistant", "Proposed contract:\n- totalCents(items, coupon)\n\nApprove this shape?"),
+    ];
+
+    expect(countQuestionMessages(rawLines)).toBe(2);
+    expect(countQuestionMessages([messageLine("assistant", "All done.")])).toBe(0);
+  });
+
+  it("records skill trigger rate and interruption count as zero-weight readouts", () => {
+    const session = stubSession([], {
+      fileWrites: [{ timestamp: 10, path: "src/cart.js", tool: "edit", labels: ["source"] }],
+    });
+
+    const result = maturityPlugin.scoreSession(session, {
+      passed: true,
+      output: "ok",
+      metrics: {
+        submittedProofPassed: 1,
+        intendedSkillCount: 4,
+        intendedSkillReads: 2,
+        skillTriggerRate: 50,
+        questionMessages: 1,
+      },
+    });
+
+    expect(result.scores["skill_triggering"]).toBe(50);
+    expect(result.weights["skill_triggering"]).toBe(0);
+    expect(result.scores["non_interruption"]).toBe(75);
+    expect(result.weights["non_interruption"]).toBe(0);
+    expect(result.findings).toContain("Read 2 of 4 intended skills; see .has-eval/consult-metrics.json for names.");
+    expect(result.findings).toContain("1 assistant message ended by asking the user a question.");
+
+    const weightSum = Object.values(result.weights).reduce((sum, weight) => sum + weight, 0);
+    expect(Math.abs(weightSum - 1)).toBeLessThan(1e-9);
+  });
+
+  it("omits the readout scores when consult metrics are absent (bare baseline reports)", () => {
+    const session = stubSession([]);
+
+    const result = maturityPlugin.scoreSession(session, {
+      passed: true,
+      output: "ok",
+      metrics: { submittedProofPassed: 1 },
+    });
+
+    expect(result.scores).not.toHaveProperty("skill_triggering");
+    expect(result.scores).not.toHaveProperty("non_interruption");
+  });
+
+  it("bridges intended-skill and question metrics from afterRun to verify", async () => {
+    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "has-eval-metrics-"));
+    try {
+      fs.writeFileSync(path.join(workDir, ".has-eval-kind.json"), JSON.stringify({ kind: "routing", case: 1 }));
+      const session = stubSession(
+        [messageLine("assistant", "Which store should own this data?")],
+        {
+          toolCalls: [
+            {
+              timestamp: 1,
+              name: "command_execution",
+              arguments: { command: "cat .codex/skills/workflow/SKILL.md" },
+              resultText: "# Workflow",
+              wasBlocked: false,
+            },
+          ],
+        },
+      );
+
+      await maturityPlugin.afterRun?.({
+        evalDir,
+        runDir: workDir,
+        workDir,
+        trialName: "routing-test",
+        variantName: "default",
+        manifest: { description: "test", features: ["workflow", "database"], variants: { default: {} } },
+        variant: {},
+        session,
+      });
+
+      const verify = maturityPlugin.verify?.(workDir);
+      expect(verify?.metrics["intendedSkillCount"]).toBe(2);
+      expect(verify?.metrics["intendedSkillReads"]).toBe(1);
+      expect(verify?.metrics["skillTriggerRate"]).toBe(50);
+      expect(verify?.metrics["questionMessages"]).toBe(1);
+
+      const stored = JSON.parse(fs.readFileSync(path.join(workDir, ".has-eval", "consult-metrics.json"), "utf-8")) as {
+        missingSkills: string[];
+        readSkills: string[];
+      };
+      expect(stored.readSkills).toEqual(["workflow"]);
+      expect(stored.missingSkills).toEqual(["database"]);
+    } finally {
+      fs.rmSync(workDir, { recursive: true, force: true });
+    }
   });
 
   it("keeps deterministic weights summing to 1 and dominated by outcome metrics", () => {

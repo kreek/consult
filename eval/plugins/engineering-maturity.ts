@@ -176,6 +176,95 @@ export function extractFinalAssistantText(rawLines: string[]): string {
   return messages[messages.length - 1] ?? "";
 }
 
+// Deterministic proxy for gate fatigue: an assistant message whose closing
+// line asks the user a question is a turn that blocks on human input in an
+// interactive session. Eval runs are non-interactive, so the count is a
+// readout of how often Consult gating would have interrupted a real user.
+export function countQuestionMessages(rawLines: string[]): number {
+  return extractMessages(rawLines, "assistant").filter((message) => {
+    const lines = message.trim().split("\n");
+    const lastLine = lines[lines.length - 1]?.trim() ?? "";
+    return lastLine.endsWith("?");
+  }).length;
+}
+
+interface ConsultRunMetrics {
+  intendedSkills: string[];
+  readSkills: string[];
+  missingSkills: string[];
+  questionMessages: number;
+}
+
+function consultMetricsPath(workDir: string): string {
+  return path.join(workDir, ".has-eval", "consult-metrics.json");
+}
+
+function readConsultRunMetrics(workDir: string): ConsultRunMetrics | undefined {
+  try {
+    const parsed = JSON.parse(readIfExists(consultMetricsPath(workDir))) as ConsultRunMetrics;
+    if (!Array.isArray(parsed.intendedSkills) || !Array.isArray(parsed.missingSkills)) return undefined;
+    return parsed;
+  } catch {
+    return undefined;
+  }
+}
+
+// Numeric channel for the trigger-rate and interruption readouts. These ride
+// on VerifyResult.metrics so they land in the stored report and can be
+// regressed on, without becoming weighted scores (see scoreSession).
+function consultMetricNumbers(workDir: string): Record<string, number> {
+  const metrics = readConsultRunMetrics(workDir);
+  if (!metrics) return {};
+  const numbers: Record<string, number> = {
+    questionMessages: metrics.questionMessages,
+  };
+  if (metrics.intendedSkills.length > 0) {
+    numbers["intendedSkillCount"] = metrics.intendedSkills.length;
+    numbers["intendedSkillReads"] = metrics.intendedSkills.length - metrics.missingSkills.length;
+    numbers["skillTriggerRate"] = Math.round(
+      (100 * (metrics.intendedSkills.length - metrics.missingSkills.length)) / metrics.intendedSkills.length,
+    );
+  }
+  return numbers;
+}
+
+// Zero-weight score entries: recorded per run (and gateable through a bench's
+// requiredDeterministicScores) without shifting `overall`. A weighted version
+// would tank the bare baseline, which reads no skills by construction.
+function consultReadoutScores(verify: VerifyResult): {
+  scores: Record<string, number>;
+  weights: Record<string, number>;
+  findings: string[];
+} {
+  const scores: Record<string, number> = {};
+  const weights: Record<string, number> = {};
+  const findings: string[] = [];
+
+  const triggerRate = verify.metrics["skillTriggerRate"];
+  if (typeof triggerRate === "number") {
+    scores["skill_triggering"] = triggerRate;
+    weights["skill_triggering"] = 0;
+    const intended = verify.metrics["intendedSkillCount"] ?? 0;
+    const reads = verify.metrics["intendedSkillReads"] ?? 0;
+    if (reads < intended) {
+      findings.push(`Read ${reads} of ${intended} intended skills; see .has-eval/consult-metrics.json for names.`);
+    }
+  }
+
+  const questionMessages = verify.metrics["questionMessages"];
+  if (typeof questionMessages === "number") {
+    scores["non_interruption"] = Math.max(0, 100 - 25 * questionMessages);
+    weights["non_interruption"] = 0;
+    if (questionMessages > 0) {
+      findings.push(
+        `${questionMessages} assistant message${questionMessages === 1 ? "" : "s"} ended by asking the user a question.`,
+      );
+    }
+  }
+
+  return { scores, weights, findings };
+}
+
 function commandAndResultText(session: EvalSession): string {
   return session.toolCalls
     .map((call) => `${call.name} ${commandText(call)}\n${call.resultText}`)
@@ -208,14 +297,17 @@ function activationFinding(session: EvalSession): string[] {
   return [`Activated ${reads.length} Consult skill${reads.length === 1 ? "" : "s"}: ${reads.join(", ")}.`];
 }
 
-function scoreRoutingSession(session: EvalSession, _verify: VerifyResult): PluginScoreResult {
+function scoreRoutingSession(session: EvalSession, verify: VerifyResult): PluginScoreResult {
+  const readouts = consultReadoutScores(verify);
   const scores = {
     no_file_writes: session.fileWrites.length === 0 ? 100 : 0,
+    ...readouts.scores,
   };
   const weights = {
     no_file_writes: 1,
+    ...readouts.weights,
   };
-  const findings: string[] = [...activationFinding(session)];
+  const findings: string[] = [...activationFinding(session), ...readouts.findings];
   if (session.fileWrites.length > 0) findings.push("Routing trial wrote files despite being read-only.");
 
   return {
@@ -1075,7 +1167,7 @@ const plugin: EvalPlugin = {
       return {
         passed: true,
         output: "Routing trial: transcript-scored; no workdir verification required.",
-        metrics: { routingTrial: 1, routingCase },
+        metrics: { routingTrial: 1, routingCase, ...consultMetricNumbers(workDir) },
       };
     }
 
@@ -1089,6 +1181,7 @@ const plugin: EvalPlugin = {
         visiblePassed: visible.passed ? 1 : 0,
         hiddenPassed: hidden.passed ? 1 : 0,
         submittedProofPassed: submittedProofPassed ? 1 : 0,
+        ...consultMetricNumbers(workDir),
         ...hidden.metrics,
       },
     };
@@ -1107,17 +1200,20 @@ const plugin: EvalPlugin = {
       /\b(npm\s+test|npm\s+run\s+(test|typecheck|lint|check)|vitest|pytest|go\s+test|cargo\s+test|mvn\s+test|uv\s+run\s+(pytest|ruff|pyright|python)|refcheck|validate[-_]skill[-_]anatomy)\b/i,
     );
 
+    const readouts = consultReadoutScores(verify);
     const scores = {
       verification: verify.passed ? 100 : 0,
       proof: submittedProofPassed && postWriteProof ? 100 : submittedProofPassed ? 85 : postWriteProof ? 60 : verify.passed ? 35 : 15,
       change_quality: wroteSource && wroteTests ? 100 : wroteSource ? 70 : 25,
+      ...readouts.scores,
     };
     const weights = {
       verification: 0.5,
       proof: 0.35,
       change_quality: 0.15,
+      ...readouts.weights,
     };
-    const findings: string[] = [...activationFinding(session)];
+    const findings: string[] = [...activationFinding(session), ...readouts.findings];
     if (!submittedProofPassed) findings.push("No behavior-relevant submitted proof was detected.");
     else if (!wroteTests) findings.push("No test file writes were detected; proof came from the submitted artifact.");
     if (wroteSource && !postWriteProof) findings.push("No post-change proof command was detected.");
@@ -1148,11 +1244,26 @@ const plugin: EvalPlugin = {
     ].join("\n");
   },
 
-  afterRun({ workDir, session }) {
-    const finalText = extractFinalAssistantText(session.rawLines);
-    if (!finalText) return;
+  afterRun({ workDir, session, manifest }) {
     const artifactDir = path.join(workDir, ".has-eval");
     fs.mkdirSync(artifactDir, { recursive: true });
+
+    // Bridge session-derived readouts to verify(), which sees only the
+    // workdir. afterRun runs before verify in the do-eval runner.
+    const intendedSkills = (manifest.features ?? []).filter((feature) =>
+      (KNOWN_SKILLS as readonly string[]).includes(feature),
+    );
+    const readSkills = readConsultSkillNames(session);
+    const consultMetrics: ConsultRunMetrics = {
+      intendedSkills,
+      readSkills,
+      missingSkills: intendedSkills.filter((skill) => !readSkills.includes(skill)),
+      questionMessages: countQuestionMessages(session.rawLines),
+    };
+    fs.writeFileSync(consultMetricsPath(workDir), JSON.stringify(consultMetrics, null, 2));
+
+    const finalText = extractFinalAssistantText(session.rawLines);
+    if (!finalText) return;
     fs.writeFileSync(path.join(artifactDir, "assistant-final.md"), finalText);
   },
 
