@@ -49,6 +49,33 @@ When you add, rename, or delete a skill, the canonical file under
 `agents/.agents/skills/` is the only place to write. Everything else is
 regenerated.
 
+## Host posture: attended vs unattended
+
+Consult targets two different working modes, and that difference decides where
+enforcement is allowed to live. It is a deliberate split, not an inconsistency
+or a gap in coverage.
+
+- **Attended hosts (Claude Code, Codex, Cursor, and the rest).** A human is
+  watching the session and answering as it runs. The human *is* the gate, so
+  skills carry high-level guidance and ask for sign-off in prose. Consultation
+  works here because someone is present to consult.
+- **Unattended host (Pi).** Nobody is reading the session while it runs, so a
+  prose request for approval has no one to answer it. Pi therefore gets runtime
+  enforcement — `consult/extensions/self-review-guard.ts` and the `/proof`
+  command — that mechanically holds the line a present human would otherwise
+  hold.
+
+Consequences for anyone editing this repo:
+
+- Do not "fix" the attended hosts by adding host-specific enforcement
+  primitives, blocking gates, or hook configuration to shared skill bodies. The
+  absence of those is the design. Skill prose stays portable and host-neutral.
+- Do not move Pi's enforcement into skill prose either. Runtime gates belong in
+  `consult/extensions/`, where they apply only to the host that needs them.
+- When a skill body says to get approval, it is addressing an attended session.
+  Keep that phrasing about the *decision* that needs a human, not about the
+  mechanism a particular host would use to block on it.
+
 ## Common commands
 
 ```sh

@@ -264,6 +264,20 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.stdout).toContain("1 skill(s) failed anatomy validation");
   });
 
+  it("measures a quoted description past its first inner colon", () => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    const description =
+      "Use for design-partner mode: discovery, tradeoffs, decisions, and the agreed design artifacts that later implementation work binds itself to.";
+    makeSkill(skillsDir, "quoted", GOOD_SKILL.replace("description: Good test skill", `description: "${description}"`));
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("quoted/SKILL.md");
+    expect(result.stdout).toContain(`frontmatter description too long (${description.length} > 120 characters)`);
+  });
+
   it("rejects tripwires as the longest section", () => {
     tmp = makeTempDir();
     const skillsDir = join(tmp, "agents/.agents/skills");

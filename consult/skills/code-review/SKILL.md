@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Use to review diffs and PRs for bugs, regressions, edge cases, proof, and merge readiness.
+description: Use to review diffs and PRs for bugs, regressions, edge cases, proof, merge readiness.
 ---
 
 # Code Review
@@ -13,10 +13,13 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 - Self-review of your own implementation diff in the `workflow`
   completion loop after proving behavior with `proof`, before claiming done.
-  Default for any non-trivial agent-generated change; a second pass by the same
-  agent reliably surfaces bugs, dead code, and missed edge cases the
-  implementation pass overlooks.
-- Diff review (local, branch, or GitHub PR via `gh`).
+  Default for any non-trivial agent-generated change. A second pass still
+  catches bugs, dead code, and missed edge cases, but it is the weakest form of
+  review: the same context that produced the code also carries the reasoning
+  that justified it. Read the diff as an outside reviewer who does not know why
+  a line is there, and prefer a fresh-context reviewer when one is available.
+- Diff review (local, branch, or a GitHub PR through whatever GitHub surface
+  the host provides).
 - Review-comment follow-up on the user's own PRs.
 - Agent-generated code review before merge or handoff.
 
@@ -70,7 +73,8 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 1. **Resolve the target.** Use local diffs or approved GitHub reads. For PR
    review threads, fetch thread state only when resolution or line context
-   matters. Never run `gh` without explicit permission.
+   matters. Never reach GitHub without explicit permission; `git-workflow` owns
+   that gate and which surface to use.
 2. **Pre-flight the review.** Identify intent, impact, CI status, and changed
    surface. Missing PR intent on a non-trivial diff is a finding. Red or
    absent CI means the review is unproven, not blocked from inspection.
@@ -122,7 +126,7 @@ blocks the finding or fix.
       applied where relevant.
 - [ ] Findings are severity ordered, anchored, concrete, and focused on impact.
 - [ ] Missing evidence, residual risk, and unreviewed scope are named.
-- [ ] GitHub commands and writes had explicit permission.
+- [ ] GitHub reads and writes had explicit permission.
 
 ## Tripwires
 

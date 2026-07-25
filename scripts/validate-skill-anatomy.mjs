@@ -76,7 +76,7 @@ export function frontmatterDescription(head) {
   for (const line of lines) {
     if (line.startsWith("description:")) {
       inDescription = true;
-      const value = line.split(":", 2)[1].trim();
+      const value = line.slice("description:".length).trim();
       if (value && !new Set([">", ">-", "|", "|-"]).has(value)) {
         description.push(value);
       }
@@ -92,7 +92,19 @@ export function frontmatterDescription(head) {
     }
   }
 
-  return inDescription ? description.join(" ") : null;
+  if (!inDescription) return null;
+  return unquoteScalar(description.join(" "));
+}
+
+// A quoted YAML scalar's delimiters are syntax, not description text. Strip
+// them so the length budgets measure what an agent actually reads.
+function unquoteScalar(value) {
+  for (const quote of ['"', "'"]) {
+    if (value.length >= 2 && value.startsWith(quote) && value.endsWith(quote)) {
+      return value.slice(1, -1);
+    }
+  }
+  return value;
 }
 
 export function validateSkillFile(path) {
@@ -523,6 +535,30 @@ Stuff.
 `,
     );
 
+    // A quoted description containing a colon must be measured in full. Reading
+    // only up to the first inner colon silently under-counts both length budgets.
+    const quotedDescription =
+      "Use for design-partner mode: discovery, tradeoffs, decisions, and the agreed design artifacts that later implementation work binds itself to.";
+    writeFixture(
+      join(tmp, "quoted/SKILL.md"),
+      `---
+name: quoted
+description: "${quotedDescription}"
+---
+
+# Quoted
+
+## When to Use
+- trigger
+
+## When NOT to Use
+- other
+
+## Verification
+- [ ] check
+`,
+    );
+
     const longDescription = "x".repeat(100);
     for (let index = 0; index < 21; index += 1) {
       writeFixture(
@@ -561,6 +597,8 @@ description: ${longDescription}
       "Red Flags",
       "positive Tripwires bullets",
       "description total too long",
+      `quoted/SKILL.md`,
+      `description too long (${quotedDescription.length} > ${MAX_DESCRIPTION_LENGTH} characters)`,
     ]) {
       if (!rendered.includes(expected)) {
         console.error(`self-test failed: missing ${JSON.stringify(expected)} in output`);

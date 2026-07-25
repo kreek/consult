@@ -1,6 +1,6 @@
 ---
 name: performance
-description: Use for performance, profiling, latency, throughput, allocation, caching, and hot paths.
+description: Use for performance, profiling, latency, throughput, allocation, caching, hot paths.
 ---
 
 # Performance

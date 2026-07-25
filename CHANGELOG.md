@@ -6,6 +6,51 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.8.0] (2026-07-25)
+
+### Added
+
+- Documented the attended-vs-unattended host posture in `AGENTS.md`: attended
+  hosts get high-level guidance because a human is the gate, and Pi gets
+  runtime enforcement because nobody is watching. Records why enforcement lives
+  in `consult/extensions/` and must not migrate into shared skill prose.
+- `workflow` now has an explicit fast path for work that is neither significant
+  nor durable, so a small self-contained change is not routed through the full
+  step list.
+
+### Changed
+
+- `git-workflow` and `code-review` now gate on GitHub *access* rather than on
+  the `gh` CLI specifically, and name GitHub MCP servers and host GitHub tools
+  as the other surfaces. `gh` is absent from some sandboxes and hosted
+  sessions, where the old wording left the gate unreachable.
+- `code-review` no longer claims a same-context second pass "reliably" surfaces
+  defects. It states the limitation — the context that produced the code
+  carries the reasoning that justified it — and prefers a fresh-context
+  reviewer when the host has one.
+- `workflow`'s skill table now says to load a skill only when reading it would
+  change the next action or the proof obligation, and that its rows mean the
+  Consult skill where a host ships a built-in of the same name.
+- Trimmed the Oxford conjunction from 19 skill descriptions, bringing the
+  pack-wide description total to 1993 characters, back under the documented
+  2,000 ceiling. No trigger keywords were removed.
+- `README.md` now recommends the plugin over `./setup.sh` on Claude Code, since
+  `setup.sh` registers bare skill names that collide with Claude Code built-ins
+  and double-loads skills when both are installed.
+- `eval/README.md` now states that all eval numbers come from Codex with
+  `gpt-5.5`, and that other hosts are unmeasured.
+
+### Fixed
+
+- `scripts/validate-skill-anatomy.mjs` measured frontmatter descriptions only
+  up to their first inner colon, because it split on `":"` with a limit of 2.
+  Quoted descriptions containing a colon were under-counted (`api` measured 27
+  characters instead of 104), so both the 120-character per-skill cap and the
+  2,000-character pack total passed while the pack was actually over budget at
+  2,069. Descriptions are now parsed in full, with quote delimiters excluded
+  from the count, and the regression is covered in both the script self-test
+  and the Vitest suite.
+
 ## [11.7.3] (2026-06-05)
 
 ### Changed

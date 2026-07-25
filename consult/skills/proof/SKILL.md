@@ -1,6 +1,6 @@
 ---
 name: proof
-description: Use for proof and tests, claims, invariants, behavior specs, edge cases, and evidence.
+description: Use for proof and tests, claims, invariants, behavior specs, edge cases, evidence.
 ---
 
 # Proof

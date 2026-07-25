@@ -1,6 +1,6 @@
 ---
 name: specify
-description: "Use for design-partner mode: discovery, tradeoffs, decisions, and agreed design artifacts."
+description: "Use for design-partner mode: discovery, tradeoffs, decisions, agreed design artifacts."
 ---
 
 # Specify

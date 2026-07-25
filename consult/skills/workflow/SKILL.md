@@ -1,6 +1,6 @@
 ---
 name: workflow
-description: Use first for every coding task to route risks, choose skills, and define proof.
+description: Use first for every coding task to route risks, choose skills, define proof.
 ---
 
 # Workflow
@@ -87,12 +87,21 @@ description: Use first for every coding task to route risks, choose skills, and 
    reverse). Disposable work scores low on both: self-contained and cheap to
    undo because nothing depends on it. Durable or significant work is
    foundational: other code and future work come to depend on it.
+
+   When work scores low on both axes, take the fast path: skip to step 6, do
+   the work, and prove it with `proof`. Routing a small self-contained change
+   through every step below costs the user more attention than the change
+   itself. Escalate mid-task if it turns out to touch a contract, data shape,
+   or behavior other code depends on.
 3. **Set the involvement level.** Involvement rises with the stakes: work
    autonomously when they are low, give brief progress updates as they climb,
    and propose options and get approval before acting when they are high.
-4. **Load the skills needed for correctness.** Use the table below: load each skill
-   when its "Load when" condition is met. The table is ordered by the
-   development lifecycle, not by importance.
+4. **Load the skills needed for correctness.** Use the table below: load each
+   skill when its "Load when" condition is met *and* reading it would change
+   the next action or the proof obligation. A skill loaded for completeness
+   spends the user's context without changing the work. The table is ordered by
+   the development lifecycle, not by importance. Where a host ships a built-in
+   skill of the same name, these rows mean the Consult skill.
 
    | Skill | Load when |
    | --- | --- |

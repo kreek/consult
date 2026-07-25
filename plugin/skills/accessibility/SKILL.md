@@ -1,6 +1,6 @@
 ---
 name: accessibility
-description: Use for accessible UI, WCAG, ARIA, keyboard, focus, contrast, and inclusive states.
+description: Use for accessible UI, WCAG, ARIA, keyboard, focus, contrast, inclusive states.
 ---
 
 # Accessibility
