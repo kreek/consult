@@ -6,6 +6,59 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.10.0] (2026-07-25)
+
+### Added
+
+- **CI** (`.github/workflows/ci.yml`). The repo had no CI and never had any, so
+  every check was local and opt-in. Runs the validator, its self-test,
+  `check:links`, repo tests, and the Pi package tests as separate steps on every
+  push and pull request, so one failure cannot mask the rest. Installs Tcl
+  `expect` so the `setup.sh` confirmation tests actually execute, and asserts no
+  tests skip on CI. Deliberately does **not** install GNU Stow: one test asserts
+  `setup.sh` refuses to run without it.
+- `make eval` for the eval suite, which needs the unpublished `do-eval` sibling.
+- `commandExists()` in `tests/helpers.mjs`, for guarding tests that need an
+  external binary.
+- A generator test asserting every declared mirror destination is written, so
+  dropping one from `MIRROR_DESTS` fails immediately instead of surfacing later as
+  drift.
+
+### Fixed
+
+- **`pnpm install` failed on a clean clone.** `eval/` was a workspace package
+  depending on `do-eval` via `file:../../do-eval` — an unpublished sibling, so a
+  bare install died with `ENOENT` and installed nothing, taking root `vitest` and
+  `remark` with it. Every command `AGENTS.md` prescribes as the bar was
+  unrunnable as documented, and `make test` could not pass on any machine but the
+  maintainer's. `eval/` is no longer a workspace package.
+- **Half the generated mirrors escaped the validator.**
+  `generate-plugin-symlinks.mjs` writes both `plugin/skills` and
+  `consult/skills`, but the validator hardcoded only the first, so Pi-bundle drift
+  was caught solely by a full `vitest` run — while `AGENTS.md` tells agents to run
+  the narrow validator and skip root `pnpm test` for prose edits. The validator
+  now iterates `MIRROR_DESTS` imported from the generator, so the two cannot drift
+  apart and a future destination is covered automatically. Drift messages are
+  labelled per mirror.
+- **Four tests failed for a misdiagnosed reason.** The `setup.sh` confirmation
+  tests need Tcl `expect`, not GNU Stow — `stow` is stubbed by `createFakeStow`.
+  They now skip with an explicit reason when `expect` is absent, so a clean local
+  run is genuinely green instead of "4 red is expected".
+- `tests/helpers.mjs` silently discarded `spawnSync`'s `error`, turning a missing
+  binary into `status: null` and an assertion failure on an exit code. That is
+  what made the misdiagnosis above possible; it now throws with the binary name.
+- `make test` no longer leads with `pnpm test`. It is fail-fast, so a single test
+  failure prevented the anatomy validator from ever reporting. Cheap
+  deterministic checks run first.
+
+### Changed
+
+- Description budget raised from 2,000 to 2,400 characters, with the reasoning
+  recorded in both the validator and `AGENTS.md`. The pack sat at 1,993 with
+  7 characters of headroom, and the old ceiling had never actually been enforced
+  because descriptions were truncated at their first inner colon. The self-test's
+  budget fixtures now scale with the constant instead of hardcoding a count.
+
 ## [11.9.0] (2026-07-25)
 
 ### Added

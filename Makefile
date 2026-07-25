@@ -1,15 +1,23 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
-.PHONY: test update-installed-plugins update-installed-plugins-dry-run pi-install-local pi-uninstall-local publish-pi publish-pi-dry-run
+.PHONY: test eval update-installed-plugins update-installed-plugins-dry-run pi-install-local pi-uninstall-local publish-pi publish-pi-dry-run
 
 CONSULT_PI_LOCAL_PACKAGE := $(abspath consult)
 
+# Cheap, deterministic checks first: a failing test suite must not stop the
+# validator from reporting, since prose changes are the common case and the
+# validator is the check that covers them.
 test:
-	pnpm test
 	node scripts/validate-skill-anatomy.mjs
+	node scripts/validate-skill-anatomy.mjs --self-test
 	pnpm run check:links
+	pnpm test
 	pnpm --dir consult test
+
+# Requires the unpublished `do-eval` sibling checked out beside this repo, so it
+# is opt-in rather than part of `make test`.
+eval:
 	pnpm --dir eval test
 	pnpm --dir eval typecheck
 

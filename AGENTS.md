@@ -78,6 +78,15 @@ Consequences for anyone editing this repo:
 
 ## Common commands
 
+A clean clone installs with `pnpm install`. `eval/` is deliberately outside the
+workspace because it depends on the unpublished `do-eval` sibling; including it
+made a bare install fail with `ENOENT` and install nothing. Run the eval suite
+with `make eval` once that sibling is checked out beside this repo.
+
+`make test` runs the whole check sequence, cheapest first, so a failing test
+suite cannot stop the anatomy validator from reporting. `.github/workflows/ci.yml`
+runs the same checks as separate steps on every push and pull request.
+
 ```sh
 # Re-run the local installer and per-tool fan-out after a
 # skill is added / renamed / removed. Idempotent.
@@ -125,9 +134,11 @@ risk.
 
 - Pi runtime extension changes under `consult/extensions/` or
   `consult/test/`: run `pnpm --dir consult test`.
-- Canonical skill prose changes: run `node scripts/validate-skill-anatomy.mjs`
-  and targeted `cmp` checks for the changed skill mirrors. Use root `pnpm test`
-  only when sibling package mirrors, packaging scripts, or repo tests changed.
+- Canonical skill prose changes: run `node scripts/validate-skill-anatomy.mjs`.
+  It now checks every generated mirror (`plugin/skills` and `consult/skills`,
+  read from the generator's `MIRROR_DESTS`), so it is sufficient on its own — no
+  separate `cmp` pass, and no need for root `pnpm test`. Regenerate with
+  `node scripts/generate-plugin-symlinks.mjs` when it reports drift.
 - Markdown link/doc-wide changes: run `pnpm run check:links` only when
   links or broad docs moved. Do not run it for ordinary runtime or narrow skill
   edits.
@@ -148,8 +159,12 @@ Every `SKILL.md` must have:
 
 - Frontmatter with kebab-case `name:` and a trigger-focused `description:`
   no longer than 120 characters, and the pack-wide canonical description total
-  must stay under 2,000 characters, because agents may load every description
-  before selecting a skill body.
+  must stay under 2,400 characters, because agents may load every description
+  before selecting a skill body. That ceiling is ~600 tokens of always-loaded
+  routing surface and leaves room for roughly four more skills; it was raised
+  from 2,000 once the validator stopped truncating descriptions at their first
+  inner colon and revealed the pack had been over the old limit all along. Raise
+  it again only with a stated reason.
 - Required sections: `## When to Use`, `## When NOT to Use`,
   `## Verification`.
 - Optional section: `## Tripwires` when a skill has known agent failure modes.

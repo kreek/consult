@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { cleanupTempDir, makeTempDir, ROOT, run } from "./helpers.mjs";
+import { MIRROR_DESTS } from "../scripts/generate-plugin-symlinks.mjs";
 
 const SCRIPT = join(ROOT, "scripts/generate-plugin-symlinks.mjs");
 let tmp;
@@ -22,6 +23,22 @@ describe("generate-plugin-symlinks CLI", () => {
   afterEach(() => {
     if (tmp) cleanupTempDir(tmp);
     tmp = undefined;
+  });
+
+  it("writes every declared mirror destination", () => {
+    tmp = makeTempDir();
+    makeSkill(tmp, "code-review");
+
+    const result = runScript(tmp);
+
+    expect(result.status).toBe(0);
+    const canonical = readFileSync(join(tmp, "agents/.agents/skills/code-review/SKILL.md"), "utf8");
+    // Guards against a destination being dropped from MIRROR_DESTS: losing one
+    // would otherwise only surface later, as drift on the next canonical edit.
+    expect(MIRROR_DESTS).toEqual(["plugin/skills", "consult/skills"]);
+    for (const dest of MIRROR_DESTS) {
+      expect(readFileSync(join(tmp, dest, "code-review/SKILL.md"), "utf8")).toBe(canonical);
+    }
   });
 
   it("creates real plugin copies for skills", () => {

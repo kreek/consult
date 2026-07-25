@@ -16,9 +16,16 @@ import { dirname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
+import { MIRROR_DESTS } from "./generate-plugin-symlinks.mjs";
+
 const REQUIRED_SECTIONS = ["When to Use", "When NOT to Use", "Verification"];
 const MAX_DESCRIPTION_LENGTH = 120;
-const MAX_TOTAL_DESCRIPTION_LENGTH = 2000;
+// ~600 tokens of routing surface that every host loads before picking a skill.
+// Chosen deliberately once the measurement was honest: the previous 2,000 was
+// never enforced (descriptions were truncated at their first inner colon), and
+// the pack turned out to be at 2,069 the whole time. 2,400 leaves room for about
+// four more skills without forcing keyword cuts. Raise it only with a reason.
+const MAX_TOTAL_DESCRIPTION_LENGTH = 2400;
 
 const NAME_RE = /^name:\s+[a-z][a-z0-9-]*\s*$/m;
 const ATTRIBUTION_RE = /\b[Pp]er\s+(?:[A-Z][a-z]+\s+)?[A-Z][a-z]+\b/;
@@ -189,10 +196,6 @@ export function printSkillFindings(skillsDir, findings) {
   }
 }
 
-function pluginSkillsDir(skillsDir) {
-  return resolve(skillsDir, "../../..", "plugin/skills");
-}
-
 function repoRootForSkillsDir(skillsDir) {
   return resolve(skillsDir, "../../..");
 }
@@ -213,8 +216,20 @@ function sameBytes(left, right) {
   return readFileSync(left).equals(readFileSync(right));
 }
 
+// Every generated mirror, checked against the same canonical source. Reads the
+// list from the generator so a new destination cannot be added there and silently
+// escape validation -- which is exactly how the consult/skills Pi bundle went
+// unchecked while only plugin/skills was verified.
 export function validatePluginDrift(skillsDir) {
-  const pluginDir = pluginSkillsDir(skillsDir);
+  const root = repoRootForSkillsDir(skillsDir);
+  let drift = 0;
+  for (const dest of MIRROR_DESTS) {
+    drift += validateMirrorDrift(skillsDir, resolve(root, dest), dest);
+  }
+  return drift;
+}
+
+function validateMirrorDrift(skillsDir, pluginDir, label) {
   if (!existsSync(pluginDir) || !statSync(pluginDir).isDirectory()) return 0;
 
   let drift = 0;
@@ -226,7 +241,7 @@ export function validatePluginDrift(skillsDir) {
   for (const skillDir of skillDirs) {
     const mirror = join(pluginDir, skillDir.split(/[\\/]/).at(-1));
     if (!existsSync(mirror) || !statSync(mirror).isDirectory()) {
-      console.log(`plugin drift: ${mirror} missing -- run scripts/generate-plugin-symlinks.mjs`);
+      console.log(`${label} drift: ${mirror} missing -- run scripts/generate-plugin-symlinks.mjs`);
       drift += 1;
       continue;
     }
@@ -235,12 +250,12 @@ export function validatePluginDrift(skillsDir) {
       const rel = relative(skillDir, sourceFile);
       const mirrorFile = join(mirror, rel);
       if (!existsSync(mirrorFile) || !statSync(mirrorFile).isFile()) {
-        console.log(`plugin drift: ${mirrorFile} missing`);
+        console.log(`${label} drift: ${mirrorFile} missing`);
         drift += 1;
         continue;
       }
       if (!sameBytes(sourceFile, mirrorFile)) {
-        console.log(`plugin drift: ${mirrorFile} differs from ${sourceFile}`);
+        console.log(`${label} drift: ${mirrorFile} differs from ${sourceFile}`);
         drift += 1;
       }
     }
@@ -249,7 +264,7 @@ export function validatePluginDrift(skillsDir) {
       const rel = relative(mirror, mirrorFile);
       const sourceFile = join(skillDir, rel);
       if (!existsSync(sourceFile) || !statSync(sourceFile).isFile()) {
-        console.log(`plugin drift: ${mirrorFile} has no canonical source`);
+        console.log(`${label} drift: ${mirrorFile} has no canonical source`);
         drift += 1;
       }
     }
@@ -258,15 +273,15 @@ export function validatePluginDrift(skillsDir) {
   for (const name of readdirSync(pluginDir).sort()) {
     const mirror = join(pluginDir, name);
     if (statSync(mirror).isDirectory() && !existsSync(join(skillsDir, name))) {
-      console.log(`plugin drift: ${mirror} has no canonical skill`);
+      console.log(`${label} drift: ${mirror} has no canonical skill`);
       drift += 1;
     }
   }
 
-  if (drift === 0) console.log("plugin/ skill mirror in sync with source");
+  if (drift === 0) console.log(`${label} mirror in sync with source`);
   else {
     console.log("");
-    console.log(`${drift} plugin mirror difference(s) found`);
+    console.log(`${drift} ${label} mirror difference(s) found`);
   }
   return drift;
 }
@@ -560,7 +575,10 @@ description: "${quotedDescription}"
     );
 
     const longDescription = "x".repeat(100);
-    for (let index = 0; index < 21; index += 1) {
+    // Enough fixtures to exceed MAX_TOTAL_DESCRIPTION_LENGTH with margin, so the
+    // budget assertion below does not quietly stop testing anything when the
+    // ceiling is raised.
+    for (let index = 0; index < Math.ceil(MAX_TOTAL_DESCRIPTION_LENGTH / 100) + 4; index += 1) {
       writeFixture(
         join(tmp, `budget-${index}/SKILL.md`),
         `---
