@@ -104,6 +104,30 @@ hand work back here expecting it.
   name and pass/fail, the artifact you inspected, or a plain reason you couldn't
   run it.
 
+When the work spans more than one context, keep these contracts in the Work
+Ledger rather than only in the conversation, so a resumed session can tell what
+is proven from what merely felt done. See `workflow`'s
+`references/work-ledger.md`.
+
+## Red-Green Mode
+
+Test-first is a tool, not a law here — Core Idea 2 stands. But for some claims it
+is plainly the right tool, because the failing test is itself the evidence:
+
+- A bug fix with a reproducible symptom. Write the test that reproduces it, watch
+  it fail for the stated reason, then fix. A regression test written after the fix
+  proves far less, because you never saw it catch anything.
+- A behavior change with a clear observable. The failing assertion is how you
+  confirm you are changing the thing you meant to.
+- A contract change. Assert the new shape before the implementation can talk you
+  into a different one.
+
+Verify the red as deliberately as the green: a test that passes on the first run
+is testing behavior that already existed, so it proves nothing about your change.
+
+Pi's `/proof` runtime command drives this cycle when it is the right mode. Its
+output counts only toward the claims it actually covers.
+
 ## Workflow
 
 1. List the claims this change makes or relies on. Keep the ones a caller or

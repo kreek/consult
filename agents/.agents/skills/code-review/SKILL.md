@@ -48,6 +48,28 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
    vague, or disconnected from the stated intent is comprehension debt even when
    it appears to work.
 
+## Independent Review
+
+The strongest review comes from a reviewer with no implementation context. Set
+one up when the host allows it: a subagent, a fresh session, or the same agent
+reading the diff cold after the reasoning has left context.
+
+Give the reviewer only what a real reviewer would have:
+
+- The diff.
+- The stated intent and acceptance criteria — from the Work Ledger when one
+  exists, since that is what survives into a context with no history.
+- The repo's declared constraints: runtime, framework, support policy, test
+  command.
+
+Withhold the implementation rationale. Why a line is there is precisely what
+biases a reviewer into accepting it; a reviewer who has to work out the intent
+from the diff finds what the author's own second pass cannot. Answer questions
+the reviewer asks, but do not pre-empt them with justification.
+
+When no independent reviewer is available, say the review was same-context and
+treat its clean result as weaker evidence.
+
 ## Review Lenses
 
 - Security: auth/authz, secrets, trust boundaries, input handling, dependencies,

@@ -89,8 +89,9 @@ description: "Use for design-partner mode: discovery, tradeoffs, decisions, agre
    or review.
 8. **Capture only what will be used.** If an artifact is needed, choose the
    smallest useful form after convergence and save it where it will rot least:
-   private `.pi/specify/` for local agent memory, or checked-in `docs/` when
-   the team should keep it.
+   the local Work Ledger for agent memory the next context will need, or
+   checked-in `docs/` when the team should keep it. Record what the user actually
+   approved, not just what was proposed.
 
 ## Artifact Types
 

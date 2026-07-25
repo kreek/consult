@@ -81,7 +81,10 @@ description: Use first for every coding task to route risks, choose skills, defi
    and obvious complexity or coupling risk. If done is unclear, propose
    acceptance criteria and resolve open points logically, asking one clarifying
    decision question at a time. For compatibility uncertainty, ask before adding
-   shims.
+   shims. If the work will outlive one context — several slices, a long session,
+   or a likely handoff — open a Work Ledger now and record the request, target,
+   and acceptance signal. If you are resuming, read the existing ledger before
+   re-reading diffs or replaying history.
 2. **Classify the work.** Judge its stakes on two axes: significance (how much
    of the rest of the code it impacts) and durability (how costly it is to
    reverse). Disposable work scores low on both: self-contained and cheap to
@@ -89,10 +92,10 @@ description: Use first for every coding task to route risks, choose skills, defi
    foundational: other code and future work come to depend on it.
 
    When work scores low on both axes, take the fast path: skip to step 6, do
-   the work, and prove it with `proof`. Routing a small self-contained change
-   through every step below costs the user more attention than the change
-   itself. Escalate mid-task if it turns out to touch a contract, data shape,
-   or behavior other code depends on.
+   the work, and prove it with `proof`. No ledger, no sign-off table. Routing a
+   small self-contained change through every step below costs the user more
+   attention than the change itself. Escalate mid-task if it turns out to touch
+   a contract, data shape, or behavior other code depends on.
 3. **Set the involvement level.** Involvement rises with the stakes: work
    autonomously when they are low, give brief progress updates as they climb,
    and propose options and get approval before acting when they are high.
@@ -151,11 +154,14 @@ description: Use first for every coding task to route risks, choose skills, defi
    fixes that restore intended behavior, or routine implementation details.
 6. **Implement in reviewable slices.** If production or shared work grows
    beyond one focused review, stop, summarize where the change stands, and
-   split the next slice before coding more.
+   split the next slice before coding more. Update the ledger when a slice lands
+   or a decision is approved.
 7. **Run the completion loop.** For non-trivial work: implement, prove every
-   behavior with specs via `proof`, then run a `code-review` self-review pass (at
-   least once) and fix what it finds. Repeat until the specs pass and the review
-   finds nothing to fix; only then do any needed documentation or release work.
+   behavior with specs via `proof`, then run a `code-review` pass (at least once)
+   and fix what it finds. Prefer a reviewer with no implementation context; the
+   ledger carries the intent and acceptance criteria it needs. Repeat until the
+   specs pass and the review finds nothing to fix, recording each claim's status
+   in the ledger; only then do any needed documentation or release work.
 8. **Close with scope and evidence.** Name what changed, why it matters, what
    evidence proves it, and what still needs attention. Follow the active host's
    final-answer rules.
@@ -177,6 +183,8 @@ description: Use first for every coding task to route risks, choose skills, defi
 - [ ] The completion loop ran on non-trivial work: every behavior was proven
       with specs, and at least one `code-review` self-review pass was made and
       its findings fixed.
+- [ ] Work that outlived one context has a ledger whose approvals and claim
+      statuses match the repo, or the fast path applied and no ledger was owed.
 - [ ] The close states why the change is better, what remains unproven, and
       what needs the user's attention, not only an activity log of what was
       done.
@@ -207,3 +215,5 @@ Use these when the shortcut thought appears:
 
 - `references/simple-not-easy.md`: load when ceremony, helper layers, broad
   skill loading, or hidden coupling might be mistaken for engineering rigor.
+- `references/work-ledger.md`: load when work will outlive one context and
+  approvals or evidence must survive compaction, a fresh session, or a handoff.

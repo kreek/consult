@@ -6,6 +6,39 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.9.0] (2026-07-25)
+
+### Added
+
+- **Work Ledger** (`workflow/references/work-ledger.md`): a durable per-work
+  artifact at `.consult/ledger/<slug>.md` carrying the request, target, approved
+  decisions, and Proof Contracts across compaction, a fresh session, or a handoff.
+  Deliberately not a task list — sequencing stays with the host's planning mode.
+  It records what a human approved and what is actually proven, so a resumed
+  context does not re-derive approvals or trust a green that no longer applies to
+  the code. Each proof row pins to a code state; uncommitted greens are
+  provisional and re-run before the close. `workflow` writes it at framing and
+  updates it as slices land, the fast path is explicitly exempt, `proof` persists
+  Proof Contracts to it, and `specify` uses it in place of the Pi-specific
+  `.pi/specify/` path.
+- **Independent Review** in `code-review`: the reviewer receives the diff, the
+  stated intent, the acceptance criteria, and the repo's declared constraints —
+  but not the implementation rationale, since that rationale is what biases a
+  reviewer into accepting a line. Satisfied by a subagent, a fresh session, or a
+  cold re-read; a same-context review must be labelled as such and treated as
+  weaker evidence.
+- **Red-Green Mode** in `proof`: names test-first as the right tool for a bug with
+  a reproducible symptom, a behavior change with a clear observable, and a
+  contract change, with the reminder to verify the red as deliberately as the
+  green. Test-first stays a tool, not a law — "match the proof to the claim"
+  remains the rule.
+
+### Changed
+
+- `AGENTS.md` compaction guidance now reads the Work Ledger first, giving the
+  existing advice an artifact to act on.
+- `.gitignore` ignores `.consult/`, since Consult is developed with Consult.
+
 ## [11.8.0] (2026-07-25)
 
 ### Added
