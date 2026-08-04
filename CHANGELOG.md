@@ -6,6 +6,14 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `workflow` now states that a host instruction to settle routine questions
+  yourself and keep moving is describing mechanics, not authority: the sign-off
+  gates are outcome requirements and outlast it. Work everything the gate does
+  not block and state assumptions, but do not build the gated shape without the
+  human.
+
 ## [11.10.0] (2026-07-25)
 
 ### Added

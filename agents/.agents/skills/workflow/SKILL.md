@@ -46,7 +46,11 @@ description: Use first for every coding task to route risks, choose skills, defi
    the active agent host for tool invocation, sandbox or permission prompts,
    built-in skill workflows, and final response shape. If host mechanics and
    Consult prose pull in different directions, preserve the Consult outcome
-   requirement inside the host's required format.
+   requirement inside the host's required format. A host that tells you to
+   settle routine questions yourself and keep moving is describing mechanics;
+   the sign-off gates below are outcome requirements and outlast it. Carry on
+   with everything the gate does not block, and state your assumptions, but do
+   not build the gated shape without the human.
 4. **Autonomous by default; consult before significant or durable decisions.**
    Proceed on routine, local, and disposable implementation. A decision is
    significant or durable when it commits to substantial modules or components,
