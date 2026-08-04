@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import type { ProjectEvalConfig } from "do-eval";
@@ -13,9 +14,8 @@ const CONSULT_REPO_ROOT = path.resolve(import.meta.dirname, "..");
 
 // One bare codex agent. Consult is NOT configured here — it is applied through
 // the profile's setup.layers (a codex plugin-install layer + a skill-library
-// layer). do-eval's per-profile baseline strips those layers (`bareProfileOf`)
-// while keeping this agent verbatim, so the auto-derived baseline is genuinely
-// bare codex and `lift` measures exactly what Consult adds.
+// layer), so a baseline profile that declares no layers while reusing this agent
+// verbatim is genuinely bare codex.
 const codexAgent = {
   harness: "codex",
   provider,
@@ -27,29 +27,41 @@ const codexAgent = {
   },
 } as const;
 
-const skillLayerCapabilities = [
-  "accessibility",
-  "api",
-  "architecture",
-  "async-systems",
-  "code-review",
-  "domain-modeling",
-  "database",
-  "debugging",
-  "documentation",
-  "error-handling",
-  "git-workflow",
-  "observability",
-  "performance",
-  "proof",
-  "refactoring",
-  "release",
-  "scaffolding",
-  "security",
-  "ui-design",
-  "specify",
-  "workflow",
-];
+// Derived from the shipped plugin rather than hand-listed: a hardcoded copy had
+// silently drifted to 21 names while the pack ships 24.
+const skillLayerCapabilities = fs
+  .readdirSync(path.join(CONSULT_REPO_ROOT, "plugin", "skills"), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .sort();
+
+// A real Claude Code process, authenticated by the user's existing subscription
+// login. Auth comes from the OS keychain, so no ANTHROPIC_API_KEY is involved and
+// the run does not bill the API; the harness asserts this by unsetting the key and
+// recording the init event's apiKeySource. As with codex, Consult is NOT
+// configured here, only through setup.layers.
+const claudeAgent = {
+  harness: "claude",
+  provider: "anthropic",
+  model: process.env["CONSULT_EVAL_CLAUDE_MODEL"] ?? "claude-sonnet-5",
+  thinking: reasoningEffort,
+  claude: {
+    // Load no user/project settings. Without this the user's globally enabled
+    // consult@consult plugin would leak into the bare arm and lift would read zero.
+    settingSources: "",
+    // stdin is closed for eval workers, so a prompting mode cannot be answered.
+    permissionMode: "bypassPermissions",
+    strictMcp: true,
+    maxBudgetUsd: Number(process.env["CONSULT_EVAL_CLAUDE_BUDGET_USD"] ?? 2),
+  },
+} as const;
+
+const claudeFactors = {
+  harness: "claude",
+  provider: claudeAgent.provider,
+  model: claudeAgent.model,
+  reasoningEffort,
+};
 
 const config: ProjectEvalConfig = {
   profiles: {
@@ -95,6 +107,52 @@ const config: ProjectEvalConfig = {
           },
         ],
       },
+    },
+
+    // The two Claude Code arms. They share `claudeAgent` by reference and differ
+    // only by the presence of the plugin layer, so the delta between them isolates
+    // Consult rather than any difference in how the worker was launched.
+    claudeWithConsultPlugin: {
+      id: "claudeWithConsultPlugin",
+      label: "Claude Code + Consult plugin",
+      agent: claudeAgent,
+      setup: {
+        layers: [
+          // Loaded with --plugin-dir, which is session-scoped: no marketplace
+          // install, nothing mutated outside the run, nothing to clean up.
+          // Verified to surface every skill as consult:<name>.
+          {
+            id: "consult",
+            kind: "plugin",
+            mode: "session-flag",
+            runtime: "claude",
+            source: path.join(CONSULT_REPO_ROOT, "plugin"),
+            capabilities: skillLayerCapabilities,
+          },
+        ],
+      },
+      factors: {
+        ...claudeFactors,
+        layers: [
+          {
+            id: "consult",
+            kind: "plugin",
+            runtime: "claude",
+            capabilities: skillLayerCapabilities,
+          },
+        ],
+      },
+    },
+
+    // Stock Claude Code. It keeps the bundled Anthropic skills, because that is
+    // what a user without Consult actually has; the comparison is therefore
+    // "Consult on top of stock", not "skills versus no skills".
+    claudeBare: {
+      id: "claudeBare",
+      label: "Claude Code (bare)",
+      agent: claudeAgent,
+      setup: { layers: [] },
+      factors: { ...claudeFactors, layers: [] },
     },
   },
   defaultProfile: "codexWithConsultSkills",

@@ -182,6 +182,9 @@ function commandAndResultText(session: EvalSession): string {
     .join("\n");
 }
 
+// Tools whose invocation *is* a skill activation, as opposed to a file read.
+const SKILL_INVOCATION_TOOLS = new Set(["Skill", "SlashCommand"]);
+
 function readConsultSkillNames(session: EvalSession): string[] {
   const text = commandAndResultText(session);
   const skills = new Set<string>();
@@ -193,6 +196,20 @@ function readConsultSkillNames(session: EvalSession): string[] {
   }
   for (const match of text.matchAll(/\.codex\/skills\/([^/\s"']+)\/SKILL\.md/g)) {
     if (match[1]) skills.add(match[1]);
+  }
+  for (const match of text.matchAll(/\.claude\/skills\/([^/\s"']+)\/SKILL\.md/g)) {
+    if (match[1]) skills.add(match[1]);
+  }
+  // Claude Code injects plugin skills natively, so an activated skill leaves no
+  // SKILL.md read in the transcript; the invocation is the only signal. Scoped to
+  // the invoking tool call on purpose: the host advertises every available skill
+  // as `consult:<name>` up front, so a transcript-wide match would report all of
+  // them as activated in any run that merely had the plugin loaded.
+  for (const call of session.toolCalls) {
+    if (!SKILL_INVOCATION_TOOLS.has(call.name)) continue;
+    for (const match of JSON.stringify(call.arguments ?? {}).matchAll(/consult[:/]([a-z][a-z0-9-]*)/g)) {
+      if (match[1]) skills.add(match[1]);
+    }
   }
   return [...skills].sort();
 }

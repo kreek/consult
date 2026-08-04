@@ -6,6 +6,26 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Two Claude Code eval arms: `claudeWithConsultPlugin` loads the shipped plugin
+  through a session-scoped `--plugin-dir` layer, and `claudeBare` reuses the
+  same agent object with no layers, so the delta between the arms isolates
+  Consult rather than any launch-flag difference. Auth comes from the existing
+  Claude Code login, not `ANTHROPIC_API_KEY`, and codex remains the default
+  profile.
+- The engineering-maturity plugin now reads `Skill` and `SlashCommand` tool
+  calls as activation evidence. Claude Code injects plugin skills natively, so
+  an activated skill leaves no `SKILL.md` read in the transcript; matching is
+  scoped to the invoking tool call because the host advertises every available
+  skill as `consult:<name>` up front.
+
+### Fixed
+
+- The eval's skill-layer capability list is derived from `plugin/skills/` at
+  config load instead of hand-listed; the hardcoded copy had silently drifted
+  to 21 names while the pack ships 24.
+
 ### Changed
 
 - `workflow` now states that a host instruction to settle routine questions
