@@ -6,8 +6,22 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.11.0] (2026-08-04)
+
 ### Added
 
+- Four anatomy validator rules: Tripwires sections must use the trigger table,
+  no skill markdown may contain an em dash (references included), any skill
+  invoking the approving-design-or-RFC concept must carry the canonical sentence
+  verbatim, and the workflow routing tables are cross-checked both ways against
+  the skill set. Self-test fixtures and CLI tests cover each rule.
+- Two eval readouts: `skill_triggering` (intended-vs-read skills from the trial
+  manifest's features list) and `non_interruption` (assistant messages ending in
+  a question). Both are zero-weight deterministic scores, so skill reads never
+  shift the overall score, but under-triggering and gate fatigue are reportable.
+- README statement that Consult ceremony scales with stakes: gates fire on
+  significance and durability, routine work runs autonomously, and interruption
+  count is tracked so gate fatigue is a reportable bug.
 - `make smoke` (`scripts/claude-smoke.mjs`): smoke-tests changed skills against
   a real Claude Code process. The load check reads the init event, which the
   host emits before any inference, so it costs nothing and is the only check
@@ -35,6 +49,11 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Every Tripwires section now uses the trigger / do-this-instead / false-alarm
+  table, replacing the bullet lists in 15 skills and adding the missing section
+  to `contract-first`. The six sign-off skills carry one canonical sentence for
+  the direction-vs-shapes approval rule, and the trigger-poor descriptions on
+  `specify`, `contract-first`, and `official-source-check` were sharpened.
 - `workflow` now states that a host instruction to settle routine questions
   yourself and keep moving is describing mechanics, not authority: the sign-off
   gates are outcome requirements and outlast it. Work everything the gate does
