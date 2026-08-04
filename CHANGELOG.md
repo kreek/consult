@@ -8,6 +8,13 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `make smoke` (`scripts/claude-smoke.mjs`): smoke-tests changed skills against
+  a real Claude Code process. The load check reads the init event, which the
+  host emits before any inference, so it costs nothing and is the only check
+  that proves the host accepts a skill; `validate-skill-anatomy` checks our own
+  schema and cannot see a skill the host silently drops. An optional
+  behavioural trial runs one do-eval trial covering the changed skills.
+  Auth comes from the existing Claude Code login, so no API billing.
 - Two Claude Code eval arms: `claudeWithConsultPlugin` loads the shipped plugin
   through a session-scoped `--plugin-dir` layer, and `claudeBare` reuses the
   same agent object with no layers, so the delta between the arms isolates
