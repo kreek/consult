@@ -6,6 +6,172 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `make smoke` (`scripts/claude-smoke.mjs`): smoke-tests changed skills against
+  a real Claude Code process. The load check reads the init event, which the
+  host emits before any inference, so it costs nothing and is the only check
+  that proves the host accepts a skill; `validate-skill-anatomy` checks our own
+  schema and cannot see a skill the host silently drops. An optional
+  behavioural trial runs one do-eval trial covering the changed skills.
+  Auth comes from the existing Claude Code login, so no API billing.
+- Two Claude Code eval arms: `claudeWithConsultPlugin` loads the shipped plugin
+  through a session-scoped `--plugin-dir` layer, and `claudeBare` reuses the
+  same agent object with no layers, so the delta between the arms isolates
+  Consult rather than any launch-flag difference. Auth comes from the existing
+  Claude Code login, not `ANTHROPIC_API_KEY`, and codex remains the default
+  profile.
+- The engineering-maturity plugin now reads `Skill` and `SlashCommand` tool
+  calls as activation evidence. Claude Code injects plugin skills natively, so
+  an activated skill leaves no `SKILL.md` read in the transcript; matching is
+  scoped to the invoking tool call because the host advertises every available
+  skill as `consult:<name>` up front.
+
+### Fixed
+
+- The eval's skill-layer capability list is derived from `plugin/skills/` at
+  config load instead of hand-listed; the hardcoded copy had silently drifted
+  to 21 names while the pack ships 24.
+
+### Changed
+
+- `workflow` now states that a host instruction to settle routine questions
+  yourself and keep moving is describing mechanics, not authority: the sign-off
+  gates are outcome requirements and outlast it. Work everything the gate does
+  not block and state assumptions, but do not build the gated shape without the
+  human.
+
+## [11.10.0] (2026-07-25)
+
+### Added
+
+- **CI** (`.github/workflows/ci.yml`). The repo had no CI and never had any, so
+  every check was local and opt-in. Runs the validator, its self-test,
+  `check:links`, repo tests, and the Pi package tests as separate steps on every
+  push and pull request, so one failure cannot mask the rest. Installs Tcl
+  `expect` so the `setup.sh` confirmation tests actually execute, and asserts no
+  tests skip on CI. Deliberately does **not** install GNU Stow: one test asserts
+  `setup.sh` refuses to run without it.
+- `make eval` for the eval suite, which needs the unpublished `do-eval` sibling.
+- `commandExists()` in `tests/helpers.mjs`, for guarding tests that need an
+  external binary.
+- A generator test asserting every declared mirror destination is written, so
+  dropping one from `MIRROR_DESTS` fails immediately instead of surfacing later as
+  drift.
+
+### Fixed
+
+- **`pnpm install` failed on a clean clone.** `eval/` was a workspace package
+  depending on `do-eval` via `file:../../do-eval` — an unpublished sibling, so a
+  bare install died with `ENOENT` and installed nothing, taking root `vitest` and
+  `remark` with it. Every command `AGENTS.md` prescribes as the bar was
+  unrunnable as documented, and `make test` could not pass on any machine but the
+  maintainer's. `eval/` is no longer a workspace package.
+- **Half the generated mirrors escaped the validator.**
+  `generate-plugin-symlinks.mjs` writes both `plugin/skills` and
+  `consult/skills`, but the validator hardcoded only the first, so Pi-bundle drift
+  was caught solely by a full `vitest` run — while `AGENTS.md` tells agents to run
+  the narrow validator and skip root `pnpm test` for prose edits. The validator
+  now iterates `MIRROR_DESTS` imported from the generator, so the two cannot drift
+  apart and a future destination is covered automatically. Drift messages are
+  labelled per mirror.
+- **Four tests failed for a misdiagnosed reason.** The `setup.sh` confirmation
+  tests need Tcl `expect`, not GNU Stow — `stow` is stubbed by `createFakeStow`.
+  They now skip with an explicit reason when `expect` is absent, so a clean local
+  run is genuinely green instead of "4 red is expected".
+- `tests/helpers.mjs` silently discarded `spawnSync`'s `error`, turning a missing
+  binary into `status: null` and an assertion failure on an exit code. That is
+  what made the misdiagnosis above possible; it now throws with the binary name.
+- `make test` no longer leads with `pnpm test`. It is fail-fast, so a single test
+  failure prevented the anatomy validator from ever reporting. Cheap
+  deterministic checks run first.
+
+### Changed
+
+- Description budget raised from 2,000 to 2,400 characters, with the reasoning
+  recorded in both the validator and `AGENTS.md`. The pack sat at 1,993 with
+  7 characters of headroom, and the old ceiling had never actually been enforced
+  because descriptions were truncated at their first inner colon. The self-test's
+  budget fixtures now scale with the constant instead of hardcoding a count.
+
+## [11.9.0] (2026-07-25)
+
+### Added
+
+- **Work Ledger** (`workflow/references/work-ledger.md`): a durable per-work
+  artifact at `.consult/ledger/<slug>.md` carrying the request, target, approved
+  decisions, and Proof Contracts across compaction, a fresh session, or a handoff.
+  Deliberately not a task list — sequencing stays with the host's planning mode.
+  It records what a human approved and what is actually proven, so a resumed
+  context does not re-derive approvals or trust a green that no longer applies to
+  the code. Each proof row pins to a code state; uncommitted greens are
+  provisional and re-run before the close. `workflow` writes it at framing and
+  updates it as slices land, the fast path is explicitly exempt, `proof` persists
+  Proof Contracts to it, and `specify` uses it in place of the Pi-specific
+  `.pi/specify/` path.
+- **Independent Review** in `code-review`: the reviewer receives the diff, the
+  stated intent, the acceptance criteria, and the repo's declared constraints —
+  but not the implementation rationale, since that rationale is what biases a
+  reviewer into accepting a line. Satisfied by a subagent, a fresh session, or a
+  cold re-read; a same-context review must be labelled as such and treated as
+  weaker evidence.
+- **Red-Green Mode** in `proof`: names test-first as the right tool for a bug with
+  a reproducible symptom, a behavior change with a clear observable, and a
+  contract change, with the reminder to verify the red as deliberately as the
+  green. Test-first stays a tool, not a law — "match the proof to the claim"
+  remains the rule.
+
+### Changed
+
+- `AGENTS.md` compaction guidance now reads the Work Ledger first, giving the
+  existing advice an artifact to act on.
+- `.gitignore` ignores `.consult/`, since Consult is developed with Consult.
+
+## [11.8.0] (2026-07-25)
+
+### Added
+
+- Documented the attended-vs-unattended host posture in `AGENTS.md`: attended
+  hosts get high-level guidance because a human is the gate, and Pi gets
+  runtime enforcement because nobody is watching. Records why enforcement lives
+  in `consult/extensions/` and must not migrate into shared skill prose.
+- `workflow` now has an explicit fast path for work that is neither significant
+  nor durable, so a small self-contained change is not routed through the full
+  step list.
+
+### Changed
+
+- `git-workflow` and `code-review` now gate on GitHub *access* rather than on
+  the `gh` CLI specifically, and name GitHub MCP servers and host GitHub tools
+  as the other surfaces. `gh` is absent from some sandboxes and hosted
+  sessions, where the old wording left the gate unreachable.
+- `code-review` no longer claims a same-context second pass "reliably" surfaces
+  defects. It states the limitation — the context that produced the code
+  carries the reasoning that justified it — and prefers a fresh-context
+  reviewer when the host has one.
+- `workflow`'s skill table now says to load a skill only when reading it would
+  change the next action or the proof obligation, and that its rows mean the
+  Consult skill where a host ships a built-in of the same name.
+- Trimmed the Oxford conjunction from 19 skill descriptions, bringing the
+  pack-wide description total to 1993 characters, back under the documented
+  2,000 ceiling. No trigger keywords were removed.
+- `README.md` now recommends the plugin over `./setup.sh` on Claude Code, since
+  `setup.sh` registers bare skill names that collide with Claude Code built-ins
+  and double-loads skills when both are installed.
+- `eval/README.md` now states that all eval numbers come from Codex with
+  `gpt-5.5`, and that other hosts are unmeasured.
+
+### Fixed
+
+- `scripts/validate-skill-anatomy.mjs` measured frontmatter descriptions only
+  up to their first inner colon, because it split on `":"` with a limit of 2.
+  Quoted descriptions containing a colon were under-counted (`api` measured 27
+  characters instead of 104), so both the 120-character per-skill cap and the
+  2,000-character pack total passed while the pack was actually over budget at
+  2,069. Descriptions are now parsed in full, with quote delimiters excluded
+  from the count, and the regression is covered in both the script self-test
+  and the Vitest suite.
+
 ## [11.7.3] (2026-06-05)
 
 ### Changed

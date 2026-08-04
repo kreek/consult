@@ -3,6 +3,18 @@
 This eval suite measures whether Codex behaves better when Consult is installed
 as a Codex plugin, and gates Consult changes against regressions.
 
+**Measurement scope.** Every number here comes from one harness and one model
+family: `harness: "codex"` with `CONSULT_EVAL_MODEL` and
+`CONSULT_EVAL_JUDGE_MODEL` defaulting to `gpt-5.5`. The other supported hosts —
+Claude Code, Cursor, Pi, and the rest — are **unmeasured**. Trigger phrasing
+and instruction-following are exactly the properties that do not transfer
+cleanly across model families, so a green regression here is evidence about
+Codex, not about the pack everywhere. Treat skill-description edits in
+particular as unvalidated for other hosts until someone runs them there.
+Adding a second harness profile needs `do-eval` support for that harness plus
+a plugin-install layer equivalent to the codex one; it is not a config
+override.
+
 **One profile, automatic baseline + lift.** There is a single profile,
 `codexWithConsultSkills` (Codex with Consult enabled). Running a `regression`
 over a suite automatically derives a **bare** baseline — the same profile with

@@ -1,6 +1,6 @@
 ---
 name: error-handling
-description: Use for error handling, error types, propagation, retries, user messages, and recovery.
+description: Use for error handling, error types, propagation, retries, user messages, recovery.
 ---
 
 # Error Handling

@@ -11,9 +11,14 @@ import {
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { cleanupTempDir, makeTempDir, ROOT, run, writeExecutable } from "./helpers.mjs";
+import { cleanupTempDir, commandExists, makeTempDir, ROOT, run, writeExecutable } from "./helpers.mjs";
 
 const SETUP = join(ROOT, "setup.sh");
+
+// The confirmation tests drive setup.sh through Tcl `expect`. Without it they
+// cannot run at all, so they skip rather than fail as if setup.sh were broken.
+// CI installs `expect` so they do execute there.
+const hasExpect = commandExists("expect");
 let tmp;
 
 function runSetup(home, args = [], { path } = {}) {
@@ -90,6 +95,9 @@ describe("setup.sh preflight", () => {
     tmp = undefined;
   });
 
+  // This test needs `stow` to be ABSENT: it pins PATH to /usr/bin:/bin and
+  // asserts setup.sh refuses to proceed. Do not install GNU Stow on CI runners —
+  // it would land in /usr/bin and break this assertion.
   it("explains missing stow without touching files", () => {
     tmp = makeTempDir();
     const personal = join(tmp, "AGENTS.md");
@@ -126,7 +134,7 @@ describe("setup.sh preflight", () => {
   });
 });
 
-describe("setup.sh confirmation", () => {
+describe.skipIf(!hasExpect)("setup.sh confirmation (requires `expect`)", () => {
   afterEach(() => {
     if (tmp) cleanupTempDir(tmp);
     tmp = undefined;

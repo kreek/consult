@@ -49,7 +49,43 @@ When you add, rename, or delete a skill, the canonical file under
 `agents/.agents/skills/` is the only place to write. Everything else is
 regenerated.
 
+## Host posture: attended vs unattended
+
+Consult targets two different working modes, and that difference decides where
+enforcement is allowed to live. It is a deliberate split, not an inconsistency
+or a gap in coverage.
+
+- **Attended hosts (Claude Code, Codex, Cursor, and the rest).** A human is
+  watching the session and answering as it runs. The human *is* the gate, so
+  skills carry high-level guidance and ask for sign-off in prose. Consultation
+  works here because someone is present to consult.
+- **Unattended host (Pi).** Nobody is reading the session while it runs, so a
+  prose request for approval has no one to answer it. Pi therefore gets runtime
+  enforcement — `consult/extensions/self-review-guard.ts` and the `/proof`
+  command — that mechanically holds the line a present human would otherwise
+  hold.
+
+Consequences for anyone editing this repo:
+
+- Do not "fix" the attended hosts by adding host-specific enforcement
+  primitives, blocking gates, or hook configuration to shared skill bodies. The
+  absence of those is the design. Skill prose stays portable and host-neutral.
+- Do not move Pi's enforcement into skill prose either. Runtime gates belong in
+  `consult/extensions/`, where they apply only to the host that needs them.
+- When a skill body says to get approval, it is addressing an attended session.
+  Keep that phrasing about the *decision* that needs a human, not about the
+  mechanism a particular host would use to block on it.
+
 ## Common commands
+
+A clean clone installs with `pnpm install`. `eval/` is deliberately outside the
+workspace because it depends on the unpublished `do-eval` sibling; including it
+made a bare install fail with `ENOENT` and install nothing. Run the eval suite
+with `make eval` once that sibling is checked out beside this repo.
+
+`make test` runs the whole check sequence, cheapest first, so a failing test
+suite cannot stop the anatomy validator from reporting. `.github/workflows/ci.yml`
+runs the same checks as separate steps on every push and pull request.
 
 ```sh
 # Re-run the local installer and per-tool fan-out after a
@@ -98,18 +134,21 @@ risk.
 
 - Pi runtime extension changes under `consult/extensions/` or
   `consult/test/`: run `pnpm --dir consult test`.
-- Canonical skill prose changes: run `node scripts/validate-skill-anatomy.mjs`
-  and targeted `cmp` checks for the changed skill mirrors. Use root `pnpm test`
-  only when sibling package mirrors, packaging scripts, or repo tests changed.
+- Canonical skill prose changes: run `node scripts/validate-skill-anatomy.mjs`.
+  It now checks every generated mirror (`plugin/skills` and `consult/skills`,
+  read from the generator's `MIRROR_DESTS`), so it is sufficient on its own — no
+  separate `cmp` pass, and no need for root `pnpm test`. Regenerate with
+  `node scripts/generate-plugin-symlinks.mjs` when it reports drift.
 - Markdown link/doc-wide changes: run `pnpm run check:links` only when
   links or broad docs moved. Do not run it for ordinary runtime or narrow skill
   edits.
 - Release/package metadata changes: run the release/package checks that match
   the edited manifests, locks, or plugin metadata. Do not treat implementation
   approval as approval to add release-prep edits.
-- After compaction, read only the files needed for the current slice. Avoid
-  replaying long session history, broad diffs, or full validators to rebuild
-  context unless the next action depends on them.
+- After compaction, read the Work Ledger for the current work first, then only
+  the files needed for the current slice. Avoid replaying long session history,
+  broad diffs, or full validators to rebuild context unless the next action
+  depends on them.
 
 If a command prints hundreds of lines, stop repeating it. Summarize the failed
 check and switch to a narrower command or exact file inspection.
@@ -120,8 +159,12 @@ Every `SKILL.md` must have:
 
 - Frontmatter with kebab-case `name:` and a trigger-focused `description:`
   no longer than 120 characters, and the pack-wide canonical description total
-  must stay under 2,000 characters, because agents may load every description
-  before selecting a skill body.
+  must stay under 2,400 characters, because agents may load every description
+  before selecting a skill body. That ceiling is ~600 tokens of always-loaded
+  routing surface and leaves room for roughly four more skills; it was raised
+  from 2,000 once the validator stopped truncating descriptions at their first
+  inner colon and revealed the pack had been over the old limit all along. Raise
+  it again only with a stated reason.
 - Required sections: `## When to Use`, `## When NOT to Use`,
   `## Verification`.
 - Optional section: `## Tripwires` when a skill has known agent failure modes.

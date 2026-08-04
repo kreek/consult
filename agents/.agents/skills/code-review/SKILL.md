@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Use to review diffs and PRs for bugs, regressions, edge cases, proof, and merge readiness.
+description: Use to review diffs and PRs for bugs, regressions, edge cases, proof, merge readiness.
 ---
 
 # Code Review
@@ -13,10 +13,13 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 - Self-review of your own implementation diff in the `workflow`
   completion loop after proving behavior with `proof`, before claiming done.
-  Default for any non-trivial agent-generated change; a second pass by the same
-  agent reliably surfaces bugs, dead code, and missed edge cases the
-  implementation pass overlooks.
-- Diff review (local, branch, or GitHub PR via `gh`).
+  Default for any non-trivial agent-generated change. A second pass still
+  catches bugs, dead code, and missed edge cases, but it is the weakest form of
+  review: the same context that produced the code also carries the reasoning
+  that justified it. Read the diff as an outside reviewer who does not know why
+  a line is there, and prefer a fresh-context reviewer when one is available.
+- Diff review (local, branch, or a GitHub PR through whatever GitHub surface
+  the host provides).
 - Review-comment follow-up on the user's own PRs.
 - Agent-generated code review before merge or handoff.
 
@@ -45,6 +48,28 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
    vague, or disconnected from the stated intent is comprehension debt even when
    it appears to work.
 
+## Independent Review
+
+The strongest review comes from a reviewer with no implementation context. Set
+one up when the host allows it: a subagent, a fresh session, or the same agent
+reading the diff cold after the reasoning has left context.
+
+Give the reviewer only what a real reviewer would have:
+
+- The diff.
+- The stated intent and acceptance criteria, from the Work Ledger when one
+  exists, since that is what survives into a context with no history.
+- The repo's declared constraints: runtime, framework, support policy, test
+  command.
+
+Withhold the implementation rationale. Why a line is there is precisely what
+biases a reviewer into accepting it; a reviewer who has to work out the intent
+from the diff finds what the author's own second pass cannot. Answer questions
+the reviewer asks, but do not pre-empt them with justification.
+
+When no independent reviewer is available, say the review was same-context and
+treat its clean result as weaker evidence.
+
 ## Review Lenses
 
 - Security: auth/authz, secrets, trust boundaries, input handling, dependencies,
@@ -70,7 +95,8 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 1. **Resolve the target.** Use local diffs or approved GitHub reads. For PR
    review threads, fetch thread state only when resolution or line context
-   matters. Never run `gh` without explicit permission.
+   matters. Never reach GitHub without explicit permission; `git-workflow` owns
+   that gate and which surface to use.
 2. **Pre-flight the review.** Identify intent, impact, CI status, and changed
    surface. Missing PR intent on a non-trivial diff is a finding. Red or
    absent CI means the review is unproven, not blocked from inspection.
@@ -122,7 +148,7 @@ blocks the finding or fix.
       applied where relevant.
 - [ ] Findings are severity ordered, anchored, concrete, and focused on impact.
 - [ ] Missing evidence, residual risk, and unreviewed scope are named.
-- [ ] GitHub commands and writes had explicit permission.
+- [ ] GitHub reads and writes had explicit permission.
 
 ## Tripwires
 

@@ -1,6 +1,6 @@
 ---
 name: domain-modeling
-description: Use for domain modeling, data shapes, invariants, state transitions, parsing, and effects.
+description: Use for domain modeling, data shapes, invariants, state transitions, parsing, effects.
 ---
 
 # Domain Modeling

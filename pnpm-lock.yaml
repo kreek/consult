@@ -34,22 +34,6 @@ importers:
         specifier: ^3.2.1
         version: 3.2.4(@types/debug@4.1.13)(@types/node@25.9.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)
 
-  eval:
-    dependencies:
-      do-eval:
-        specifier: file:../../do-eval
-        version: file:../do-eval
-    devDependencies:
-      '@types/node':
-        specifier: ^25.6.0
-        version: 25.9.1
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-      vitest:
-        specifier: ^3.2.1
-        version: 3.2.4(@types/debug@4.1.13)(@types/node@25.9.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)
-
 packages:
 
   '@anthropic-ai/sdk@0.91.1':
@@ -590,11 +574,6 @@ packages:
     deprecated: please use @earendil-works/pi-coding-agent instead going forward
     hasBin: true
 
-  '@mariozechner/pi-tui@0.67.68':
-    resolution: {integrity: sha512-RhcMaGz88lNOm5+9yx+YCIfXZALLbMxB2cwsoHzyOzs+OZAItw8tz6xJZPAnX0RHY+ENQEGMMDY9TF6pxxnkbA==}
-    engines: {node: '>=20.0.0'}
-    deprecated: please use @earendil-works/pi-tui instead going forward
-
   '@mariozechner/pi-tui@0.73.1':
     resolution: {integrity: sha512-ybVsRnUbzQRtbocltJ2OXb2QogrO67N2BlUyKjZz9BHcZYiDJtNkcKQockxDjsVvDc0uBCLDX6iZJoBElBd8fw==}
     engines: {node: '>=20.0.0'}
@@ -1124,10 +1103,6 @@ packages:
   diff@8.0.4:
     resolution: {integrity: sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==}
     engines: {node: '>=0.3.1'}
-
-  do-eval@file:../do-eval:
-    resolution: {directory: ../do-eval, type: directory}
-    hasBin: true
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -1962,11 +1937,6 @@ packages:
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   uint8array-extras@1.5.0:
     resolution: {integrity: sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==}
     engines: {node: '>=18'}
@@ -2723,16 +2693,6 @@ snapshots:
       - ws
       - zod
 
-  '@mariozechner/pi-tui@0.67.68':
-    dependencies:
-      '@types/mime-types': 2.1.4
-      chalk: 5.6.2
-      get-east-asian-width: 1.6.0
-      marked: 15.0.12
-      mime-types: 3.0.2
-    optionalDependencies:
-      koffi: 2.16.2
-
   '@mariozechner/pi-tui@0.73.1':
     dependencies:
       '@types/mime-types': 2.1.4
@@ -3229,13 +3189,6 @@ snapshots:
 
   diff@8.0.4: {}
 
-  do-eval@file:../do-eval:
-    dependencies:
-      '@mariozechner/pi-tui': 0.67.68
-      tsx: 4.22.3
-      yaml: 2.9.0
-      zod: 4.4.3
-
   eastasianwidth@0.2.0: {}
 
   ecdsa-sig-formatter@1.0.11:
@@ -3317,6 +3270,7 @@ snapshots:
       '@esbuild/win32-arm64': 0.28.0
       '@esbuild/win32-ia32': 0.28.0
       '@esbuild/win32-x64': 0.28.0
+    optional: true
 
   escalade@3.2.0: {}
 
@@ -4248,14 +4202,13 @@ snapshots:
       esbuild: 0.28.0
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   type-fest@3.13.1: {}
 
   typebox@1.1.38: {}
 
   typedarray@0.0.6: {}
-
-  typescript@5.9.3: {}
 
   uint8array-extras@1.5.0: {}
 

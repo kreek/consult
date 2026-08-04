@@ -66,7 +66,7 @@ function syncEach(src, dest, root) {
 
 // Every committed copy of the canonical skills. Each is regenerated from
 // agents/.agents/skills so no mirror can silently drift.
-const MIRROR_DESTS = ["plugin/skills", "consult/skills"];
+export const MIRROR_DESTS = ["plugin/skills", "consult/skills"];
 
 export function syncPluginSymlinks(repoRoot = repoRootFromScript()) {
   const root = resolve(repoRoot);

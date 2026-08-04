@@ -60,6 +60,12 @@ Inside Claude Code:
 /plugin install consult@consult
 ```
 
+Prefer the plugin over `./setup.sh` on Claude Code. The plugin namespaces
+skills as `/consult:<skill>`, which keeps them distinct from Claude Code's
+built-in skills; `setup.sh` symlinks `~/.claude/skills` and registers bare
+names, so `code-review` and `security` become ambiguous with the built-ins of
+the same name. Running both also loads every skill twice. Pick one.
+
 ### Codex
 
 ```sh

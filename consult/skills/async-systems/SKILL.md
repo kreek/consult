@@ -1,6 +1,6 @@
 ---
 name: async-systems
-description: Use for async systems, concurrency, queues, streams, pub/sub, ordering, and backpressure.
+description: Use for async systems, concurrency, queues, streams, pub/sub, ordering, backpressure.
 ---
 
 # Async Systems

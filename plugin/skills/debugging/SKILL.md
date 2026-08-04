@@ -1,6 +1,6 @@
 ---
 name: debugging
-description: Use to debug failures, reproduce symptoms, isolate causes, inspect evidence, and fix bugs.
+description: Use to debug failures, reproduce symptoms, isolate causes, inspect evidence, fix bugs.
 ---
 
 # Debugging

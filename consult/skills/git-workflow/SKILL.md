@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Use for branches, history edits, conflicts, rebases, recovery, force-push, and gh.
+description: Use for branches, history edits, conflicts, rebases, recovery, force-push, gh.
 ---
 
 # Git Workflow
@@ -43,16 +43,17 @@ recoverable, scoped, and honest.
    switch to a topic branch in the current checkout. On a topic branch
    with distinct new work, ask once between continue here or branch off
    `main`. Don't re-prompt during the same piece of work.
-7. **Ask before any GitHub CLI command.** `gh` can make network calls and
-   use the user's authenticated account. Get explicit permission before
-   running any `gh` command, including read-only commands such as
-   `gh pr view`, `gh pr diff`, or `gh run view`.
+7. **Ask before any GitHub access.** Reaching GitHub makes a network call
+   under the user's authenticated account. Get explicit permission first,
+   including for reads such as viewing a PR, its diff, or a CI run. This
+   covers whichever surface the host gives you: the `gh` CLI, a GitHub MCP
+   server, or built-in host GitHub tools. Check which one exists before
+   planning the step; `gh` is absent from some sandboxes and hosted sessions.
 8. **Humans approve PR and issue text before it is published.** Titles and
-   descriptions for `gh pr create`, `gh pr edit`, `gh issue create`, and
-   `gh issue edit` are author-facing content the user owns. Draft the title
-   and body locally, show them, and get explicit approval of that exact text
-   before any `gh` command creates or updates the PR or issue. Do not let
-   `gh` open an editor or send unreviewed body text.
+   descriptions are author-facing content the user owns. Draft the title and
+   body locally, show them, and get explicit approval of that exact text
+   before anything creates or updates the PR or issue. Do not let a tool open
+   an editor or send unreviewed body text.
 
 ## Workflow
 
@@ -65,12 +66,13 @@ recoverable, scoped, and honest.
    shared history rewrites, or in-flight work that needs isolation.
 4. For history operations, name the recovery point and whether the branch
    is local/solo/shared before rewriting, deleting, or force-pushing.
-5. Before GitHub CLI use, ask for permission for the exact `gh` command or
-   command class needed. Do not treat read-only intent as permission.
-6. When a `gh` command would create or update a PR or issue, draft the title
+5. Before touching GitHub, identify the available surface (`gh`, GitHub MCP,
+   or host tools), then ask for permission for the exact operation or
+   operation class needed. Do not treat read-only intent as permission.
+6. When an operation would create or update a PR or issue, draft the title
    and description locally, get the user's approval of that text, then run the
-   command with the approved title and body. Do not rely on `gh` opening an
-   editor or sending unreviewed text.
+   operation with the approved title and body. Do not rely on a tool opening
+   an editor or sending unreviewed text.
 7. Execute the smallest safe operation. Verify log/range-diff, status, file
    membership, and relevant tests or repro commands.
 
@@ -89,10 +91,10 @@ recoverable, scoped, and honest.
       current checkout. The menu did not re-fire during continued work on
       the same branch, and new work wasn't silently stacked on unrelated
       branch work.
-- [ ] No `gh` command was run without explicit user permission for that
-      command or command class.
+- [ ] No GitHub operation ran without explicit user permission for that
+      operation or operation class, whichever surface was used.
 - [ ] PR and issue titles and descriptions were drafted and approved by the
-      user before any `gh` command created or updated them.
+      user before anything created or updated them.
 
 ## Tripwires
 
@@ -101,8 +103,9 @@ recoverable, scoped, and honest.
 | "Force push should fix it" | Verify the branch is local/solo or approved, then use lease/inclusion protection. | Disposable local-only branch with no remote. |
 | "Rewrite this shared branch" | Stop and ask for explicit approval plus a recovery point. | The branch is confirmed local and unpublished. |
 | "Resolve conflict by taking ours/theirs" | Preserve intent from both sides, then run relevant checks. | Generated file regenerated after source conflict is resolved. |
-| "Read-only `gh` is harmless" | Ask before any `gh` command because it uses network and auth. | The user already approved that exact command class. |
-| "Just open the PR with a quick title" | Draft the title and body, get the user's approval, then run `gh pr create`/`gh issue create`. | The user already approved that exact title and body. |
+| "Reading from GitHub is harmless" | Ask first; any GitHub read uses network and the user's auth. | The user already approved that exact operation class. |
+| "`gh` isn't installed, so GitHub is out of reach" | Check for a GitHub MCP server or host GitHub tools, then ask before using them. | The host genuinely exposes no GitHub surface. |
+| "Just open the PR with a quick title" | Draft the title and body, get the user's approval, then create it. | The user already approved that exact title and body. |
 
 ## Handoffs
 

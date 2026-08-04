@@ -1,6 +1,6 @@
 ---
 name: architecture
-description: Use for architecture decisions, module boundaries, coupling, layering, and system shape.
+description: Use for architecture decisions, module boundaries, coupling, layering, system shape.
 ---
 
 # Architecture

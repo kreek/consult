@@ -106,14 +106,22 @@ function routingVerify(): VerifyResult {
 }
 
 describe("Consult eval config", () => {
-  it("defines a single Codex profile that activates Consult through strippable layers", () => {
-    expect(Object.keys(profiles)).toEqual(["codexWithConsultSkills"]);
+  it("defines exactly the codex and Claude Code profiles", () => {
+    // Exact, not toContain: profiles must not accumulate silently.
+    expect(Object.keys(profiles).sort()).toEqual([
+      "claudeBare",
+      "claudeWithConsultPlugin",
+      "codexWithConsultSkills",
+    ]);
+  });
+
+  it("defines a Codex profile that activates Consult through strippable layers", () => {
     const withConsult = profiles["codexWithConsultSkills"];
     if (!withConsult) throw new Error("Expected the Consult profile");
 
     // The agent is bare codex — no marketplace, no enable flag. Consult is
-    // applied entirely through setup.layers, so do-eval's bareProfileOf (strips
-    // layers, keeps the agent) yields a genuinely bare baseline for lift.
+    // applied entirely through setup.layers, so a baseline profile reusing this
+    // agent with no layers is genuinely bare.
     expect(withConsult.agent.harness).toBe("codex");
     expect(withConsult.agent.codex?.isolateHome).toBe(true);
     expect(withConsult.agent.codex?.ignoreUserConfig).toBe(true);
@@ -138,6 +146,64 @@ describe("Consult eval config", () => {
     expect(config.defaultProfile).toBe("codexWithConsultSkills");
     expect(config.defaultLaunchType).toBe("suite");
     expect(config.judge?.thinking).toBe("medium");
+  });
+
+  it("defines a Claude Code profile that applies Consult only through a session-scoped plugin layer", () => {
+    const layered = profiles["claudeWithConsultPlugin"];
+    if (!layered) throw new Error("Expected the Claude Code Consult profile");
+
+    expect(layered.agent.harness).toBe("claude");
+    expect(layered.agent.provider).toBe("anthropic");
+    // Load no user/project settings: the user's globally enabled consult@consult
+    // plugin would otherwise reach the bare arm too and lift would read zero.
+    expect(layered.agent.claude?.settingSources).toBe("");
+    expect(layered.agent.claude?.strictMcp).toBe(true);
+    expect(layered.agent.claude?.maxBudgetUsd).toBeGreaterThan(0);
+    // A prompting mode cannot be answered: eval workers get no stdin.
+    expect(layered.agent.claude?.permissionMode).toBe("bypassPermissions");
+
+    // Consult must reach the worker only through layers, never the agent.
+    expect(JSON.stringify(layered.agent)).not.toMatch(/consult/i);
+    expect(layered.agent.claude?.pluginDirs ?? []).toEqual([]);
+
+    const pluginLayer = (layered.setup?.layers ?? []).find((layer) => layer.kind === "plugin");
+    expect(pluginLayer).toMatchObject({ id: "consult", kind: "plugin", mode: "session-flag", runtime: "claude" });
+    // --plugin-dir wants the plugin directory itself, not the repo root.
+    expect(fs.existsSync(path.join(pluginLayer?.source ?? "", ".claude-plugin", "plugin.json"))).toBe(true);
+
+    expect(layered.factors.layers).toEqual([
+      expect.objectContaining({ id: "consult", kind: "plugin", runtime: "claude" }),
+    ]);
+    expect(layered.factors["reasoningEffort"]).toBe("medium");
+  });
+
+  it("defines a bare Claude Code baseline that differs only by the missing layer", () => {
+    const layered = profiles["claudeWithConsultPlugin"];
+    const bare = profiles["claudeBare"];
+    if (!layered || !bare) throw new Error("Expected both Claude Code profiles");
+
+    // Reference identity is what makes the baseline bare in the same way: any
+    // launch-flag difference between the arms would confound the comparison.
+    expect(bare.agent).toBe(layered.agent);
+    expect(bare.setup?.layers ?? []).toEqual([]);
+    expect(bare.factors.layers).toEqual([]);
+    expect(JSON.stringify(bare.agent)).not.toMatch(/consult/i);
+  });
+
+  it("keeps codex as the default profile so existing scripts do not switch harness", () => {
+    expect(config.defaultProfile).toBe("codexWithConsultSkills");
+  });
+
+  it("declares the full shipped skill set as layer capabilities", () => {
+    const shipped = fs
+      .readdirSync(path.join(evalDir, "..", "plugin", "skills"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    for (const profileId of ["codexWithConsultSkills", "claudeWithConsultPlugin"]) {
+      const layer = (profiles[profileId]?.setup?.layers ?? []).find((entry) => entry.kind === "plugin");
+      expect([...(layer?.capabilities ?? [])].sort(), profileId).toEqual(shipped);
+    }
   });
 
   it("defines lightweight, core, and all-skills suites", () => {
@@ -461,6 +527,46 @@ describe("Consult eval config", () => {
     expect(result.findings.some((finding) => finding.startsWith("Activated"))).toBe(false);
     expect(result.scores).not.toHaveProperty("consult_activation");
     expect(result.scores).not.toHaveProperty("baseline_isolation");
+  });
+
+  it("detects activation from a Skill invocation, which is all Claude Code leaves behind", () => {
+    // Claude Code injects plugin skills natively, so there is no SKILL.md read to
+    // grep for. This is the shape observed in a real claudeWithConsultPlugin run.
+    const session = stubSession([], {
+      toolCalls: [
+        {
+          timestamp: 1,
+          name: "Skill",
+          arguments: { skill: "consult:workflow", args: "Triage: adding saved payment methods" },
+          resultText: "workflow skill loaded",
+          wasBlocked: false,
+        },
+      ],
+    });
+
+    const result = maturityPlugin.scoreSession(session, routingVerify());
+    expect(result.findings).toContain("Activated 1 Consult skill: workflow.");
+  });
+
+  it("does not mistake the host's advertised skill list for activation", () => {
+    // The host announces every available skill as `consult:<name>` before any work
+    // happens, so a transcript-wide match would report all of them as activated in
+    // any run that merely had the plugin loaded.
+    const advertised = ["consult:workflow", "consult:proof", "consult:security"].join(", ");
+    const session = stubSession([], {
+      toolCalls: [
+        {
+          timestamp: 1,
+          name: "Bash",
+          arguments: { command: `echo "available: ${advertised}"` },
+          resultText: `available: ${advertised}`,
+          wasBlocked: false,
+        },
+      ],
+    });
+
+    const result = maturityPlugin.scoreSession(session, routingVerify());
+    expect(result.findings.some((finding) => finding.startsWith("Activated"))).toBe(false);
   });
 
   it("does not count skill loads as a deterministic score dimension", () => {

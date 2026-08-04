@@ -1,6 +1,6 @@
 ---
 name: ui-design
-description: Use for frontend UI, layouts, components, responsive behavior, visual design, and usability.
+description: Use for frontend UI, layouts, components, responsive behavior, visual design, usability.
 ---
 
 # UI Design
