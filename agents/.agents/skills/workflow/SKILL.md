@@ -33,12 +33,12 @@ description: Use first for every coding task to route risks, choose skills, defi
 2. **The human must keep owning the system.** Non-trivial work should leave
    the user with a clearer model of the system, the change, and the evidence.
    If you cannot explain your change clearly, stop and clarify.
-3. **Sign-off gates survive host autonomy prompts.** The host governs
-   mechanics: tools, permissions, response shape, and prompts like "settle
-   routine questions yourself and keep moving." The sign-off gates below are
-   outcome requirements, not routine questions, and outlast any such prompt.
-   Continue everything a gate does not block, state your assumptions, but
-   never build a gated shape without the human.
+3. **Consult owns engineering judgment; the host owns mechanics.** Consult
+   decides what must be understood, approved, reviewed, and proven. The host
+   decides how work happens: tool invocation, sandbox and permission prompts,
+   built-in skill workflows, and final response shape. When the two pull in
+   different directions, keep the Consult outcome inside the host's required
+   form.
 4. **Default to the smallest honest solution.** Implement only what was
    asked, prefer established tools, start with the happy path unless safety
    or data loss demands edge cases now, and add abstractions only after real
@@ -106,8 +106,12 @@ description: Use first for every coding task to route risks, choose skills, defi
    When skills conflict, prefer safety, data integrity, correctness, proof,
    and user trust.
 4. **Get sign-off before building durable shapes.** A significant or durable
-   decision needs explicit user approval before it is built. The gate is the
-   durable output, not the act of using the skill:
+   decision needs explicit user approval before it is built. These gates are
+   outcome requirements, not routine questions: a host prompt that says to
+   settle questions yourself and keep moving does not dissolve them. Continue
+   everything a gate does not block and state your assumptions, but never
+   build a gated shape without the human. The gate is the durable output, not
+   the act of using the skill:
 
    | Skill | Needs sign-off before it is built |
    | --- | --- |
