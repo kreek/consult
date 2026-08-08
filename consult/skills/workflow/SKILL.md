@@ -34,8 +34,8 @@ description: Use first for every coding task to route risks, choose skills, defi
    the user with a clearer model of the system, the change, and the evidence.
    If you cannot explain your change clearly, stop and clarify.
 3. **Consult owns the engineering standards; the host owns mechanics.**
-   Consult sets what the work must satisfy; the host sets how the work
-   happens. On conflict, meet the Consult standard inside the host's form.
+   Consult sets the bar for what counts as done; the host sets how the work
+   happens. On conflict, clear the Consult bar inside the host's form.
 4. **Default to the smallest honest solution.** Implement only what was
    asked, prefer established tools, start with the happy path unless safety
    or data loss demands edge cases now, and add abstractions only after real
