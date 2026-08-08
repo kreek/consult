@@ -10,7 +10,8 @@ description: Use for branches, history edits, conflicts, rebases, recovery, forc
 `NEVER REWRITE SHARED HISTORY OR SKIP RECOVERY.`
 
 Git history is a review, bisect, revert, and release surface. Keep it
-recoverable, scoped, and honest.
+recoverable, scoped, and honest. The host owns git mechanics; this skill owns
+the gates: recoverability, GitHub permission, and approval of published text.
 
 ## When to Use
 
@@ -28,8 +29,8 @@ recoverable, scoped, and honest.
 
 ## Core Ideas
 
-1. **Inspect before mutation.** Start with status, branch/upstream, staged and
-   unstaged diff stats, and recent log. Expand only when risk appears.
+1. **Inspect before mutation.** Know the tree, branch, and upstream state
+   before any history operation.
 2. **Prefer `--force-with-lease --force-if-includes`** over bare force when
    a solo-branch rewrite is genuinely needed.
 3. **Preserve a recovery point** (tag, named branch, or noted reflog entry)
@@ -57,23 +58,20 @@ recoverable, scoped, and honest.
 
 ## Workflow
 
-1. Read one compact preflight: status, branch/upstream, staged and unstaged
-   diff stats, and recent log. Stop on unexpected state.
-2. Expand inspection only when risk appears or the operation requires it:
-   merge/rebase state, conflict markers, full diffs, upstream divergence, or
-   recovery points.
-3. Detect hazards: conflicts, secrets, generated churn, unrelated staged work,
-   shared history rewrites, or in-flight work that needs isolation.
-4. For history operations, name the recovery point and whether the branch
+1. Inspect enough to know the risk: tree, branch, and upstream state, plus
+   any hazards in play (conflicts, secrets, generated churn, unrelated staged
+   work, shared-history rewrites, in-flight work needing isolation). Stop on
+   unexpected state.
+2. For history operations, name the recovery point and whether the branch
    is local/solo/shared before rewriting, deleting, or force-pushing.
-5. Before touching GitHub, identify the available surface (`gh`, GitHub MCP,
+3. Before touching GitHub, identify the available surface (`gh`, GitHub MCP,
    or host tools), then ask for permission for the exact operation or
    operation class needed. Do not treat read-only intent as permission.
-6. When an operation would create or update a PR or issue, draft the title
+4. When an operation would create or update a PR or issue, draft the title
    and description locally, get the user's approval of that text, then run the
    operation with the approved title and body. Do not rely on a tool opening
    an editor or sending unreviewed text.
-7. Execute the smallest safe operation. Verify log/range-diff, status, file
+5. Execute the smallest safe operation. Verify log/range-diff, status, file
    membership, and relevant tests or repro commands.
 
 ## Verification

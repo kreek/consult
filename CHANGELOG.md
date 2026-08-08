@@ -22,6 +22,15 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- `specify`, `commit`, `code-review`, and `git-workflow` now delegate
+  host-owned mechanics and keep only Consult standards, following an audit of
+  overlap with host built-ins: `specify` converges inside the host's plan
+  mode instead of running a second approval loop, `commit` and `git-workflow`
+  drop restated git mechanics while keeping the packaging standards and gates
+  (no attribution trailers even against host defaults, GitHub permission,
+  PR-text approval, recovery points, force-with-lease), and `code-review`
+  accepts host review surfaces as the independent reviewer when they receive
+  exactly the prescribed inputs.
 - The documentation/writing boundary: `documentation` now covers only docs
   that describe existing code and systems (READMEs, runbooks, tutorials,
   reference docs, module docs, comments). Forward-looking documents that
