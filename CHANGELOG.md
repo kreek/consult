@@ -8,7 +8,7 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- `writing` skill: voice and structure for stakeholder prose deliverables
+- `technical-writing` skill: voice and structure for stakeholder prose deliverables
   (system analyses, transition plans, PRDs, strategy docs, RFC text). Names
   its style load-bearing prose (every sentence carries evidence, advances the
   theme, or builds the reader's knowledge) and its anti-pattern signpost
@@ -17,7 +17,7 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `references/system-analysis.md` as the first genre reference
   (current state, ideal state, transition, each with its evidence bar).
   `documentation` and `specify` now hand prose quality off to it, and
-  `documentation` Core Idea 7 points at `writing` instead of restating the
+  `documentation` Core Idea 7 points at `technical-writing` instead of restating the
   voice rules.
 
 ### Changed
@@ -36,7 +36,7 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   reference docs, module docs, comments). Forward-looking documents that
   record decisions or propose futures (design docs, ADRs, RFCs, tech specs,
   PRDs, requirements, acceptance criteria, system analyses, strategy) belong
-  to `writing`, which now owns `references/requirements-and-acceptance.md`
+  to `technical-writing`, which now owns `references/requirements-and-acceptance.md`
   and the ADR template.
 
 ### Removed

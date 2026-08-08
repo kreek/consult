@@ -24,7 +24,7 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
 
 - Forward-looking documents that record decisions or propose futures: design
   docs, ADRs, RFCs, tech specs, PRDs, requirements, acceptance criteria,
-  system analyses, strategy; use `writing`.
+  system analyses, strategy; use `technical-writing`.
 - Ordinary implementation where docs might later be useful but were not
   requested, approved, or required by a validator. Name the possible docs gap
   in the final response instead of editing docs.
@@ -52,8 +52,8 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
    catch drift.
 6. Write the why, context, and tradeoffs; let code/tests/schemas prove
    mechanics.
-7. Voice and prose structure follow `writing`: plain, direct, concrete
-   sentences, no em dashes, only words that earn their place. Load `writing`
+7. Voice and prose structure follow `technical-writing`: plain, direct, concrete
+   sentences, no em dashes, only words that earn their place. Load `technical-writing`
    when a document's prose quality is itself part of the deliverable.
 8. Delete stale docs when you cannot fix them now.
 9. Comments explain why and how when names, types, schemas, tests, or
@@ -108,7 +108,7 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
 
 ## Handoffs
 
-- `writing`: forward-looking documents: design docs, ADRs, RFCs, tech specs,
+- `technical-writing`: forward-looking documents: design docs, ADRs, RFCs, tech specs,
   PRDs, requirements, system analyses, and stakeholder prose generally.
 - `api`: OpenAPI and wire-contract shape.
 - `observability`: alert/runbook signal definitions.
@@ -117,4 +117,4 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
 
 ## References
 
-- None; forward-looking artifact templates live with `writing`.
+- None; forward-looking artifact templates live with `technical-writing`.
