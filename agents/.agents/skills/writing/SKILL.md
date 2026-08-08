@@ -1,6 +1,6 @@
 ---
 name: writing
-description: "Use for stakeholder prose: system analyses, transition plans, PRDs, strategy docs, RFC text. Voice and structure."
+description: "Use for forward-looking docs: design docs, ADRs, RFCs, tech specs, PRDs, requirements, system analyses, strategy."
 ---
 
 # Writing
@@ -17,9 +17,10 @@ language: words that point at the structure without holding any weight.
 
 ## When to Use
 
-- A prose document is the deliverable and other people will read it: system
-  analysis, transition plan, technical strategy, PRD, proposal, or the prose
-  of an RFC, ADR, or tech spec.
+- A forward-looking document is the deliverable: one that records a decision
+  or proposes a future. Design docs, ADRs, RFCs, tech specs, PRDs,
+  requirements and acceptance criteria, system analyses, transition plans,
+  technical strategy, proposals.
 - Another skill (`specify`, `architecture`, `documentation`) produced a
   document whose readers were not in the room when the work happened.
 - Reviewing or editing an existing document for voice, structure, knowledge
@@ -27,11 +28,13 @@ language: words that point at the structure without holding any weight.
 
 ## When NOT to Use
 
-- Doc placement, ownership, lifecycle, and rot; use `documentation`.
+- Documentation that describes code and systems as they exist (READMEs,
+  runbooks, tutorials, reference docs, module docs, code comments), and doc
+  placement, ownership, lifecycle, and rot; use `documentation`.
 - The design decisions the document records; use `specify` and
   `architecture`. This skill owns how the document reads, not what it
   decides.
-- Code comments and commit messages; use `documentation` and `commit`.
+- Commit messages; use `commit`.
 - CHANGELOG, release notes, and migration notes; use `release`.
 - People-management artifacts (org design, performance, headcount). No
   Consult skill can check their claims; they are out of scope for this
@@ -77,8 +80,11 @@ language: words that point at the structure without holding any weight.
    and the one question it answers. Title the document with that question or
    its answer.
 2. **Pick the genre and load its reference.** For current-state, ideal-state,
-   and transition documents, read `references/system-analysis.md`. New genres
-   land as references here, not as new skills.
+   and transition documents, read `references/system-analysis.md`. For PRDs,
+   requirements, user stories, or acceptance criteria, read
+   `references/requirements-and-acceptance.md` and write from the user's goal
+   to observable behavior. New genres land as references here, not as new
+   skills.
 3. **Outline the knowledge path.** List what the reader knows at the start
    and what each section must add for the next one to land.
 4. **Gather evidence before drafting.** Collect the citations, metrics, and
@@ -120,6 +126,7 @@ language: words that point at the structure without holding any weight.
 | "More detail reads as more thorough" | Cut what does not change the reader's understanding or decision. | The reader asked for the exhaustive version; put it in an appendix. |
 | "The reader will pick up the term as they go" | Introduce the term before the section that relies on it. | The named audience already owns the term. |
 | "Polish the claim now, evidence later" | Mark the claim unproven or get the evidence before the draft circulates. | The claim is uncontested ground for this audience. |
+| "The template is filled in, so the spec is done" | Write concrete behavior, constraints, non-goals, and proof; templates do not replace acceptance criteria. | None. |
 
 ## Handoffs
 
@@ -129,10 +136,13 @@ language: words that point at the structure without holding any weight.
 - `domain-modeling`: the data shapes and invariants an ideal state names.
 - `proof`: the evidence bar for the claims the document makes.
 - `documentation`: placement, ownership, and lifecycle once the document
-  exists; requirements and acceptance-criteria content.
+  exists; docs that describe existing code.
 - `release`: rollout plans, migration notes, and release communication.
 
 ## References
 
 - System analysis (current state, ideal state, transition):
   `references/system-analysis.md`.
+- Requirements and acceptance criteria (PRDs, specs, user stories):
+  `references/requirements-and-acceptance.md`.
+- ADR template: status, date, context, decision, consequences.

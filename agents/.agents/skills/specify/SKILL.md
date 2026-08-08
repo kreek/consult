@@ -134,9 +134,9 @@ proposed, so the build inherits an explicit list of what still needs sign-off.
 ## Handoffs
 
 - `contract-first`: contract approval.
-- `documentation`: artifact quality, audience, rot risk, and docs placement.
-- `writing`: prose quality and structure of ADRs, RFCs, specs, and analyses
-  written for stakeholder readers.
+- `writing`: the artifact itself; ADR, RFC, tech spec, and analysis prose
+  and structure.
+- `documentation`: docs placement and rot risk once the artifact exists.
 - `domain-modeling`: data shapes, invariants, transitions, and effects.
 - `architecture`: boundaries, ownership, layering, and system shape.
 - `proof`: design proof obligations.

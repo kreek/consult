@@ -88,8 +88,8 @@ description: Use first for every coding task to route risks, choose skills, defi
    | `accessibility` | Keyboard, focus, semantics, ARIA, contrast, or inclusive UI matter. |
    | `observability` | Logs, metrics, traces, health, SLOs, or alerts matter. |
    | `performance` | Latency, throughput, memory, CPU, caching, or resource use matter. |
-   | `documentation` | Docs are the requested deliverable or an approved/validator-required obligation. |
-   | `writing` | A prose document for other readers is the deliverable: system analysis, transition plan, PRD, strategy, or RFC text. |
+   | `documentation` | Existing-code docs (README, runbook, reference, comments) are the requested deliverable or an approved/validator-required obligation. |
+   | `writing` | A forward-looking document is the deliverable: design doc, ADR, RFC, tech spec, PRD, system analysis, or strategy. |
    | `scaffolding` | New project setup or baseline tooling is part of the task. |
    | `official-source-check` | External framework, library, runtime, or platform behavior must be checked against official sources. |
    | `proof` | Default completion gate for any non-trivial work; skip only for changes with no behavior surface. |
