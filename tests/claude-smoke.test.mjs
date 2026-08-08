@@ -28,6 +28,15 @@ describe("claude-smoke skill detection", () => {
       skillsFromPaths(["agents/.agents/skills/proof/SKILL.md", "plugin/skills/proof/SKILL.md"]),
     ).toEqual(["proof"]);
   });
+
+  it("drops names that no longer ship, keeping a rename's new name", () => {
+    expect(
+      skillsFromPaths(
+        ["agents/.agents/skills/writing/SKILL.md", "agents/.agents/skills/technical-writing/SKILL.md"],
+        ["proof", "technical-writing"],
+      ),
+    ).toEqual(["technical-writing"]);
+  });
 });
 
 describe("claude-smoke trial selection", () => {
