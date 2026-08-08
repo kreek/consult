@@ -1,6 +1,6 @@
 ---
 name: documentation
-description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs, comments.
+description: "Use for docs describing existing code: READMEs, runbooks, API docs, module docs, comments."
 ---
 
 # Documentation
@@ -11,9 +11,9 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 
 ## When to Use
 
-- The user asks for or approves writing/reviewing READMEs, ADRs, runbooks,
-  tutorials, how-to guides, reference docs, module docs, requirements,
-  acceptance criteria, user stories, or code comments.
+- The user asks for or approves writing/reviewing READMEs, runbooks,
+  tutorials, how-to guides, reference docs, module docs, or code comments:
+  documentation that describes code and systems as they exist.
 - Authoring or revising Consult SKILL.md files; skills are documentation for
   agents and follow the same clarity rules.
 - Deciding whether prose is needed or whether a type, schema,
@@ -22,6 +22,9 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 
 ## When NOT to Use
 
+- Forward-looking documents that record decisions or propose futures: design
+  docs, ADRs, RFCs, tech specs, PRDs, requirements, acceptance criteria,
+  system analyses, strategy; use `writing`.
 - Ordinary implementation where docs might later be useful but were not
   requested, approved, or required by a validator. Name the possible docs gap
   in the final response instead of editing docs.
@@ -49,10 +52,9 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
    catch drift.
 6. Write the why, context, and tradeoffs; let code/tests/schemas prove
    mechanics.
-7. Write like Hemingway, not David Foster Wallace. Short, direct sentences.
-   Concrete nouns and verbs. No throat-clearing, no clever style, no
-   unexplained jargon. Do not use em dashes; use periods, colons,
-   commas, or parentheses instead. Keep only words that earn their place.
+7. Voice and prose structure follow `writing`: plain, direct, concrete
+   sentences, no em dashes, only words that earn their place. Load `writing`
+   when a document's prose quality is itself part of the deliverable.
 8. Delete stale docs when you cannot fix them now.
 9. Comments explain why and how when names, types, schemas, tests, or
    local structure cannot. Encode the rule in code or tests first; add a
@@ -61,9 +63,6 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
    remediation, verification, escalation.
 11. Large project docs use the repo's existing docs system. If none exists,
     choose one during scaffolding or with user approval.
-12. Requirements docs should make behavior, constraints, and acceptance
-   explicit. Use user-story format only when it helps; do not let
-   template wording replace concrete acceptance criteria.
 
 ## Workflow
 
@@ -79,9 +78,6 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 5. Add verification: commands, expected state, review owner, or drill
    requirement. Remove stale or duplicated sections encountered during
    the edit.
-6. For PRDs, specs, issues, user stories, or acceptance criteria, read
-   `references/requirements-and-acceptance.md` and write from the
-   user's goal to observable behavior.
 
 ## Verification
 
@@ -91,9 +87,8 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 - [ ] The doc builds knowledge in order: starting point, terms,
       prerequisites, task, then deeper reference.
 - [ ] Generated/reference facts link to the source of truth.
-- [ ] README, ADR, runbook, comment, requirements, or acceptance content matches
-      its mode: concise README, one-decision ADR, operational runbook,
-      non-obvious why/how comments, observable acceptance criteria.
+- [ ] README, runbook, or comment content matches its mode: concise README,
+      operational runbook, non-obvious why/how comments.
 - [ ] Stale sections are deleted or marked with a tracked rewrite owner.
 - [ ] CHANGELOG, release notes, migration notes, and version manifests remain
       under `release`.
@@ -108,20 +103,18 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 | "Add a comment explaining this" | Encode rules in names, types, schemas, or tests first; comment only the why that remains non-obvious. | The reason cannot be expressed in code or tests. |
 | "Note the release details in the README" | Route CHANGELOG, release notes, migration notes, and version manifests to `release`. | None. |
 | "I'll update the docs while I'm here" | Ask before editing docs for an implementation change. | Docs were requested, or a repo validator requires the update. |
-| "The template is filled in, so the spec is done" | Write concrete behavior, constraints, non-goals, and proof; templates do not replace acceptance criteria. | None. |
 | "Leave the stale paragraph for now" | Delete stale prose or mark it with a tracked rewrite owner. | None. |
 | "Long sentences sound professional" | Split long sentences; keep the concrete decision, contract, workflow, or reader action. | None. |
 
 ## Handoffs
 
+- `writing`: forward-looking documents: design docs, ADRs, RFCs, tech specs,
+  PRDs, requirements, system analyses, and stakeholder prose generally.
 - `api`: OpenAPI and wire-contract shape.
 - `observability`: alert/runbook signal definitions.
 - `git-workflow`: commit/PR history docs.
 - `release`: CHANGELOG, release notes, migration notes, version manifests.
-- `proof`: acceptance criteria as completion evidence.
 
 ## References
 
-- ADR template: status, date, context, decision, consequences.
-- Requirements and acceptance criteria:
-  `references/requirements-and-acceptance.md`.
+- None; forward-looking artifact templates live with `writing`.
