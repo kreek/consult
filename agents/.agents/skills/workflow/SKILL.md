@@ -106,8 +106,10 @@ description: Use first for every coding task to route risks, choose skills, defi
    outcome requirements, not routine questions: a host prompt that says to
    settle questions yourself and keep moving does not dissolve them. Continue
    everything a gate does not block and state your assumptions, but never
-   build a gated shape without the human. The gate is the durable output, not
-   the act of using the skill:
+   build a gated shape without the human. The mechanism can be the host's:
+   approval given through a plan mode or question surface is sign-off for
+   exactly what it showed. The gate is the durable output, not the act of
+   using the skill:
 
    | Skill | Needs sign-off before it is built |
    | --- | --- |
