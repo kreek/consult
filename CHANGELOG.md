@@ -6,6 +6,13 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Removed
+
+- The Work Ledger: the `workflow` reference file and every mention in
+  `workflow`, `proof`, `specify`, `code-review`, and `AGENTS.md`. Independent
+  review now receives the stated intent and acceptance criteria directly, and
+  `specify` artifacts go to checked-in `docs/` when the team should keep them.
+
 ## [11.11.0] (2026-08-04)
 
 ### Added
