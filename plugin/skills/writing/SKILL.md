@@ -9,6 +9,11 @@ description: "Use for stakeholder prose: system analyses, transition plans, PRDs
 
 `THE READER'S UNDERSTANDING IS THE DELIVERABLE: PLAIN WORDS, ONE THEME, EVIDENCED CLAIMS.`
 
+The style this skill produces is named load-bearing prose. Every sentence
+carries evidence, advances the document's one theme, or builds the reader's
+knowledge; a sentence doing none of those is cut. Its opposite is signpost
+language: words that point at the structure without holding any weight.
+
 ## When to Use
 
 - A prose document is the deliverable and other people will read it: system
@@ -100,8 +105,8 @@ description: "Use for stakeholder prose: system analyses, transition plans, PRDs
 - [ ] The genre reference's per-section requirements are met (for a system
       analysis: every transition phase names its outcome, observable exit
       condition, risk retired, and rollback story).
-- [ ] The document is markdown, contains no em dashes, and keeps nothing
-      that does not change what the reader understands or decides.
+- [ ] The document is markdown, contains no em dashes, and every sentence is
+      load-bearing: it changes what the reader understands or decides.
 
 ## Tripwires
 
