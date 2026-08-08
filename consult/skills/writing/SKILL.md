@@ -9,8 +9,9 @@ description: "Use for stakeholder prose: system analyses, transition plans, PRDs
 
 `THE READER'S UNDERSTANDING IS THE DELIVERABLE: PLAIN WORDS, ONE THEME, EVIDENCED CLAIMS.`
 
-The style this skill produces is named load-bearing prose. Every sentence
-carries evidence, advances the document's one theme, or builds the reader's
+The style this skill produces is named load-bearing prose: technical writing
+that is more Hemingway than David Foster Wallace. Every sentence carries
+evidence, advances the document's one theme, or builds the reader's
 knowledge; a sentence doing none of those is cut. Its opposite is signpost
 language: words that point at the structure without holding any weight.
 
