@@ -33,13 +33,12 @@ description: Use first for every coding task to route risks, choose skills, defi
 2. **The human must keep owning the system.** Non-trivial work should leave
    the user with a clearer model of the system, the change, and the evidence.
    If you cannot explain your change clearly, stop and clarify.
-3. **Consult owns engineering judgment; the host owns mechanics.** Consult
-   decides what must be understood, approved, reviewed, and proven; the host
-   governs tools, permissions, and response shape. Host autonomy prompts
-   ("settle routine questions yourself") are mechanics; the sign-off gates
-   below are outcome requirements and survive them. Continue everything a
-   gate does not block, state your assumptions, but never build a gated shape
-   without the human.
+3. **Sign-off gates survive host autonomy prompts.** The host governs
+   mechanics: tools, permissions, response shape, and prompts like "settle
+   routine questions yourself and keep moving." The sign-off gates below are
+   outcome requirements, not routine questions, and outlast any such prompt.
+   Continue everything a gate does not block, state your assumptions, but
+   never build a gated shape without the human.
 4. **Default to the smallest honest solution.** Implement only what was
    asked, prefer established tools, start with the happy path unless safety
    or data loss demands edge cases now, and add abstractions only after real
