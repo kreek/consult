@@ -145,8 +145,8 @@ risk.
 - Release/package metadata changes: run the release/package checks that match
   the edited manifests, locks, or plugin metadata. Do not treat implementation
   approval as approval to add release-prep edits.
-- After compaction, read the Work Ledger for the current work first, then only
-  the files needed for the current slice. Avoid replaying long session history,
+- After compaction, re-read only the files needed for the current slice.
+  Avoid replaying long session history,
   broad diffs, or full validators to rebuild context unless the next action
   depends on them.
 

@@ -88,10 +88,9 @@ description: "Use to design before building: discovery, tradeoffs, ADRs, RFCs, t
    direction or rules it out. Then hand off to planning, implementation, proof,
    or review.
 8. **Capture only what will be used.** If an artifact is needed, choose the
-   smallest useful form after convergence and save it where it will rot least:
-   the local Work Ledger for agent memory the next context will need, or
-   checked-in `docs/` when the team should keep it. Record what the user actually
-   approved, not just what was proposed.
+   smallest useful form after convergence and save it in checked-in `docs/`
+   when the team should keep it. Record what the user actually approved, not
+   just what was proposed.
 
 ## Artifact Types
 

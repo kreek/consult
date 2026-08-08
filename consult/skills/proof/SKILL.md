@@ -104,11 +104,6 @@ hand work back here expecting it.
   name and pass/fail, the artifact you inspected, or a plain reason you couldn't
   run it.
 
-When the work spans more than one context, keep these contracts in the Work
-Ledger rather than only in the conversation, so a resumed session can tell what
-is proven from what merely felt done. See `workflow`'s
-`references/work-ledger.md`.
-
 ## Red-Green Mode
 
 Test-first is a tool, not a law here; Core Idea 2 stands. But for some claims it

@@ -57,8 +57,7 @@ reading the diff cold after the reasoning has left context.
 Give the reviewer only what a real reviewer would have:
 
 - The diff.
-- The stated intent and acceptance criteria, from the Work Ledger when one
-  exists, since that is what survives into a context with no history.
+- The stated intent and acceptance criteria.
 - The repo's declared constraints: runtime, framework, support policy, test
   command.
 

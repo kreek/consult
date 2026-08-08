@@ -57,13 +57,11 @@ description: Use first for every coding task to route risks, choose skills, defi
    affected users or systems, success signal, and obvious complexity or
    coupling risk. If done is unclear, propose acceptance criteria and ask one
    clarifying decision question at a time; for compatibility uncertainty, ask
-   before adding shims. If the work will outlive one context, open a Work
-   Ledger now with the request, target, and acceptance signal; when resuming,
-   read the existing ledger before replaying history.
+   before adding shims.
 2. **Classify the stakes.** Two axes: significance (how much other code it
    impacts) and durability (how costly it is to reverse). Low on both is
-   disposable: skip to step 6, do the work, prove it with `proof`; no ledger,
-   no sign-off. Escalate mid-task if the change turns out to touch a contract,
+   disposable: skip to step 6, do the work, prove it with `proof`; no
+   sign-off. Escalate mid-task if the change turns out to touch a contract,
    data shape, or behavior other code depends on. As stakes rise, so does
    involvement: work autonomously when low, give brief progress updates as
    they climb, propose options and get approval before acting when high.
@@ -126,14 +124,12 @@ description: Use first for every coding task to route risks, choose skills, defi
    that restore intended behavior, or routine implementation details.
 5. **Implement in reviewable slices.** If production or shared work grows
    beyond one focused review, stop, summarize, and split the next slice
-   before coding more. Update the ledger when a slice lands or a decision is
-   approved.
+   before coding more.
 6. **Run the completion loop.** Implement, prove every behavior with specs
    via `proof`, then run a `code-review` pass and fix what it finds; prefer a
-   reviewer with no implementation context, using the ledger for intent and
-   acceptance criteria. Repeat until specs pass and review comes back clean,
-   recording claim status in the ledger; only then do documentation or
-   release work.
+   reviewer with no implementation context, given the stated intent and
+   acceptance criteria. Repeat until specs pass and review comes back clean;
+   only then do documentation or release work.
 7. **Close with scope and evidence.** Name what changed, why it is better,
    what evidence proves it, what remains unproven, and what needs the user's
    attention; not an activity log. Follow the host's final-answer rules.
@@ -148,8 +144,6 @@ description: Use first for every coding task to route risks, choose skills, defi
       made after work began.
 - [ ] Loaded skills carried their proof obligations instead of being
       name-dropped, and the completion loop ran on non-trivial work.
-- [ ] Work that outlived one context has a ledger matching the repo, or the
-      fast path applied and no ledger was owed.
 
 ## Tripwires
 
@@ -167,5 +161,3 @@ description: Use first for every coding task to route risks, choose skills, defi
 
 - `references/simple-not-easy.md`: load when ceremony, helper layers, broad
   skill loading, or hidden coupling might be mistaken for engineering rigor.
-- `references/work-ledger.md`: load when work must survive compaction, a
-  fresh session, or a handoff.
