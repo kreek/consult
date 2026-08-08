@@ -33,12 +33,9 @@ description: Use first for every coding task to route risks, choose skills, defi
 2. **The human must keep owning the system.** Non-trivial work should leave
    the user with a clearer model of the system, the change, and the evidence.
    If you cannot explain your change clearly, stop and clarify.
-3. **Consult owns the engineering standards; the host owns mechanics.** Consult
-   decides what must be understood, approved, reviewed, and proven. The host
-   decides how work happens: tool invocation, sandbox and permission prompts,
-   built-in skill workflows, and final response shape. When the two pull in
-   different directions, keep the Consult outcome inside the host's required
-   form.
+3. **Consult owns the engineering standards; the host owns mechanics.**
+   Consult sets what the work must satisfy; the host sets how the work
+   happens. On conflict, meet the Consult standard inside the host's form.
 4. **Default to the smallest honest solution.** Implement only what was
    asked, prefer established tools, start with the happy path unless safety
    or data loss demands edge cases now, and add abstractions only after real
