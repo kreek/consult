@@ -49,10 +49,9 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
    catch drift.
 6. Write the why, context, and tradeoffs; let code/tests/schemas prove
    mechanics.
-7. Write like Hemingway, not David Foster Wallace. Short, direct sentences.
-   Concrete nouns and verbs. No throat-clearing, no clever style, no
-   unexplained jargon. Do not use em dashes; use periods, colons,
-   commas, or parentheses instead. Keep only words that earn their place.
+7. Voice and prose structure follow `writing`: plain, direct, concrete
+   sentences, no em dashes, only words that earn their place. Load `writing`
+   when a document's prose quality is itself part of the deliverable.
 8. Delete stale docs when you cannot fix them now.
 9. Comments explain why and how when names, types, schemas, tests, or
    local structure cannot. Encode the rule in code or tests first; add a
@@ -114,6 +113,8 @@ description: Use for requested/approved docs, READMEs, ADRs, runbooks, API docs,
 
 ## Handoffs
 
+- `writing`: voice, document structure, and stakeholder prose deliverables
+  such as system analyses, transition plans, and PRD narrative.
 - `api`: OpenAPI and wire-contract shape.
 - `observability`: alert/runbook signal definitions.
 - `git-workflow`: commit/PR history docs.

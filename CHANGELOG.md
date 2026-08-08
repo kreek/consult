@@ -6,6 +6,18 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `writing` skill: voice and structure for stakeholder prose deliverables
+  (system analyses, transition plans, PRDs, strategy docs, RFC text). Owns the
+  Accessible Sophistication voice, knowledge build-up, one-theme discipline,
+  and the evidence bar for prose claims; ships
+  `references/system-analysis.md` as the first genre reference
+  (current state, ideal state, transition, each with its evidence bar).
+  `documentation` and `specify` now hand prose quality off to it, and
+  `documentation` Core Idea 7 points at `writing` instead of restating the
+  voice rules.
+
 ### Removed
 
 - The Work Ledger: the `workflow` reference file and every mention in

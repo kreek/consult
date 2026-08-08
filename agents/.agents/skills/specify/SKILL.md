@@ -135,6 +135,8 @@ proposed, so the build inherits an explicit list of what still needs sign-off.
 
 - `contract-first`: contract approval.
 - `documentation`: artifact quality, audience, rot risk, and docs placement.
+- `writing`: prose quality and structure of ADRs, RFCs, specs, and analyses
+  written for stakeholder readers.
 - `domain-modeling`: data shapes, invariants, transitions, and effects.
 - `architecture`: boundaries, ownership, layering, and system shape.
 - `proof`: design proof obligations.
