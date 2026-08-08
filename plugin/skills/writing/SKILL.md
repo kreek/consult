@@ -47,9 +47,13 @@ description: "Use for stakeholder prose: system analyses, transition plans, PRDs
    over-intellectualize. State the idea once, concretely, and let the weight
    of the idea do the work.
 4. **Never comment on the writing itself.** No phrases that announce
-   significance ("Here's the thing", "That distinction matters"), no
-   rhetorical questions answered by the next sentence, no "it's not just X,
-   it's Y". State the claim and move on.
+   significance ("Here's the thing", "That distinction matters", "worth
+   noting", "importantly"), no rhetorical questions answered by the next
+   sentence, no "it's not just X, it's Y". These are instances of one
+   category: language whose only job is to tell the reader how to feel about
+   the next sentence. The test is deletion: cut the phrase, and if the
+   passage loses no information, it was a signpost. State the claim and move
+   on.
 5. **One document, one theme.** The document answers one question, and every
    section advances it. Material that serves a different question moves to an
    appendix or another document.
@@ -89,9 +93,13 @@ description: "Use for stakeholder prose: system analyses, transition plans, PRDs
 - [ ] Every term is introduced before a section relies on it.
 - [ ] Every claim about the current system carries evidence or is marked
       unproven.
-- [ ] No significance announcements, no rhetorical questions answered by the
-      next sentence, no "it's not just X, it's Y" constructions.
+- [ ] Every phrase survives the deletion test: no significance
+      announcements, no rhetorical questions answered by the next sentence,
+      no "it's not just X, it's Y" constructions.
 - [ ] Every section advances the document's one theme.
+- [ ] The genre reference's per-section requirements are met (for a system
+      analysis: every transition phase names its outcome, observable exit
+      condition, risk retired, and rollback story).
 - [ ] The document is markdown, contains no em dashes, and keeps nothing
       that does not change what the reader understands or decides.
 
@@ -100,6 +108,7 @@ description: "Use for stakeholder prose: system analyses, transition plans, PRDs
 | Trigger | Do this instead | False alarm |
 |---|---|---|
 | "Open with 'Here's the thing'" | State the claim and move on. | None. |
+| "This point deserves a signpost: 'worth noting', 'importantly'" | Delete the signpost; a point that matters shows it in the content. | None. |
 | "It's not just X, it's Y" | Pick the claim you mean and state it once. | None. |
 | "A rhetorical question will hook the reader" | Delete the question; keep the answer. | The question is the document's own question, asked once in the framing. |
 | "More detail reads as more thorough" | Cut what does not change the reader's understanding or decision. | The reader asked for the exhaustive version; put it in an appendix. |
