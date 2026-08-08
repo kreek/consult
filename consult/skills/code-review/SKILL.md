@@ -52,7 +52,11 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 The strongest review comes from a reviewer with no implementation context. Set
 one up when the host allows it: a subagent, a fresh session, or the same agent
-reading the diff cold after the reasoning has left context.
+reading the diff cold after the reasoning has left context. Host-provided
+review surfaces (a fresh review subagent, a host review agent or command)
+satisfy this requirement when they receive exactly the inputs below and
+nothing more; this skill defines the inputs and the lenses, the host provides
+the mechanism.
 
 Give the reviewer only what a real reviewer would have:
 

@@ -36,14 +36,16 @@ export function shippedSkills() {
 }
 
 // Canonical skills and both generated mirrors all count: an edit to any of them is
-// a skill change worth smoke-testing.
-export function skillsFromPaths(paths) {
+// a skill change worth smoke-testing. When `shipped` is given, names that no
+// longer ship are dropped: after a rename or removal the old name cannot be
+// tested, and a rename's new name appears in the same diff.
+export function skillsFromPaths(paths, shipped) {
   const skills = new Set();
   for (const filePath of paths) {
     const match = SKILL_PATH_RE.exec(filePath);
     if (match?.[1]) skills.add(match[1]);
   }
-  return [...skills].sort();
+  return [...skills].filter((skill) => !shipped || shipped.includes(skill)).sort();
 }
 
 function git(args) {
@@ -63,7 +65,7 @@ async function changedSkills() {
     if (committed.status === 0) for (const line of committed.stdout.split("\n")) if (line) paths.add(line);
   }
 
-  return skillsFromPaths(paths);
+  return skillsFromPaths(paths, shippedSkills());
 }
 
 export function trialFeatures(trial) {

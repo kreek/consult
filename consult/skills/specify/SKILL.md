@@ -85,8 +85,10 @@ description: "Use to design before building: discovery, tradeoffs, ADRs, RFCs, t
    domain skill for API, persistence, async, security, errors, observability,
    performance, UI, accessibility, or release risks.
 7. **Converge before planning.** Iterate until the human agrees on the design
-   direction or rules it out. Then hand off to planning, implementation, proof,
-   or review.
+   direction or rules it out. When the host has a plan or approval mode,
+   converge inside it: present the recommended shape as the plan and iterate
+   there rather than running a second approval loop beside it. Then hand off
+   to planning, implementation, proof, or review.
 8. **Capture only what will be used.** If an artifact is needed, choose the
    smallest useful form after convergence and save it in checked-in `docs/`
    when the team should keep it. Record what the user actually approved, not
@@ -130,11 +132,12 @@ proposed, so the build inherits an explicit list of what still needs sign-off.
 | "Ask about everything at once" | Ask the smallest question that changes the shape; one recommended decision with notes beats a question barrage. | None. |
 | "The human should come up with the design" | Design-partner means the agent proposes concrete options; the human approves, revises, or rules them out. | None. |
 | "Leave the open question for code review" | Open questions that block the design get asked now. | The question is a deferrable detail that does not change the shape. |
+| "Run the design gate alongside the host's plan mode" | Converge inside the host's planning surface; one approval loop, not two. | The host has no plan or approval mode. |
 
 ## Handoffs
 
 - `contract-first`: contract approval.
-- `writing`: the artifact itself; ADR, RFC, tech spec, and analysis prose
+- `technical-writing`: the artifact itself; ADR, RFC, tech spec, and analysis prose
   and structure.
 - `documentation`: docs placement and rot risk once the artifact exists.
 - `domain-modeling`: data shapes, invariants, transitions, and effects.

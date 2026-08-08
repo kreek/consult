@@ -1,9 +1,9 @@
 ---
-name: writing
+name: technical-writing
 description: "Use for forward-looking docs: design docs, ADRs, RFCs, tech specs, PRDs, requirements, system analyses, strategy."
 ---
 
-# Writing
+# Technical Writing
 
 ## Iron Law
 

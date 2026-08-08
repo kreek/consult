@@ -8,7 +8,7 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- `writing` skill: voice and structure for stakeholder prose deliverables
+- `technical-writing` skill: voice and structure for stakeholder prose deliverables
   (system analyses, transition plans, PRDs, strategy docs, RFC text). Names
   its style load-bearing prose (every sentence carries evidence, advances the
   theme, or builds the reader's knowledge) and its anti-pattern signpost
@@ -17,17 +17,26 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `references/system-analysis.md` as the first genre reference
   (current state, ideal state, transition, each with its evidence bar).
   `documentation` and `specify` now hand prose quality off to it, and
-  `documentation` Core Idea 7 points at `writing` instead of restating the
+  `documentation` Core Idea 7 points at `technical-writing` instead of restating the
   voice rules.
 
 ### Changed
 
+- `specify`, `commit`, `code-review`, and `git-workflow` now delegate
+  host-owned mechanics and keep only Consult standards, following an audit of
+  overlap with host built-ins: `specify` converges inside the host's plan
+  mode instead of running a second approval loop, `commit` and `git-workflow`
+  drop restated git mechanics while keeping the packaging standards and gates
+  (no attribution trailers even against host defaults, GitHub permission,
+  PR-text approval, recovery points, force-with-lease), and `code-review`
+  accepts host review surfaces as the independent reviewer when they receive
+  exactly the prescribed inputs.
 - The documentation/writing boundary: `documentation` now covers only docs
   that describe existing code and systems (READMEs, runbooks, tutorials,
   reference docs, module docs, comments). Forward-looking documents that
   record decisions or propose futures (design docs, ADRs, RFCs, tech specs,
   PRDs, requirements, acceptance criteria, system analyses, strategy) belong
-  to `writing`, which now owns `references/requirements-and-acceptance.md`
+  to `technical-writing`, which now owns `references/requirements-and-acceptance.md`
   and the ADR template.
 
 ### Removed
