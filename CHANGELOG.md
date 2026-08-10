@@ -6,6 +6,8 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.12.0] (2026-08-10)
+
 ### Added
 
 - `technical-writing` skill: voice and structure for stakeholder prose deliverables
