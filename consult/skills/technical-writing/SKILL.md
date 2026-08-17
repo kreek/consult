@@ -52,10 +52,25 @@ language: words that point at the structure without holding any weight.
    length so the text has a natural cadence rather than blunt, isolated
    statements. Connect ideas with subtle logical transitions: "At its core",
    "Because of this", "In practice".
-3. **Trust the reader's intelligence.** Do not over-explain or
+3. **Prefer the word the reader already has.** A technical term earns its
+   place only when it is more precise than the plain description and the
+   named audience owns it. "The generator only creates what is missing"
+   beats "the generator is a reconciler"; "safe to re-run" beats
+   "idempotent" unless the audience is engineers who use the word daily.
+   The test: write the plain-words version first, and keep the term of art
+   only if the plain version is longer, vaguer, or wrong. Section titles get
+   the strictest reading, since a reader decides whether to read a section
+   from its title alone.
+4. **Active voice, strong verbs, direct claims.** Prefer a named actor doing
+   the action over a passive construction, a strong verb over a verb propped
+   up by an adverb, and a plain statement over one padded with qualifiers
+   ("I think", "maybe", "somewhat"). Passive voice is right when the actor
+   is irrelevant or unknown ("the token is signed"); a qualifier is right
+   when the hedge is the claim itself, as when marking a statement unproven.
+5. **Trust the reader's intelligence.** Do not over-explain or
    over-intellectualize. State the idea once, concretely, and let the weight
    of the idea do the work.
-4. **Never comment on the writing itself.** No phrases that announce
+6. **Never comment on the writing itself.** No phrases that announce
    significance ("Here's the thing", "That distinction matters", "worth
    noting", "importantly"), no rhetorical questions answered by the next
    sentence, no "it's not just X, it's Y". These are instances of one
@@ -63,14 +78,14 @@ language: words that point at the structure without holding any weight.
    the next sentence. The test is deletion: cut the phrase, and if the
    passage loses no information, it was a signpost. State the claim and move
    on.
-5. **One document, one theme.** The document answers one question, and every
+7. **One document, one theme.** The document answers one question, and every
    section advances it. Material that serves a different question moves to an
    appendix or another document.
-6. **Prose claims are engineering claims.** A statement about the current
+8. **Prose claims are engineering claims.** A statement about the current
    system needs the same evidence a code claim needs: a file, a metric, an
    incident, a measurement. Polishing an unproven claim makes it more
    persuasive and no more true; mark it unproven instead.
-7. **Length is a cost the reader pays.** Cut by selecting what to include,
+9. **Length is a cost the reader pays.** Cut by selecting what to include,
    not by compressing sentences into fragments. Write documents in markdown.
    Never use em dashes; use periods, colons, commas, or parentheses.
 
@@ -91,11 +106,15 @@ language: words that point at the structure without holding any weight.
    sources each claim needs, and route the substance to specialists:
    `architecture` for the target shape, `specify` for undecided directions,
    `proof` for the evidence bar.
-5. **Draft in the voice.** Apply Core Ideas 2 through 4 while writing, not
+5. **Draft in the voice.** Apply Core Ideas 2 through 6 while writing, not
    as a cleanup afterward.
 6. **Edit as a separate pass.** Hunt theme drift, unintroduced terms,
    significance announcements, and sentences that do not change what the
-   reader knows or decides. Delete them.
+   reader knows or decides. Delete them. Run
+   `node references/style-check.mjs <file>` and clear every flag or keep it
+   consciously (see the false-alarm column in Tripwires). When the document
+   has another author, prefer the smallest edit that fixes the issue over
+   rewriting their sentences into your own cadence.
 7. **Close with the ask.** End with the decision or action the reader is
    asked to take. A document with no ask is a status update; title it as one.
 
@@ -108,6 +127,16 @@ language: words that point at the structure without holding any weight.
 - [ ] Every phrase survives the deletion test: no significance
       announcements, no rhetorical questions answered by the next sentence,
       no "it's not just X, it's Y" constructions.
+- [ ] Every term of art survives the substitution test: replacing it with a
+      plain description would make the sentence longer, vaguer, or wrong.
+      Headings and titles contain no term the named reader might not own.
+- [ ] `references/style-check.mjs` reports no flags, or each remaining flag
+      is a documented false alarm: passive with an irrelevant actor, a
+      readable list sentence, a load-bearing hedge, a meaning-changing
+      adverb.
+- [ ] A final mechanics pass found no spelling, subject-verb agreement, or
+      homophone errors (were/where, they're/their/there, its/it's,
+      your/you're).
 - [ ] Every section advances the document's one theme.
 - [ ] The genre reference's per-section requirements are met (for a system
       analysis: every transition phase names its outcome, observable exit
@@ -125,6 +154,12 @@ language: words that point at the structure without holding any weight.
 | "A rhetorical question will hook the reader" | Delete the question; keep the answer. | The question is the document's own question, asked once in the framing. |
 | "More detail reads as more thorough" | Cut what does not change the reader's understanding or decision. | The reader asked for the exhaustive version; put it in an appendix. |
 | "The reader will pick up the term as they go" | Introduce the term before the section that relies on it. | The named audience already owns the term. |
+| "Define it by naming the pattern: 'X is a reconciler', 'X is a monad', 'X is an event-sourced store'" | State the behavior: what it does, what it never does, what re-running or failure costs. Name the pattern after, if at all, and link the precedent that uses the same semantics. | The named audience owns the term and the pattern name links to a prior decision the document leans on. |
+| "The five-dollar word is more precise: 'idempotent', 'orthogonal', 'canonical', 'hermetic'" | Write the plain version first; keep the term only if the plain version is longer, vaguer, or wrong for this audience. | The document's named readers are specialists and the term is their working vocabulary. |
+| "Passive voice reads as more formal and objective" | Name the actor and use active voice. | The actor is irrelevant or unknown ("the token is signed", "the pod is evicted"). |
+| "The sentence is long, but it all belongs together" | Split it, or turn an in-sentence list into a bulleted list. | The items are few and parallel, and the sentence stays readable on one pass. |
+| "A qualifier softens the claim politely: 'I think', 'maybe', 'somewhat'" | Delete the qualifier or replace it with the evidence state. | The hedge is the claim: marking a statement unproven is load-bearing. |
+| "An adverb strengthens the verb: 'very', 'significantly', 'quickly'" | Pick a stronger verb or give the number. | The adverb changes meaning rather than intensity ("only", "never", "no longer"). |
 | "Polish the claim now, evidence later" | Mark the claim unproven or get the evidence before the draft circulates. | The claim is uncontested ground for this audience. |
 | "The template is filled in, so the spec is done" | Write concrete behavior, constraints, non-goals, and proof; templates do not replace acceptance criteria. | None. |
 
@@ -146,3 +181,7 @@ language: words that point at the structure without holding any weight.
 - Requirements and acceptance criteria (PRDs, specs, user stories):
   `references/requirements-and-acceptance.md`.
 - ADR template: status, date, context, decision, consequences.
+- Mechanical style checker (sentence length and grade, passive voice,
+  adverbs, qualifiers, words with simpler alternatives):
+  `references/style-check.mjs`. Run with
+  `node references/style-check.mjs <file> [--max-grade N]`.
