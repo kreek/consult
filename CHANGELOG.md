@@ -6,6 +6,21 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [11.13.0] (2026-08-17)
+
+### Added
+
+- `technical-writing` skill: a substitution test for terms of art (prefer
+  the word the reader already has; keep jargon only when the plain version
+  is longer, vaguer, or wrong for the named audience) and a new core idea
+  covering active voice, strong verbs, and qualifiers, each with
+  technical-writing false alarms in the tripwires.
+- `technical-writing` skill: `references/style-check.mjs`, a
+  dependency-free mechanical checker run during the edit pass. Flags
+  hard-to-read sentences (per-sentence ARI grade), passive voice, adverbs,
+  qualifiers, words with simpler alternatives, and em dashes; skips code
+  blocks, headings, tables, and link URLs.
+
 ## [11.12.0] (2026-08-10)
 
 ### Added
