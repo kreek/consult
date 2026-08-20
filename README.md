@@ -194,6 +194,10 @@ verification.
   - [`scaffolding`](agents/.agents/skills/scaffolding/SKILL.md): New projects, package setup, quality tooling, CI, and repo structure.
   - [`git-workflow`](agents/.agents/skills/git-workflow/SKILL.md): Branches, history edits, conflicts, rebases, recovery, and force-push.
 
+Writing and prose guidance is not part of Consult. For voice, clarity,
+outlining, and editing skills, install [Terse](https://github.com/kreek/terse),
+a companion plugin from the same author.
+
 Greenfield stack templates live under
 [`scaffolding/references/stacks/`](agents/.agents/skills/scaffolding/references/stacks/).
 Shared language defaults are in

@@ -24,7 +24,9 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
 
 - Forward-looking documents that record decisions or propose futures: design
   docs, ADRs, RFCs, tech specs, PRDs, requirements, acceptance criteria,
-  system analyses, strategy; use `technical-writing`.
+  system analyses, strategy. Consult does not cover these; use a dedicated
+  writing skill if one is installed, such as
+  [Terse](https://github.com/kreek/terse).
 - Ordinary implementation where docs might later be useful but were not
   requested, approved, or required by a validator. Name the possible docs gap
   in the final response instead of editing docs.
@@ -52,9 +54,8 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
    catch drift.
 6. Write the why, context, and tradeoffs; let code/tests/schemas prove
    mechanics.
-7. Voice and prose structure follow `technical-writing`: plain, direct, concrete
-   sentences, no em dashes, only words that earn their place. Load `technical-writing`
-   when a document's prose quality is itself part of the deliverable.
+7. Voice and prose structure: plain, direct, concrete sentences, no em
+   dashes, only words that earn their place.
 8. Delete stale docs when you cannot fix them now.
 9. Comments explain why and how when names, types, schemas, tests, or
    local structure cannot. Encode the rule in code or tests first; add a
@@ -108,8 +109,6 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
 
 ## Handoffs
 
-- `technical-writing`: forward-looking documents: design docs, ADRs, RFCs, tech specs,
-  PRDs, requirements, system analyses, and stakeholder prose generally.
 - `api`: OpenAPI and wire-contract shape.
 - `observability`: alert/runbook signal definitions.
 - `git-workflow`: commit/PR history docs.
@@ -117,4 +116,4 @@ description: "Use for docs describing existing code: READMEs, runbooks, API docs
 
 ## References
 
-- None; forward-looking artifact templates live with `technical-writing`.
+- None.

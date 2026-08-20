@@ -137,8 +137,6 @@ proposed, so the build inherits an explicit list of what still needs sign-off.
 ## Handoffs
 
 - `contract-first`: contract approval.
-- `technical-writing`: the artifact itself; ADR, RFC, tech spec, and analysis prose
-  and structure.
 - `documentation`: docs placement and rot risk once the artifact exists.
 - `domain-modeling`: data shapes, invariants, transitions, and effects.
 - `architecture`: boundaries, ownership, layering, and system shape.
