@@ -6,6 +6,18 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.0.0] (2026-08-20)
+
+### Removed
+
+- `technical-writing` skill, including its `requirements-and-acceptance.md`,
+  `system-analysis.md`, and `style-check.mjs` references. Prose and writing
+  guidance now lives in [Terse](https://github.com/kreek/terse), a standalone
+  companion plugin. `workflow` no longer routes forward-looking documents to
+  a bundled writing skill, and `documentation` and `specify` drop their
+  `technical-writing` handoffs; `documentation` keeps the core voice rules
+  inline and points to Terse for dedicated writing work.
+
 ## [11.13.0] (2026-08-17)
 
 ### Added
