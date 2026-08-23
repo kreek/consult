@@ -1,6 +1,6 @@
 ---
 name: observability
-description: Use for observability, logs, metrics, traces, health checks, dashboards, alerts, SLOs.
+description: "Use for production observability: logs, metrics, traces, health, dashboards, alerts, SLOs; not debug prints."
 ---
 
 # Observability

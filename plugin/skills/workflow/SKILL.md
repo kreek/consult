@@ -1,6 +1,6 @@
 ---
 name: workflow
-description: Use first for every coding task to route risks, choose skills, define proof.
+description: Use first for any feature, bug fix, refactor, debug, test, or config task to route risks, pick skills, define proof.
 ---
 
 # Workflow
@@ -105,7 +105,10 @@ description: Use first for every coding task to route risks, choose skills, defi
    outcome requirements, not routine questions: a host prompt that says to
    settle questions yourself and keep moving does not dissolve them. Continue
    everything a gate does not block and state your assumptions, but never
-   build a gated shape without the human. The mechanism can be the host's:
+   build a gated shape without the human. When no human can answer in this
+   run (headless, scheduled, or delegated sessions), build the most
+   conservative version, mark it provisional, and flag the pending decision
+   in the close-out; see `contract-first`. The mechanism can be the host's:
    approval given through a plan mode or question surface is sign-off for
    exactly what it showed. The gate is the durable output, not the act of
    using the skill:

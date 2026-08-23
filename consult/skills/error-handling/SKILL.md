@@ -1,6 +1,6 @@
 ---
 name: error-handling
-description: Use for error handling, error types, propagation, retries, user messages, recovery.
+description: "Use when failure contracts matter: error types, propagation, retries, recovery, user-facing messages."
 ---
 
 # Error Handling
@@ -23,23 +23,20 @@ description: Use for error handling, error types, propagation, retries, user mes
 
 ## Core Ideas
 
-1. Failure is part of the function contract.
+1. Failure is part of the function contract. Expected failures are typed:
+   use named exception classes, discriminated unions, enums, or structured
+   `Result` variants for recoverable cases.
 2. Add context at each boundary; preserve the original cause. Catch
    only where you can decide: recover, translate, retry, or terminate.
 3. Translate failures when the caller's contract changes. Domain,
    infrastructure, API, CLI, and UI errors should not leak across
    boundaries unchanged.
-4. Expected failures are typed: use named exception classes,
-   discriminated unions, enums, or structured `Result` variants for
-   recoverable cases.
-5. Classify errors as user-correctable, transient, or programmer/system
-   faults.
-6. User-facing messages are safe and actionable; internal errors keep
+4. User-facing messages are safe and actionable; internal errors keep
    diagnostic detail under a correlation ID.
-7. Remote calls declare timeout, retry, idempotency, and dependency-failure
+5. Remote calls declare timeout, retry, idempotency, and dependency-failure
    behavior together. Retry transient failures in one layer with a capped
    budget and jitter/backoff.
-8. Panics/assertions are for impossible states and process boundaries, not
+6. Panics/assertions are for impossible states and process boundaries, not
    routine control flow.
 
 ## Workflow

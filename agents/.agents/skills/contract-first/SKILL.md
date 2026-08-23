@@ -11,11 +11,13 @@ description: Use before locking in public functions, types, endpoints, schemas, 
 
 ## When to Use
 
-- A task defines or materially changes a caller-facing interface or shared structure:
-  exported function, public type, HTTP endpoint, CLI/env/config surface, event
-  payload, file format, database schema, migration step, package/module
-  boundary, the public surface of a significant new module or component, project
-  layout, or cross-component contract.
+- A task defines or materially changes an interface or shared structure that
+  callers outside the change will bind to: a function or type consumed by other
+  modules or packages, HTTP endpoint, CLI/env/config surface, event payload,
+  file format, database schema, migration step, package/module boundary, the
+  public surface of a significant new module or component, project layout, or
+  cross-component contract. An export with no caller outside the change is not
+  yet a contract.
 - A manual or installed Interface Design Gate asks for current interface,
   proposed interface, boundary reason, and user decision.
 - Reviewing whether implementation started before contract approval.
@@ -41,6 +43,14 @@ description: Use before locking in public functions, types, endpoints, schemas, 
    skill's job.
 3. Approval covers the named shape only. Compatibility, rollout, renames,
    removals, and shims need their own explicit decision.
+4. The gate scales with reversal cost. Gate a shape when outside callers will
+   bind to it and changing it later means breakage or migration. For an
+   additive, easily reversed change, state the shape in the close-out and
+   continue; do not stop the work for it.
+5. When no human can answer in this run (headless, scheduled, or delegated
+   sessions), do not deadlock. Build the most conservative version, mark the
+   contract provisional, and flag the pending decision in the close-out.
+   Silence from a present user is still not approval.
 
 ## Workflow
 
@@ -71,7 +81,8 @@ description: Use before locking in public functions, types, endpoints, schemas, 
       bind to.
 - [ ] Boundary ownership and compatibility decisions are explicit.
 - [ ] The proposed interfaces were listed for the user, who approved, revised,
-      or rejected them before implementation landed.
+      or rejected them before implementation landed; or no human was available
+      and each shape is marked provisional in the close-out.
 - [ ] Implementation matches the approved shape, or the gate was reopened.
 
 ## Tripwires
@@ -80,7 +91,7 @@ description: Use before locking in public functions, types, endpoints, schemas, 
 |---|---|---|
 | "The design doc already covers this interface" | An approving design or RFC approves the direction, not the concrete shapes. List each concrete surface with evidence and get one approve/revise/reject. | The exact signature, schema, or surface was itself listed and approved. |
 | "I'll implement it first and show the interface after" | Stop before implementation lands; propose the concrete shape and wait for the decision. | The surface is purely internal with no caller-facing or shared boundary. |
-| "No objection means it's approved" | Silence is not approval; wait for an explicit approve, revise, or reject. | None. |
+| "No objection means it's approved" | Silence is not approval; wait for an explicit approve, revise, or reject. | No human can answer in this run; the shape was built conservatively, marked provisional, and flagged for review. |
 | "The rename is implied by the approved shape" | Compatibility (renames, removals, shims, deprecation paths) needs its own explicit decision. | The approval already named that compatibility path. |
 
 ## Optional Runtime Backstop

@@ -96,10 +96,10 @@ treat its clean result as weaker evidence.
 
 ## Workflow
 
-1. **Resolve the target.** Use local diffs or approved GitHub reads. For PR
-   review threads, fetch thread state only when resolution or line context
-   matters. Never reach GitHub without explicit permission; `git-workflow` owns
-   that gate and which surface to use.
+1. **Resolve the target.** Use local diffs or GitHub reads through the host's
+   permission surface. For PR review threads, fetch thread state only when
+   resolution or line context matters. `git-workflow` owns which GitHub
+   surface to use and the gate on publishing writes.
 2. **Pre-flight the review.** Identify intent, impact, CI status, and changed
    surface. Missing PR intent on a non-trivial diff is a finding. Red or
    absent CI means the review is unproven, not blocked from inspection.
@@ -151,7 +151,8 @@ blocks the finding or fix.
       applied where relevant.
 - [ ] Findings are severity ordered, anchored, concrete, and focused on impact.
 - [ ] Missing evidence, residual risk, and unreviewed scope are named.
-- [ ] GitHub reads and writes had explicit permission.
+- [ ] GitHub writes (comments, reviews, resolutions, pushes) had explicit
+      user permission; reads ran through the host's permission surface.
 
 ## Tripwires
 

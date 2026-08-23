@@ -115,11 +115,8 @@ proposed, so the build inherits an explicit list of what still needs sign-off.
 - [ ] Open questions are genuine blockers that change the design, not template
       residue or deferrable details.
 - [ ] Caller-facing interfaces have `contract-first` approval before
-      implementation, or implementation remains out of scope.
-- [ ] An approving design or RFC approves the direction, not the concrete
-      shapes. Interfaces and domain structure still get `contract-first` and
-      `domain-modeling` applied during build, with sign-off on the concrete
-      shapes.
+      implementation, or implementation remains out of scope; concrete-shape
+      sign-off during build stays with `contract-first` and `domain-modeling`.
 - [ ] Any artifact records the agreed shape and has a purpose-fit destination.
 
 ## Tripwires

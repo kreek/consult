@@ -71,9 +71,9 @@ against it.
    claim, data invariant, boundary, check, evidence.
 7. Get sign-off on the durable domain shape. When the core model, shared
    invariants, or a state machine future work will bind to is concrete, list it
-   for the user to approve, revise, or reject before implementation. An
-   approving design or RFC approves the direction, not the concrete shapes.
-   Do not gate disposable or purely local shapes. Silence is not approval.
+   for the user to approve, revise, or reject before implementation;
+   `contract-first` owns the approval scope. Do not gate disposable or
+   purely local shapes. Silence is not approval.
 
 ## Crosscutting Hazards
 
@@ -102,8 +102,7 @@ Load the matching reference whenever time or money appears in the diff.
 - [ ] Every non-trivial invariant or transition has proof evidence, or the
       claim is reported as unproven.
 - [ ] A durable domain shape that future work binds to was listed for the user,
-      who approved, revised, or rejected it before implementation; an approving
-      design or RFC was not treated as that approval.
+      who approved, revised, or rejected it before implementation.
 - [ ] When dates or money appear in the change, the matching `references/`
       file was loaded and its boundary discipline was applied.
 

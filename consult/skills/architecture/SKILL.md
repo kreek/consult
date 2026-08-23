@@ -70,10 +70,9 @@ description: Use for architecture decisions, module boundaries, coupling, layeri
 2. Sketch the module surface from the caller's view: what it accepts, what
    it returns, what it must never expose.
 3. If the surface is caller-facing or the structure is shared, recommend one
-   option and route to `contract-first` before implementation. An approving
-   design or RFC approves the direction, not the concrete shapes: module
-   boundaries, shared structure, and project layout still get sign-off
-   before code locks them in.
+   option and route to `contract-first` before implementation; it owns the
+   approval scope for module boundaries, shared structure, and project
+   layout.
 4. Sketch the internal data path: where external data enters, where it is
    parsed into a trusted shape, where domain work happens, where output data
    is shaped, and what the renderer/presenter receives.
@@ -101,9 +100,6 @@ description: Use for architecture decisions, module boundaries, coupling, layeri
       contract, not the internal shape.
 - [ ] Caller-facing interfaces and shared structure were routed through user-approved
       contract/API/architecture design before implementation.
-- [ ] An approving design or RFC approved the architectural direction, not the
-      concrete module boundaries, shared structure, or project layout. Those
-      got sign-off before implementation.
 - [ ] Boundaries separate concerns that change independently; they are
       not merely steps in a flowchart.
 - [ ] Bounded contexts are explicit where the same word means different

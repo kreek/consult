@@ -71,7 +71,9 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
    response bodies, status codes, auth, pagination, idempotency, and error
    shape.
 3. Route durable API interfaces through `contract-first` before controller,
-   client, SDK, webhook, or integration work continues.
+   client, SDK, webhook, or integration work continues. Additive changes old
+   callers cannot notice (a new optional field, param, or endpoint) proceed
+   without a stop; state the shape in the close-out.
 4. Apply the relevant reference only when the feature needs it:
    `api-evolution`, `rest-error-status-codes`, `idempotency`, `pagination`,
    `webhooks`, or `middleware-vs-handler`.
@@ -81,8 +83,9 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 ## Verification
 
 - [ ] Contract exists or is updated before implementation lands.
-- [ ] Durable API interfaces have explicit user approval before
-      implementation continues.
+- [ ] Durable API interfaces have explicit user approval before implementation
+      continues, or the change is additive and its shape is stated in the
+      close-out.
 - [ ] Every endpoint documents request, auth, responses by status, and errors.
 - [ ] Request, response, and error shapes follow the chosen data model
       consistently; status codes are selected by origin and do not leak internal

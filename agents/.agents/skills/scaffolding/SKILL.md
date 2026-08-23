@@ -29,9 +29,9 @@ and run the baseline without local knowledge.
 
 1. The user owns scaffold choices. The agent recommends options in
    priority order, then waits for approval before creating files,
-   installing packages, or running generators.
-   If a structural dependency is not already specified, ask before researching
-   or selecting it.
+   installing packages, or running generators. Research is free:
+   audit candidate dependencies without asking, then present the
+   recommendation before anything is selected or installed.
 2. Scaffolding creates the baseline, not the feature. Decide project kind,
    language/runtime, deployment assumption, framework/template, quality
    baseline, files, and commands before feature code.
@@ -68,8 +68,9 @@ and run the baseline without local knowledge.
    preset fits; otherwise read `references/language-defaults.md` or current
    official sources and name the fallback.
    For frameworks, databases, ORMs, auth clients, SDKs, state libraries, job
-   queues, or other structural runtime dependencies, ask before dependency
-   research unless the user or selected stack already named the choice.
+   queues, or other structural runtime dependencies, research candidates
+   freely but get approval before selecting or installing one, unless the
+   user or selected stack already named the choice.
 5. For fresh scaffolds, initialize git and `.gitignore` before feature code,
    unless the user or environment blocks it. If skipped, say why.
 6. Select one package manager and commit its lockfile before install or
@@ -84,8 +85,8 @@ and run the baseline without local knowledge.
 
 - [ ] Scaffold choices were approved before mutation, or the request already
       specified every material setup choice.
-- [ ] Structural dependency research or selection was approved, unless the
-      user or selected stack already specified the dependency.
+- [ ] Structural dependency selection was approved, unless the user or
+      selected stack already specified the dependency.
 - [ ] Fresh scaffold has git, `.gitignore`, one package manager, committed
       lockfile, and clean install from a fresh clone.
 - [ ] Requested artifacts exist by name, and every added config is consumed by a
@@ -112,7 +113,7 @@ to the full checklist.
 | "The command passed, so the scaffold works" | Verify the requirement -> artifact -> command mapping, not only command success. | None. |
 | "Set up git later" | Initialize git and `.gitignore` before feature code. | The user or environment blocks repo creation and the skip is reported. |
 | "Approval would slow this down, just create the files" | Present Approve, Refine, and Cancel choices before scaffold mutation. | The request already specified every material setup choice. |
-| "I'll pick the framework/ORM myself" | Ask before researching or selecting structural runtime dependencies. | The user or selected stack already named the choice, or it is a small dev-only utility. |
+| "I'll pick the framework/ORM myself" | Research candidates freely; get approval before selecting or installing a structural runtime dependency. | The user or selected stack already named the choice, or it is a small dev-only utility. |
 
 ## Handoffs
 
