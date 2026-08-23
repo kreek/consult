@@ -6,6 +6,39 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.1.0] (2026-08-23)
+
+### Changed
+
+- Host-harness alignment pass across 14 skills, grounded against the published
+  Codex CLI harness source and Claude Code host behavior:
+  - `contract-first` scopes its gate to shapes outside callers bind to, adds a
+    reversal-cost test (additive, easily reversed changes proceed with the
+    shape stated in the close-out), and defines a no-human fallback for
+    headless, scheduled, and delegated runs: build the conservative version,
+    mark the contract provisional, flag the pending decision. `api` and
+    `database` inherit the same scoping; `workflow` carries the fallback in
+    its sign-off step.
+  - `commit` treats attribution trailers as host configuration: point at the
+    host setting that disables them (such as `includeCoAuthoredBy: false` in
+    Claude Code) instead of instructing per-commit overrides of host
+    guidance. This replaces the 11.12.0 stance of omitting trailers against
+    host defaults.
+  - `git-workflow` drops the chat-level ask before GitHub reads and the
+    topic-branch menu; the host's permission system owns access, and
+    branching follows the host default. The PR/issue-text approval,
+    recovery-point, and force-push gates remain. `code-review` follows the
+    same read/write split.
+  - `scaffolding` no longer asks before dependency research; approval gates
+    selection and installation only.
+  - Routing descriptions carry task vocabulary and complexity floors for
+    hosts that select skills lexically: `workflow` names concrete task types;
+    `security`, `observability`, and `error-handling` scope to real stakes.
+  - The approval-scope rule (a design approves the direction, not the
+    concrete shapes) now lives in `workflow` and `contract-first` only;
+    `specify`, `domain-modeling`, `architecture`, and `database` route to
+    it. `error-handling` merges its most generic core ideas.
+
 ## [12.0.0] (2026-08-20)
 
 ### Removed
