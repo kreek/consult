@@ -6,28 +6,17 @@ vi.mock("../src/proof/index.js", () => ({
 vi.mock("../extensions/self-review-guard.ts", () => ({
   default: vi.fn(),
 }));
-vi.mock("../extensions/openai-codex-fast-mode.ts", () => ({
-  default: vi.fn(),
-}));
-vi.mock("../extensions/consult-header.ts", () => ({
-  default: vi.fn(),
-}));
-
 import agentBoosterPack from "../src/index.ts";
 import proofExtension from "../src/proof/index.js";
 import selfReviewGuard from "../extensions/self-review-guard.ts";
-import openaiCodexFastMode from "../extensions/openai-codex-fast-mode.ts";
-import consultHeader from "../extensions/consult-header.ts";
 
-describe("agent booster pack Pi extension", () => {
-  it("registers proof, self-review, OpenAI Codex fast mode, and startup header runtimes", () => {
+describe("Consult Pi extension", () => {
+  it("registers only the proof and independent-review runtimes by default", () => {
     const pi = {};
 
     agentBoosterPack(pi);
 
     expect(proofExtension).toHaveBeenCalledWith(pi);
     expect(selfReviewGuard).toHaveBeenCalledWith(pi);
-    expect(openaiCodexFastMode).toHaveBeenCalledWith(pi);
-    expect(consultHeader).toHaveBeenCalledWith(pi);
   });
 });

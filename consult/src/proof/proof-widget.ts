@@ -1,4 +1,5 @@
-import { truncateToWidth } from "@mariozechner/pi-tui";
+// Renders compact proof phase and test-run status in Pi's editor widget.
+import { truncateToWidth } from "@earendil-works/pi-tui";
 import type { TestSummary } from "./parsers.js";
 import type { Phase } from "./prompt.js";
 import { renderTestRunOverlay, type TestRunSnapshot } from "./test-run-overlay.js";

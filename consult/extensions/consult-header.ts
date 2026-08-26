@@ -1,5 +1,6 @@
 // Renders Consult's Pi startup header and session context line.
 import { readFileSync } from "node:fs";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const RESET = "\x1b[0m";
 const ACCENT = "\x1b[38;2;181;189;104m";
@@ -13,17 +14,17 @@ const LOGO_LINES = [
   "┗━╸┗━┛╹ ╹┗━┛┗━┛┗━╸╹ ",
 ];
 
-function plainLength(text) {
+function plainLength(text: string): number {
   return [...text.replace(ANSI_PATTERN, "")].length;
 }
 
-function center(text, width) {
+function center(text: string, width: number): string {
   const length = plainLength(text);
   if (length >= width) return text;
   return `${" ".repeat(Math.floor((width - length) / 2))}${text}`;
 }
 
-function color(text, code) {
+function color(text: string, code: string): string {
   return `${code}${text}${RESET}`;
 }
 
@@ -33,7 +34,7 @@ function color(text, code) {
  * The only text below the ASCII logo is the active model and the installed
  * Consult package version, keeping the header from repeating the product name.
  */
-export function renderConsultHeader(width, model, provider) {
+export function renderConsultHeader(width: number, model: string, provider?: string): string[] {
   const modelText = provider ? `(${provider}) ${model}` : model;
   const context = color(`${modelText} · consult ${CONSULT_VERSION}`, DIM);
   return [
@@ -44,9 +45,9 @@ export function renderConsultHeader(width, model, provider) {
   ];
 }
 
-function installHeader(ctx) {
-  ctx.ui.setHeader((tui) => ({
-    render(width) {
+function installHeader(ctx: ExtensionContext) {
+  ctx.ui.setHeader((tui: { requestRender?: () => void }) => ({
+    render(width: number) {
       const model = ctx.model?.id ?? "no model selected";
       return renderConsultHeader(width, model, ctx.model?.provider);
     },
@@ -56,7 +57,7 @@ function installHeader(ctx) {
   }));
 }
 
-export default function consultHeader(pi) {
+export default function consultHeader(pi: ExtensionAPI) {
   pi.on("session_start", (_event, ctx) => {
     if (!ctx.hasUI) return;
     installHeader(ctx);

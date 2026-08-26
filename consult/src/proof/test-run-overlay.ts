@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 const ANSI_RE = /\x1b\[[0-9;]*m/g;
 export const TEST_RUN_SPINNER_FRAMES = ["-", "\\", "|", "/"];

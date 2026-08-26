@@ -151,8 +151,10 @@ output counts only toward the claims it actually covers.
 7. When a claim needs a test, name it in the caller's words and assert the result
    the caller sees.
 8. Use the narrowest check that proves the claim. Start with a single test by
-   name or line; fall back to one test file; run the whole package or suite only
-   after the narrow check is green and you suspect wider breakage.
+   name or line; fall back to one test file. Once a failing test is known,
+   iterate on that failure until it is green. Run the whole package or suite
+   after major changes, before completion or commit, or when targeted green
+   evidence suggests wider breakage.
 
 ## Before Saying Done
 
@@ -185,7 +187,7 @@ output counts only toward the claims it actually covers.
 | Trigger | Do this instead | False alarm |
 |---|---|---|
 | "The suite is green, so the change is proven" | Run the check that would fail if this change were wrong. A green check that never touches what you changed, or only hits a helper or nearby behavior, is partial. | The green check enters at the changed boundary and asserts the new behavior. |
-| "Run the whole suite for this one-line edit" | Run the single relevant test, line, or file first; widen only after the narrow check is green and wider breakage is plausible. | The change is cross-cutting and no narrower check exists. |
+| "Run the whole suite for this one-line edit" | Run the single relevant test, line, or file first; widen after major changes, before completion or commit, or when wider breakage is plausible. | The change is cross-cutting and no narrower check exists. |
 | "The broad suite is red, so the work is blocked" | Switch to the targeted check and report the unrelated broad failure separately. | The broad failure is caused by this change. |
 | "Add a unit test for every helper" | Test the contract at the boundary so refactors don't rewrite proof; unit-test only non-trivial pure logic. | The helper has branching or state a boundary test cannot drive. |
 | "The types already prove it" | Name the invariant or boundary behavior the types don't cover and check that. | The claim is exactly what the type checker enforces at compile time. |

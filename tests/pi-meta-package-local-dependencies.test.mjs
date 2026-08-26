@@ -29,20 +29,30 @@ describe("Pi single-package layout", () => {
     expect(pkg.files.some((path) => path.includes("node_modules"))).toBe(false);
   });
 
-  it("publishes consult without local sibling package dependencies", () => {
+  it("publishes the scoped Pi package without bundled host dependencies", () => {
     const pkg = readPackage(META_PACKAGE);
 
+    expect(pkg.name).toBe("@kreek/consult");
+    expect(pkg.version).toBe("13.0.0");
+    expect(pkg.engines.node).toBe(">=22.19.0");
     expect(pkg.pi.extensions).toEqual(["./src/index.ts"]);
     expect(pkg.pi.skills).toEqual(["./skills"]);
     expect(pkg.dependencies).toBeUndefined();
     expect(pkg.bundledDependencies).toBeUndefined();
+    expect(pkg.peerDependencies).toMatchObject({
+      "@earendil-works/pi-ai": "*",
+      "@earendil-works/pi-coding-agent": "*",
+      "@earendil-works/pi-tui": "*",
+      typebox: "*",
+    });
     expect(pkg.files).toEqual(["src", "extensions", "skills", "README.md", "LICENSE"]);
   });
 
-  it("uses a single Pi extension entrypoint for packaged runtimes", () => {
+  it("type-checks and tests the current Pi runtime", () => {
     const pkg = readPackage(META_PACKAGE);
 
     expect(pkg.pi.extensions).toEqual(["./src/index.ts"]);
     expect(pkg.scripts.test).toBe("vitest run test");
+    expect(pkg.scripts.typecheck).toBe("tsc --noEmit");
   });
 });
