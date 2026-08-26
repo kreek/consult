@@ -6,6 +6,31 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.1.0] (2026-08-26)
+
+### Changed
+
+- Pi runtime updated for Pi 0.84: the `consult` package now targets
+  `@earendil-works/pi-coding-agent` 0.84 and registers only the proof and
+  independent-review extensions.
+- Code review runs in a fresh agent. On Pi, once production changes settle, a
+  sessionless read-only Pi subprocess reviews the diff (tracked and untracked
+  files) with the `code-review` skill and its findings return as a follow-up;
+  `/consult:self-review` triggers it on demand. Automatic rounds are capped at
+  three per user task, and shell writes are detected by redirect target and
+  write verb rather than by any `>`. `code-review` and `workflow` prose now
+  require a fresh-context subagent, review agent, or session on every host;
+  same-context review is a labelled fallback only.
+- Proof mode chooses targeted versus full-suite runs the way an experienced
+  developer does. After the specifying run fails, IMPLEMENTING reruns only the
+  known failing Vitest test (by file and escaped `-t` name) when the command
+  is a recognised Vitest or Jest invocation, including package-manager `test`
+  scripts that resolve to a bare runner. REFACTORING and `proof_done` require
+  the full configured command with no extra arguments; a vacuous pass (exit 0,
+  no tests run) never advances the phase. The `proof` skill prose carries the
+  same rule for attended hosts.
+
+
 ## [12.1.0] (2026-08-23)
 
 ### Changed
