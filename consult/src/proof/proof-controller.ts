@@ -1,4 +1,5 @@
 // Coordinates branch-aware proof phases and serialized test runs for Pi.
+import * as fs from "node:fs";
 import * as path from "node:path";
 import type { TextContent } from "@earendil-works/pi-ai";
 import type { ExtensionContext, ToolResultEvent } from "@earendil-works/pi-coding-agent";
@@ -39,12 +40,42 @@ export interface ProofSnapshot {
   mutationGeneration: number;
   greenGeneration: number;
   testEvidenceObserved: boolean;
+  focusCommand?: string;
+  greenCommand?: string;
 }
 
 interface ProofDependencies {
   runTestCommand?: typeof defaultRunTestCommand;
   resolveTestConfig?: typeof defaultResolveTestConfig;
+  readTestScript?: (cwd: string | undefined) => string | undefined;
   persist?: (snapshot: ProofSnapshot) => void;
+}
+
+/** Read the package.json `test` script from the test directory, if any. */
+export function readPackageTestScript(cwd: string | undefined): string | undefined {
+  if (!cwd) return undefined;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(path.join(cwd, "package.json"), "utf8")) as { scripts?: Record<string, unknown> };
+    const script = parsed.scripts?.test;
+    return typeof script === "string" ? script : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const SHELL_DECORATION_RE = /\s*(?:\d?>>?|\||;|&&|\|\|)/;
+
+/**
+ * A manual run counts as full-suite evidence only when the configured command
+ * appears with no extra arguments before any pipe, redirect, or chained command.
+ */
+export function isFullSuiteCommand(command: string | undefined, configuredCommand: string | undefined): boolean {
+  if (!command || !configuredCommand) return false;
+  const index = command.indexOf(configuredCommand);
+  if (index === -1) return false;
+  const remainder = command.slice(index + configuredCommand.length);
+  const extraArgs = remainder.split(SHELL_DECORATION_RE)[0] ?? "";
+  return extraArgs.trim() === "";
 }
 
 function appendTextContent(content: ToolResultEvent["content"], text: string): ToolResultMutation {
@@ -73,6 +104,7 @@ function isProofSnapshot(value: unknown): value is ProofSnapshot {
 export function createProofController(dependencies: ProofDependencies = {}) {
   const runTestCommand = dependencies.runTestCommand ?? defaultRunTestCommand;
   const resolveTestConfig = dependencies.resolveTestConfig ?? defaultResolveTestConfig;
+  const readTestScript = dependencies.readTestScript ?? readPackageTestScript;
   let activeTestRun: TestRunSnapshot | undefined;
   let activeTestRunShownAt = 0;
   let dismissTimer: ReturnType<typeof setTimeout> | undefined;
@@ -82,6 +114,7 @@ export function createProofController(dependencies: ProofDependencies = {}) {
   let lastWidgetCtx: ExtensionContext | undefined;
   let pendingTestRun = false;
   let stubAllowed = false;
+  let lastExecutedCommand: string | undefined;
   let snapshot: ProofSnapshot = {
     phase: "off",
     mutationGeneration: 0,
@@ -119,8 +152,8 @@ export function createProofController(dependencies: ProofDependencies = {}) {
     persist();
   }
 
-  function beginTestRun(ctx: ExtensionContext) {
-    const command = snapshot.testCommand ?? "";
+  function beginTestRun(ctx: ExtensionContext, command = snapshot.testCommand ?? "") {
+    lastExecutedCommand = command;
     const cwdLabel = snapshot.testCwd && snapshot.testCwd !== ctx.cwd ? path.basename(snapshot.testCwd) : undefined;
     stopTimers();
     activeTestRunShownAt = Date.now();
@@ -154,9 +187,13 @@ export function createProofController(dependencies: ProofDependencies = {}) {
     lastSummary = result.summary;
     stubAllowed = result.stubAllowed;
     if (result.testEvidenceObserved) snapshot = { ...snapshot, testEvidenceObserved: true };
+    if (result.focusCommand) snapshot = { ...snapshot, focusCommand: result.focusCommand };
+    if (result.clearFocus) snapshot = { ...snapshot, focusCommand: undefined };
     if (result.nextPhase) setPhase(result.nextPhase, ctx);
     if (result.summary.failed === 0 && result.summary.passed > 0) {
-      snapshot = { ...snapshot, greenGeneration: snapshot.mutationGeneration };
+      const greenCommand = lastExecutedCommand;
+      snapshot = { ...snapshot, greenGeneration: snapshot.mutationGeneration, greenCommand };
+      if (isFullSuiteCommand(greenCommand, snapshot.testCommand)) snapshot = { ...snapshot, focusCommand: undefined };
       persist();
     }
     updateWidget(ctx);
@@ -213,6 +250,9 @@ export function createProofController(dependencies: ProofDependencies = {}) {
       if (snapshot.phase !== "refactoring" || !freshGreen) {
         return { ok: false, message: "proof_done requires fresh passing test evidence after the latest mutation" };
       }
+      if (!isFullSuiteCommand(snapshot.greenCommand, snapshot.testCommand)) {
+        return { ok: false, message: `proof_done requires fresh full suite evidence: ${snapshot.testCommand}` };
+      }
       stopTimers();
       snapshot = { phase: "off", mutationGeneration: 0, greenGeneration: -1, testEvidenceObserved: false };
       setPhase("off", ctx);
@@ -232,7 +272,7 @@ export function createProofController(dependencies: ProofDependencies = {}) {
 
       if (isTestFile(filePath)) snapshot = { ...snapshot, testEvidenceObserved: true };
       if (snapshot.phase === "specifying" && !isTestFile(filePath)) return undefined;
-      snapshot = { ...snapshot, mutationGeneration: snapshot.mutationGeneration + 1, greenGeneration: -1 };
+      snapshot = { ...snapshot, mutationGeneration: snapshot.mutationGeneration + 1, greenGeneration: -1, greenCommand: undefined };
       pendingTestRun = true;
       persist();
       return undefined;
@@ -242,14 +282,20 @@ export function createProofController(dependencies: ProofDependencies = {}) {
       if (!pendingTestRun || !snapshot.testCommand) return undefined;
       if (snapshot.phase === "specifying" && !snapshot.testEvidenceObserved) return undefined;
       pendingTestRun = false;
-      beginTestRun(ctx);
-      const result = await runTestCommand(snapshot.testCommand, snapshot.testCwd, (chunk) => {
+      const command = snapshot.phase === "implementing" && snapshot.focusCommand ? snapshot.focusCommand : snapshot.testCommand;
+      beginTestRun(ctx, command);
+      const result = await runTestCommand(command, snapshot.testCwd, (chunk) => {
         if (!activeTestRun) return;
         activeTestRun = { ...activeTestRun, outputLines: appendTestRunOutput(activeTestRun.outputLines, chunk) };
         updateWidget(ctx);
       });
       finishTestRun(result.passed, result.durationMs, ctx);
-      const evaluated = evaluateTestResult({ ...result, phase: snapshot.phase });
+      const evaluated = evaluateTestResult({
+        ...result,
+        command: snapshot.testCommand,
+        phase: snapshot.phase,
+        testScript: readTestScript(snapshot.testCwd),
+      });
       applyTestResult(evaluated, ctx);
       return evaluated.appendText;
     },
@@ -269,7 +315,14 @@ export function createProofController(dependencies: ProofDependencies = {}) {
       const command = getStringInput(event.input, "command");
       if (!command || !snapshot.testCommand || !command.includes(snapshot.testCommand)) return undefined;
       pendingTestRun = false;
-      const evaluated = evaluateTestResult({ output: joinTextContent(event.content), passed: !event.isError, phase: snapshot.phase });
+      lastExecutedCommand = command;
+      const evaluated = evaluateTestResult({
+        command,
+        output: joinTextContent(event.content),
+        passed: !event.isError,
+        phase: snapshot.phase,
+        testScript: readTestScript(snapshot.testCwd),
+      });
       applyTestResult(evaluated, ctx);
       return appendTextContent(event.content, evaluated.appendText);
     },

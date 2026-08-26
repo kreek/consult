@@ -27,9 +27,12 @@ const PHASE_GUIDANCE: Record<ActivePhase, string> = {
   implementing: [
     "Write the smallest amount of code necessary for the CORRECT solution",
     "to satisfy the named proof. No extra functionality or refactoring yet.",
+    "If a specific failing test is known, iterate with that focused test until it is green;",
+    "do not keep rerunning the full suite after every edit.",
   ].join(" "),
   refactoring: [
     "Restructure code freely but keep all tests passing.",
+    "After refactoring edits, the runtime runs the full suite to preserve behavior before completion/commit.",
     "No new behavior. If a change causes test failure, revert it immediately and try a different approach.",
     "Look for repeated patterns across classes/methods/functions/handlers and extract them.",
     "Deduplicate test fixtures and shared setup.",
