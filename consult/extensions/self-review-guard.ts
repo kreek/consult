@@ -1,136 +1,177 @@
-import { isProductionFile } from "../src/classify.mjs";
-import { REMINDER, alreadyAcknowledged } from "../src/self-review-core.mjs";
+// Enforces review by a fresh, read-only Pi subprocess after production changes.
+import type { ExtensionAPI, ExtensionContext, ToolResultEvent } from "@earendil-works/pi-coding-agent";
 
-const CHANGE_TOOL_NAMES = new Set(["edit", "write"]);
-export const SELF_REVIEW_MARKER = "Consult self-review";
-const SELF_REVIEW_MESSAGE = "consult-self-review";
-const MUTATING_BASH_PATTERN = /(\btee\b|\bpython\b[\s\S]*\bopen\([^)]*['"]w|\bnode\b[\s\S]*writeFile|\bperl\s+-pi\b|\bsed\s+-i\b|\bmv\b|\bcp\b|\btouch\b|\bchmod\b|\bgit\s+apply\b|\bpatch\b)/i;
+import { isProductionFile } from "../src/proof/file-classification.js";
+import {
+  type ReviewRequest,
+  type ReviewResult,
+  runIndependentReview,
+} from "../src/review/review-runner.js";
 
-function messageText(value) {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) return value.map((item) => (typeof item?.text === "string" ? item.text : "")).join("\n");
-  return "";
+export const SELF_REVIEW_MARKER = "Consult independent review";
+export const REVIEW_STATE_ENTRY = "consult-independent-review-state";
+const REVIEW_MESSAGE = "consult-independent-review";
+const SHELL_WRITE_PATTERN = /(>|\btee\b|\bsed\s+-i\b|\bmv\b|\bcp\b|\btouch\b|\bchmod\b|\bgit\s+apply\b|\bpatch\b|writeFile|open\([^)]*['"]w)/i;
+const POWERSHELL_WRITE_PATTERN = /\b(Set-Content|Add-Content|Out-File|New-Item|Move-Item|Copy-Item|Remove-Item|Rename-Item)\b/i;
+
+interface ReviewState {
+  generation: number;
+  reviewedGeneration: number;
+  failedGeneration?: number;
+  changedPaths: string[];
+  intent: string;
 }
 
-function changedPath(toolCall) {
-  return String(toolCall?.arguments?.path ?? toolCall?.input?.path ?? "");
+interface ReviewDependencies {
+  runReview: (request: ReviewRequest) => Promise<ReviewResult>;
 }
 
-function normalizeMessages(values) {
-  return values.map((value) => value?.message ?? value).filter(Boolean);
+function initialState(): ReviewState {
+  return { generation: 0, reviewedGeneration: 0, changedPaths: [], intent: "" };
 }
 
-function latestUserScopedMessages(entries) {
-  const messages = normalizeMessages(entries);
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    if (messages[index]?.role === "user") return messages.slice(index + 1);
+function isReviewState(value: unknown): value is ReviewState {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Partial<ReviewState>;
+  return (
+    typeof state.generation === "number" &&
+    typeof state.reviewedGeneration === "number" &&
+    Array.isArray(state.changedPaths) &&
+    state.changedPaths.every((item) => typeof item === "string") &&
+    typeof state.intent === "string"
+  );
+}
+
+function restoreState(entries: unknown[]): ReviewState {
+  let restored = initialState();
+  for (const raw of entries) {
+    const entry = (raw as { message?: unknown })?.message ?? raw;
+    if ((entry as { type?: unknown })?.type !== "custom") continue;
+    if ((entry as { customType?: unknown })?.customType !== REVIEW_STATE_ENTRY) continue;
+    const data = (entry as { data?: unknown }).data;
+    if (isReviewState(data)) restored = { ...data, changedPaths: [...data.changedPaths] };
   }
-  return messages;
+  return restored;
 }
 
-function isToolCall(item) {
-  return item?.type === "toolCall";
+function stringInput(event: ToolResultEvent, key: string): string {
+  const value = (event.input as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
 }
 
-function hasToolCall(message) {
-  return Array.isArray(message?.content) && message.content.some(isToolCall);
-}
-
-function isProductionPath(path) {
-  return isProductionFile(path);
-}
-
-function isProductionChangeToolCall(item) {
-  if (!isToolCall(item)) return false;
-  if (CHANGE_TOOL_NAMES.has(item.name)) return isProductionPath(changedPath(item));
-  if (item.name !== "bash") return false;
-
-  const command = typeof item?.arguments?.command === "string" ? item.arguments.command : "";
-  return MUTATING_BASH_PATTERN.test(command);
-}
-
-function hasProductionChanges(messages) {
-  return normalizeMessages(messages)
-    .filter((message) => message?.role === "assistant" && Array.isArray(message.content))
-    .flatMap((message) => message.content)
-    .some(isProductionChangeToolCall);
-}
-
-function lastAssistantText(messages) {
-  const normalized = normalizeMessages(messages);
-  for (let index = normalized.length - 1; index >= 0; index -= 1) {
-    const message = normalized[index];
-    if (message?.role !== "assistant") continue;
-
-    const text = messageText(message.content).trim();
-    if (text) return text;
+function productionMutation(event: ToolResultEvent): string | undefined {
+  if (event.isError) return undefined;
+  if (event.toolName === "write" || event.toolName === "edit") {
+    const filePath = stringInput(event, "path");
+    return filePath && isProductionFile(filePath) ? filePath : undefined;
   }
-  return "";
+  if (event.toolName === "bash") {
+    return SHELL_WRITE_PATTERN.test(stringInput(event, "command")) ? "<shell mutation>" : undefined;
+  }
+  if (event.toolName === "powershell") {
+    return POWERSHELL_WRITE_PATTERN.test(stringInput(event, "command")) ? "<PowerShell mutation>" : undefined;
+  }
+  return undefined;
 }
 
-
-function isSelfReviewCorrectionTurn(messages) {
-  return normalizeMessages(messages).some((message) => messageText(message.content).includes(SELF_REVIEW_MARKER));
+function reviewRequest(state: ReviewState, ctx: ExtensionContext): ReviewRequest {
+  return {
+    cwd: ctx.cwd,
+    model: ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : undefined,
+    thinkingLevel: ctx.thinkingLevel,
+    changedPaths: [...state.changedPaths],
+    intent: state.intent,
+    signal: ctx.signal,
+  };
 }
 
-export function shouldRequestSelfReview(messages) {
-  return selfReviewPromptFor(messages) !== null;
+function reviewFollowUp(output: string): string {
+  return [
+    `${SELF_REVIEW_MARKER} (fresh Pi subprocess, read-only tools):`,
+    output,
+    "Address every must-fix finding. If corrections change production code, Consult will launch another fresh reviewer.",
+    "If there are no findings, report the independent review result and residual risk in the final response.",
+  ].join("\n\n");
 }
 
-export function selfReviewPromptForSessionEntries(entries) {
-  return selfReviewPromptFor(latestUserScopedMessages(entries));
-}
+/** Build the independent-review extension with an injectable subprocess runner. */
+export function createIndependentReviewExtension(dependencies: ReviewDependencies) {
+  return function independentReviewExtension(pi: ExtensionAPI) {
+    let state = initialState();
+    let reviewInFlight = false;
 
-export function selfReviewPromptFor(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) return null;
-  if (isSelfReviewCorrectionTurn(messages)) return null;
-  if (!hasProductionChanges(messages)) return null;
+    const persist = () => pi.appendEntry(REVIEW_STATE_ENTRY, { ...state, changedPaths: [...state.changedPaths] });
 
-  const finalText = lastAssistantText(messages);
-  if (alreadyAcknowledged(finalText)) return null;
+    const runReview = async (ctx: ExtensionContext, force = false) => {
+      if (reviewInFlight) return;
+      if (!force && state.reviewedGeneration >= state.generation) return;
+      if (!force && state.failedGeneration === state.generation) return;
 
-  return makeSelfReviewPrompt(finalText);
-}
+      reviewInFlight = true;
+      const targetGeneration = state.generation;
+      try {
+        const result = await dependencies.runReview(reviewRequest(state, ctx));
+        state = { ...state, reviewedGeneration: targetGeneration, failedGeneration: undefined };
+        persist();
+        await pi.sendMessage(
+          { customType: REVIEW_MESSAGE, content: reviewFollowUp(result.output), display: true },
+          { triggerTurn: true, deliverAs: "followUp" },
+        );
+      } catch (error) {
+        state = { ...state, failedGeneration: targetGeneration };
+        persist();
+        const message = error instanceof Error ? error.message : String(error);
+        await pi.sendMessage(
+          {
+            customType: REVIEW_MESSAGE,
+            content: `${SELF_REVIEW_MARKER} failed: ${message}\n\nDo not claim independent review passed; report it as blocked.`,
+            display: true,
+          },
+          { triggerTurn: true, deliverAs: "followUp" },
+        );
+      } finally {
+        reviewInFlight = false;
+      }
+    };
 
-export function makeSelfReviewPrompt(finalText = "") {
-  const previous = String(finalText ?? "").trim();
-  return previous ? `${REMINDER}\n\nPrevious final response:\n${previous}` : REMINDER;
-}
-
-function entryFromMessage(message) {
-  return { type: "message", message };
-}
-
-function genericSelfReviewPrompt(args) {
-  const intent = String(args ?? "").trim();
-  return [REMINDER, intent ? `Focus: ${intent}` : ""].filter(Boolean).join("\n\n");
-}
-
-export default function selfReviewGuard(pi) {
-  pi.registerCommand("consult:self-review", {
-    description: "Run the Consult self-review gate",
-    handler: async (args, ctx) => {
-      const branchEntries = ctx.sessionManager?.getBranch?.() ?? [];
-      const prompt = selfReviewPromptForSessionEntries(branchEntries) ?? genericSelfReviewPrompt(args);
-      await pi.sendUserMessage(prompt);
-    },
-  });
-
-  pi.on("message_end", async (event, ctx) => {
-    if (event.message.role !== "assistant") return;
-    if (hasToolCall(event.message)) return;
-
-    const branchEntries = ctx.sessionManager?.getBranch?.() ?? [];
-    const prompt = selfReviewPromptForSessionEntries([...branchEntries, entryFromMessage(event.message)]);
-    if (!prompt) return;
-
-    await pi.sendMessage(
-      {
-        customType: SELF_REVIEW_MESSAGE,
-        content: prompt,
-        display: false,
+    pi.registerCommand("consult:self-review", {
+      description: "Run an independent review in a fresh Pi subprocess",
+      handler: async (_args, ctx) => {
+        await ctx.waitForIdle();
+        await runReview(ctx, true);
       },
-      { triggerTurn: true, deliverAs: "followUp" },
-    );
-  });
+    });
+
+    pi.on("session_start", (_event, ctx) => {
+      state = restoreState(ctx.sessionManager.getBranch());
+    });
+
+    pi.on("session_tree", (_event, ctx) => {
+      state = restoreState(ctx.sessionManager.getBranch());
+    });
+
+    pi.on("before_agent_start", (event) => {
+      if (!String(event.prompt).includes(SELF_REVIEW_MARKER)) {
+        state = { ...state, intent: String(event.prompt ?? state.intent) };
+      }
+    });
+
+    pi.on("tool_result", (event) => {
+      const changedPath = productionMutation(event);
+      if (!changedPath) return;
+      state = {
+        ...state,
+        generation: state.generation + 1,
+        failedGeneration: undefined,
+        changedPaths: [...new Set([...state.changedPaths, changedPath])],
+      };
+      persist();
+    });
+
+    pi.on("agent_settled", async (_event, ctx) => {
+      await runReview(ctx);
+    });
+  };
 }
+
+export default createIndependentReviewExtension({ runReview: runIndependentReview });
