@@ -131,10 +131,11 @@ description: Use first for any feature, bug fix, refactor, debug, test, or confi
    beyond one focused review, stop, summarize, and split the next slice
    before coding more.
 6. **Run the completion loop.** Implement, prove every behavior with specs
-   via `proof`, then run a `code-review` pass and fix what it finds; prefer a
-   reviewer with no implementation context, given the stated intent and
-   acceptance criteria. Repeat until specs pass and review comes back clean;
-   only then do documentation or release work.
+   via `proof`, then run a fresh-context `code-review` pass and fix what it
+   finds. Give the reviewer only the stated intent, acceptance criteria,
+   constraints, proof evidence, and diff. Same-context review is only a labelled
+   fallback when the host has no independent review surface. Repeat until specs
+   pass and review comes back clean; only then do documentation or release work.
 7. **Close with scope and evidence.** Name what changed, why it is better,
    what evidence proves it, what remains unproven, and what needs the user's
    attention; not an activity log. Follow the host's final-answer rules.

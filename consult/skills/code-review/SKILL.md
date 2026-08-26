@@ -11,13 +11,11 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 ## When to Use
 
-- Self-review of your own implementation diff in the `workflow`
-  completion loop after proving behavior with `proof`, before claiming done.
-  Default for any non-trivial agent-generated change. A second pass still
-  catches bugs, dead code, and missed edge cases, but it is the weakest form of
-  review: the same context that produced the code also carries the reasoning
-  that justified it. Read the diff as an outside reviewer who does not know why
-  a line is there, and prefer a fresh-context reviewer when one is available.
+- Independent review of your implementation diff in the `workflow` completion
+  loop after proving behavior with `proof`, before claiming done. Default for
+  any non-trivial agent-generated change. Use a fresh-context subagent, review
+  agent, or separate session when the host provides one. Same-context review is
+  only a labelled fallback when no independent mechanism is available.
 - Diff review (local, branch, or a GitHub PR through whatever GitHub surface
   the host provides).
 - Review-comment follow-up on the user's own PRs.
@@ -50,13 +48,13 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 ## Independent Review
 
-The strongest review comes from a reviewer with no implementation context. Set
-one up when the host allows it: a subagent, a fresh session, or the same agent
-reading the diff cold after the reasoning has left context. Host-provided
-review surfaces (a fresh review subagent, a host review agent or command)
-satisfy this requirement when they receive exactly the inputs below and
-nothing more; this skill defines the inputs and the lenses, the host provides
-the mechanism.
+Code review should run in a fresh context. Use a subagent, review agent, fresh
+session, or host review command when the host provides one. Claude Code, Codex,
+Cursor, and Pi all have mechanisms for this; same-context review is not code
+review, only a labelled fallback when the host truly lacks an independent
+review surface. Host-provided review surfaces satisfy this requirement when they
+receive exactly the inputs below and nothing more; this skill defines the inputs
+and the lenses, the host provides the mechanism.
 
 Give the reviewer only what a real reviewer would have:
 

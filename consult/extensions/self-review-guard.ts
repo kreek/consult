@@ -2,6 +2,7 @@
 import type { ExtensionAPI, ExtensionContext, ToolResultEvent } from "@earendil-works/pi-coding-agent";
 
 import { isProductionFile } from "../src/proof/file-classification.js";
+import { detectsShellWritePattern, extractRedirectTargets } from "../src/proof/shell-detection.js";
 import {
   type ReviewRequest,
   type ReviewResult,
@@ -11,8 +12,14 @@ import {
 export const SELF_REVIEW_MARKER = "Consult independent review";
 export const REVIEW_STATE_ENTRY = "consult-independent-review-state";
 const REVIEW_MESSAGE = "consult-independent-review";
-const SHELL_WRITE_PATTERN = /(>|\btee\b|\bsed\s+-i\b|\bmv\b|\bcp\b|\btouch\b|\bchmod\b|\bgit\s+apply\b|\bpatch\b|writeFile|open\([^)]*['"]w)/i;
+const SHELL_PRODUCTION_MUTATION_PATTERN = /\b(sed\s+-i|mv|cp|touch|chmod|git\s+apply|patch)\b|writeFile|open\([^)]*['"]w/i;
 const POWERSHELL_WRITE_PATTERN = /\b(Set-Content|Add-Content|Out-File|New-Item|Move-Item|Copy-Item|Remove-Item|Rename-Item)\b/i;
+const MAX_AUTOMATIC_REVIEWS = 3;
+const OUTPUT_FILE_RE = /\.(?:log|txt|out|tmp)$/i;
+
+function isShellWriteTarget(target: string): boolean {
+  return isProductionFile(target) && !OUTPUT_FILE_RE.test(target);
+}
 
 interface ReviewState {
   generation: number;
@@ -66,7 +73,13 @@ function productionMutation(event: ToolResultEvent): string | undefined {
     return filePath && isProductionFile(filePath) ? filePath : undefined;
   }
   if (event.toolName === "bash") {
-    return SHELL_WRITE_PATTERN.test(stringInput(event, "command")) ? "<shell mutation>" : undefined;
+    const command = stringInput(event, "command");
+    const targets = extractRedirectTargets(command);
+    if (targets.some(isShellWriteTarget)) return "<shell mutation>";
+    // A redirect aimed only at logs, scratch files, or /dev/null is not a production write,
+    // but the rest of the command may still be one (`cp a src/b.ts 2>&1`), so keep checking.
+    if (targets.length > 0 && detectsShellWritePattern(command)) return undefined;
+    return SHELL_PRODUCTION_MUTATION_PATTERN.test(command) ? "<shell mutation>" : undefined;
   }
   if (event.toolName === "powershell") {
     return POWERSHELL_WRITE_PATTERN.test(stringInput(event, "command")) ? "<PowerShell mutation>" : undefined;
@@ -99,6 +112,7 @@ export function createIndependentReviewExtension(dependencies: ReviewDependencie
   return function independentReviewExtension(pi: ExtensionAPI) {
     let state = initialState();
     let reviewInFlight = false;
+    let automaticReviewCount = 0;
 
     const persist = () => pi.appendEntry(REVIEW_STATE_ENTRY, { ...state, changedPaths: [...state.changedPaths] });
 
@@ -106,8 +120,22 @@ export function createIndependentReviewExtension(dependencies: ReviewDependencie
       if (reviewInFlight) return;
       if (!force && state.reviewedGeneration >= state.generation) return;
       if (!force && state.failedGeneration === state.generation) return;
+      if (!force && automaticReviewCount >= MAX_AUTOMATIC_REVIEWS) {
+        state = { ...state, reviewedGeneration: state.generation };
+        persist();
+        await pi.sendMessage(
+          {
+            customType: REVIEW_MESSAGE,
+            content: `${SELF_REVIEW_MARKER} review limit reached after ${MAX_AUTOMATIC_REVIEWS} automatic rounds. Report the remaining changed paths as unresolved review risk or run /consult:self-review manually.`,
+            display: true,
+          },
+          { triggerTurn: true, deliverAs: "followUp" },
+        );
+        return;
+      }
 
       reviewInFlight = true;
+      if (!force) automaticReviewCount += 1;
       const targetGeneration = state.generation;
       try {
         const result = await dependencies.runReview(reviewRequest(state, ctx));
@@ -152,6 +180,8 @@ export function createIndependentReviewExtension(dependencies: ReviewDependencie
 
     pi.on("before_agent_start", (event) => {
       if (!String(event.prompt).includes(SELF_REVIEW_MARKER)) {
+        // A new user task starts a new review budget; the cap bounds one correction chain, not the session.
+        automaticReviewCount = 0;
         state = { ...state, intent: String(event.prompt ?? state.intent) };
       }
     });

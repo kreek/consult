@@ -126,6 +126,85 @@ describe("independent review guard", () => {
     expect(harness.runReview).not.toHaveBeenCalled();
   });
 
+  it("ignores shell redirects that do not write production files", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")(
+      { toolName: "bash", input: { command: "pnpm test 2>&1 | tail -30" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("tool_result")(
+      { toolName: "bash", input: { command: "git diff > /dev/null" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).not.toHaveBeenCalled();
+  });
+
+  it("caps automatic review rounds for repeated corrective mutations", async () => {
+    const runReview = vi.fn().mockResolvedValue({ output: "Warning: still found a nit" });
+    const harness = makeHarness(runReview);
+    const ctx = context();
+
+    for (let index = 0; index < 4; index += 1) {
+      await harness.handlers.get("tool_result")(
+        { toolName: "edit", input: { path: "src/cache.ts" }, isError: false },
+        ctx,
+      );
+      await harness.handlers.get("agent_settled")({}, ctx);
+    }
+
+    expect(runReview).toHaveBeenCalledTimes(3);
+    expect(harness.sent.at(-1).message.content).toMatch(/review limit/i);
+  });
+
+  it("resets the automatic review budget when a new user task starts", async () => {
+    const runReview = vi.fn().mockResolvedValue({ output: "Warning: still found a nit" });
+    const harness = makeHarness(runReview);
+    const ctx = context();
+
+    for (let index = 0; index < 4; index += 1) {
+      await harness.handlers.get("tool_result")({ toolName: "edit", input: { path: "src/cache.ts" }, isError: false }, ctx);
+      await harness.handlers.get("agent_settled")({}, ctx);
+    }
+    expect(runReview).toHaveBeenCalledTimes(3);
+
+    await harness.handlers.get("before_agent_start")({ prompt: "Now add the store" }, ctx);
+    await harness.handlers.get("tool_result")({ toolName: "write", input: { path: "src/store.ts" }, isError: false }, ctx);
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(runReview).toHaveBeenCalledTimes(4);
+    expect(runReview.mock.calls.at(-1)[0].intent).toBe("Now add the store");
+  });
+
+  it("still detects write verbs when a redirect only targets a log or /dev/null", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")({ toolName: "bash", input: { command: "cp a src/b.ts 2>&1" }, isError: false }, ctx);
+    await harness.handlers.get("tool_result")(
+      { toolName: "bash", input: { command: "sed -i 's/a/b/' src/x.ts > /dev/null" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).toHaveBeenCalledTimes(1);
+    expect(harness.runReview.mock.calls[0][0].changedPaths).toEqual(["<shell mutation>"]);
+  });
+
+  it("ignores redirects into log and scratch files", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")({ toolName: "bash", input: { command: "pnpm test > out.log" }, isError: false }, ctx);
+    await harness.handlers.get("tool_result")({ toolName: "bash", input: { command: "pnpm test | tee run.txt" }, isError: false }, ctx);
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).not.toHaveBeenCalled();
+  });
+
   it("recognizes PowerShell production writes", async () => {
     const harness = makeHarness();
     const ctx = context();

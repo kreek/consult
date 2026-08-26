@@ -5,8 +5,10 @@ Consult for [Pi](https://pi.dev), in one package.
 The Pi runtime surface is intentionally small:
 
 - **Proof** — proof-first mode with `/proof`, `proof_start`, and `proof_done`.
-- **Self-review** — a final-pass self-review gate with `/consult:self-review`,
-  aligned with the Consult workflow completion loop.
+- **Independent review** — after production changes settle, a fresh read-only
+  Pi subprocess reviews the diff with the `code-review` skill and reports back;
+  `/consult:self-review` runs it on demand. The implementing session never
+  reviews its own work.
 
 Consult skills are bundled in this package under `skills/`. There are no separate Pi packages for proof, contract-first, specify, or skills in this package layout.
 
