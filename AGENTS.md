@@ -166,8 +166,9 @@ Every `SKILL.md` must have:
   inner colon and revealed the pack had been over the old limit all along. Raise
   it again only with a stated reason.
 - Required sections: `## When to Use`, `## When NOT to Use`, `## Rules`.
-- Body budget: 700 words after frontmatter (900 for `workflow`, `proof`,
-  `code-review`). The budget is the regression guard for the knowledge-vs-policy
+- Body budget: 700 words after frontmatter (900 for `proof` and
+  `code-review`, 1,000 for `workflow` because it carries the routing table).
+  Table pipes and separator rows do not count. The budget is the regression guard for the knowledge-vs-policy
   rule below. Raise a single skill's budget only with a stated reason.
 - Optional section: `## Tripwires` when a skill has known agent failure modes.
   Table format only, at most 8 rows. Use them only for high-probability

@@ -30,7 +30,8 @@ const OBSOLETE_RULE_SECTIONS = ["Core Ideas", "Verification", "Before Saying Don
 // guard for the knowledge-vs-policy trim: rules the model cannot derive fit
 // in this space; explanations of standard practice do not.
 const MAX_BODY_WORDS = 700;
-const BODY_WORD_EXCEPTIONS = { workflow: 900, proof: 900, "code-review": 900 };
+// workflow carries the validator-mandated 23-row routing table (~200 words).
+const BODY_WORD_EXCEPTIONS = { workflow: 1000, proof: 900, "code-review": 900 };
 const MAX_TRIPWIRE_ROWS = 8;
 const MAX_DESCRIPTION_LENGTH = 120;
 // ~600 tokens of routing surface that every host loads before picking a skill.
@@ -88,7 +89,8 @@ function tripwireRowCount(body) {
 
 function bodyWordCount(body) {
   const withoutFrontmatter = body.replace(/^---[\s\S]*?\n---\n/, "");
-  return withoutFrontmatter.split(/\s+/).filter(Boolean).length;
+  // Count words, not table plumbing: pipes and separator rows cost almost nothing.
+  return withoutFrontmatter.split(/\s+/).filter((token) => /[\p{L}\p{N}]/u.test(token)).length;
 }
 
 function skillName(head) {
