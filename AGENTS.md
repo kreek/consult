@@ -165,15 +165,15 @@ Every `SKILL.md` must have:
   from 2,000 once the validator stopped truncating descriptions at their first
   inner colon and revealed the pack had been over the old limit all along. Raise
   it again only with a stated reason.
-- Required sections: `## When to Use`, `## When NOT to Use`,
-  `## Verification`.
+- Required sections: `## When to Use`, `## When NOT to Use`, `## Rules`.
+- Body budget: 700 words after frontmatter (900 for `workflow`, `proof`,
+  `code-review`). The budget is the regression guard for the knowledge-vs-policy
+  rule below. Raise a single skill's budget only with a stated reason.
 - Optional section: `## Tripwires` when a skill has known agent failure modes.
-  Prefer short bullets that start with the corrective action. Name the trap
-  only when the action would otherwise be unclear. Keep Tripwires shorter than
-  the main guidance sections. Use them only for high-probability moments where
-  agents weaken, skip, or misapply the skill. Put rare exceptions and detailed
-  taxonomies in references. Do not add tripwires as anatomy filler; omit the
-  section when no row pays for its tokens.
+  Table format only, at most 8 rows. Use them only for high-probability
+  moments where agents weaken, skip, or misapply the skill. Put rare
+  exceptions and detailed taxonomies in references. Omit the section when no
+  row pays for its tokens.
 - No inline `per <Expert Name>` attribution outside a `## References` or
   `## Canon` section: move citations there.
 - Put references to people, books, talks, papers, videos, and YouTube links in
@@ -181,29 +181,42 @@ Every `SKILL.md` must have:
   the steering body. Skill bodies should spend tokens on agent behavior, not
   provenance.
 
-Sections must build on each other instead of restating the same rule:
+Knowledge versus policy. A current frontier model already applies standard
+engineering practice unprompted. A sentence earns its place in a skill body
+only if it is one of:
+
+1. Policy: a rule this pack wants that the model would not pick on its own
+   (sign-off gates, thresholds, house defaults, what counts as done).
+2. Tripwire: a pressure phrase paired with the corrective action and a
+   false-alarm escape.
+3. Philosophy: Simple Made Easy, data/calculations/actions, functional core,
+   contract-first, illegal states unrepresentable.
+4. Routing: when to load, when not, handoffs, reference load triggers.
+
+Delete anything that teaches standard practice. Where a rule is non-obvious to
+a junior engineer, keep one short "because" clause, not a paragraph.
+
+Each rule is stated once. Section ownership:
 
 - `## When to Use`: routing triggers only. Say when to load the skill.
 - `## When NOT to Use`: routing exclusions and handoffs only. Say which
   neighboring skill owns the work instead.
 - `## Iron Law`: one non-negotiable rule, only when the skill has one.
-- `## Core Ideas`: stable judgment rules and mental models. No ordered steps,
-  command lists, completion checks, or examples that belong in references.
-- `## Workflow`: ordered actions. Apply the Core Ideas without re-explaining
-  them.
-- Skill-specific contract or template sections: define reusable fields or
-  output shape. Do not repeat the workflow around the template.
-- `## Before Saying Done`: final completion gate only. Keep it short: latest
-  request, final diff or artifact check, freshest proof, and honest status.
-- `## Verification`: audit checklist for the skill's output. Check compliance;
-  do not introduce new doctrine or workflow.
+- `## Rules`: the single statement of each policy rule, numbered, in checkable
+  form. Named sub-sections are fine for reusable contracts (the Proof
+  Contract, the Independent Review block). No ordered steps, no examples that
+  belong in references.
+- `## Workflow`: ordered actions, only when ordering itself is the policy.
+  Apply the Rules without restating them.
 - `## Tripwires`: short positive corrective actions for high-probability
-  failure moments where agents skip, weaken, or misapply the skill. Do not use
-  it as a reference manual.
-- `## Handoffs`: route unresolved neighboring concerns. Do not summarize the
-  neighbor skill's body.
+  failure moments where agents skip, weaken, or misapply the skill.
+- `## Handoffs`: route unresolved neighboring concerns in one line each. Do
+  not summarize the neighbor skill's body.
 - `## References` / `## Canon`: citations, deeper examples, recipes, and
-  ecosystem detail loaded only when needed.
+  ecosystem detail. Every entry names when to load it.
+
+`## Core Ideas`, `## Verification`, and `## Before Saying Done` are retired.
+The validator rejects them once a skill has `## Rules`.
 
 Plus the README's authoring rules: keep skills short and directive. A
 `SKILL.md` is steering context, not a book: every paragraph competes with the

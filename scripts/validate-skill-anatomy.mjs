@@ -18,7 +18,20 @@ import { fileURLToPath } from "node:url";
 
 import { MIRROR_DESTS } from "./generate-plugin-symlinks.mjs";
 
-const REQUIRED_SECTIONS = ["When to Use", "When NOT to Use", "Verification"];
+const REQUIRED_SECTIONS = ["When to Use", "When NOT to Use", "Rules"];
+// Migration allowance: until every skill carries ## Rules, a skill that still
+// has the old ## Verification / ## Core Ideas / ## Before Saying Done sections
+// passes, and the word budget applies only once it has migrated. Flip to false
+// when the last skill migrates.
+const LEGACY_SECTIONS_ALLOWED = true;
+const LEGACY_RULES_SECTION = "Verification";
+const OBSOLETE_RULE_SECTIONS = ["Core Ideas", "Verification", "Before Saying Done"];
+// A SKILL.md is steering context, not a book. The budget is the regression
+// guard for the knowledge-vs-policy trim: rules the model cannot derive fit
+// in this space; explanations of standard practice do not.
+const MAX_BODY_WORDS = 700;
+const BODY_WORD_EXCEPTIONS = { workflow: 900, proof: 900, "code-review": 900 };
+const MAX_TRIPWIRE_ROWS = 8;
 const MAX_DESCRIPTION_LENGTH = 120;
 // ~600 tokens of routing surface that every host loads before picking a skill.
 // Chosen deliberately once the measurement was honest: the previous 2,000 was
@@ -61,13 +74,25 @@ function skillSections(body) {
   });
 }
 
-function tripwiresTooLong(body) {
-  const sections = skillSections(body);
-  const tripwires = sections.find((section) => section.name === "Tripwires");
-  if (!tripwires) return false;
+function tripwireRowCount(body) {
+  const lines = body.split(/\r?\n/);
+  const start = lines.findIndex((line) => /^##\s+Tripwires\s*$/.test(line));
+  if (start === -1) return 0;
+  let rows = 0;
+  for (const line of lines.slice(start + 1)) {
+    if (/^##\s+/.test(line)) break;
+    if (/^\|\s*"/.test(line)) rows += 1;
+  }
+  return rows;
+}
 
-  const otherMax = Math.max(...sections.filter((section) => section.name !== "Tripwires").map((section) => section.lineCount));
-  return tripwires.lineCount >= otherMax;
+function bodyWordCount(body) {
+  const withoutFrontmatter = body.replace(/^---[\s\S]*?\n---\n/, "");
+  return withoutFrontmatter.split(/\s+/).filter(Boolean).length;
+}
+
+function skillName(head) {
+  return head.match(/^name:\s+(\S+)/m)?.[1] ?? "";
 }
 
 function bodyWithoutReferenceSections(body) {
@@ -135,8 +160,19 @@ export function validateSkillFile(path) {
     problems.push(`frontmatter description too long (${description.length} > ${MAX_DESCRIPTION_LENGTH} characters)`);
   }
 
+  const hasRules = sectionRe("Rules").test(body);
+  const legacy = LEGACY_SECTIONS_ALLOWED && !hasRules && sectionRe(LEGACY_RULES_SECTION).test(body);
   for (const heading of REQUIRED_SECTIONS) {
+    if (heading === "Rules" && legacy) continue;
     if (!sectionRe(heading).test(body)) problems.push(`missing section: ## ${heading}`);
+  }
+  if (!legacy) {
+    for (const heading of OBSOLETE_RULE_SECTIONS) {
+      if (sectionRe(heading).test(body)) problems.push(`obsolete section: ## ${heading} -- state the rule once under ## Rules`);
+    }
+    const words = bodyWordCount(body);
+    const budget = BODY_WORD_EXCEPTIONS[skillName(head)] ?? MAX_BODY_WORDS;
+    if (words > budget) problems.push(`body too long (${words} > ${budget} words) -- keep policy, drop explanation`);
   }
 
   if (sectionRe("Common Rationalizations").test(body)) {
@@ -151,8 +187,9 @@ export function validateSkillFile(path) {
   if (sectionRe("Tripwires").test(body) && !TRIPWIRES_TABLE_HEADER_RE.test(body)) {
     problems.push("Tripwires must use the '| Trigger | Do this instead | False alarm |' table format");
   }
-  if (tripwiresTooLong(body)) {
-    problems.push("Tripwires must not be the longest section -- keep only high-probability skip/avoidance failures");
+  const tripwireRows = tripwireRowCount(body);
+  if (!legacy && tripwireRows > MAX_TRIPWIRE_ROWS) {
+    problems.push(`Tripwires has ${tripwireRows} rows (max ${MAX_TRIPWIRE_ROWS}) -- keep only high-probability failure moments`);
   }
 
   if (body.includes(EM_DASH)) {
@@ -646,9 +683,9 @@ description: Router fixture for the routing cross-check.
 
 - never
 
-## Verification
+## Rules
 
-- [ ] check
+1. check
 
 ## Workflow
 
@@ -675,9 +712,9 @@ description: Skill missing from the router fixture.
 
 - other
 
-## Verification
+## Rules
 
-- [ ] check
+1. check
 `,
     );
 
@@ -700,8 +737,39 @@ description: "${quotedDescription}"
 ## When NOT to Use
 - other
 
+## Rules
+1. check
+`,
+    );
+
+    writeFixture(
+      join(tmp, "stale/SKILL.md"),
+      `---
+name: stale
+description: Skill that migrated to Rules but kept a Verification mirror.
+---
+
+# Stale
+
+## When to Use
+- trigger
+
+## When NOT to Use
+- other
+
+## Rules
+1. rule
+
 ## Verification
-- [ ] check
+- [ ] the same rule again
+
+## Tripwires
+
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+${Array.from({ length: MAX_TRIPWIRE_ROWS + 1 }, (_, i) => `| "Shortcut ${i}" | Do the thing. | None. |`).join("\n")}
+
+${Array.from({ length: MAX_BODY_WORDS }, () => "word").join(" ")}
 `,
     );
 
@@ -725,8 +793,8 @@ description: ${longDescription}
 ## When NOT to Use
 - other
 
-## Verification
-- [ ] check
+## Rules
+1. check
 `,
       );
     }
@@ -739,8 +807,12 @@ description: ${longDescription}
     for (const expected of [
       "bad/SKILL.md",
       "When to Use",
-      "Verification",
+      "missing section: ## Rules",
       "description too long",
+      "stale/SKILL.md",
+      "obsolete section: ## Verification",
+      `Tripwires has ${MAX_TRIPWIRE_ROWS + 1} rows`,
+      "body too long",
       "per <expert>",
       "Common Rationalizations",
       "Red Flags",

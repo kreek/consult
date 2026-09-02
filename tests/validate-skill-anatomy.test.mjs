@@ -22,9 +22,9 @@ description: Good test skill
 
 - other
 
-## Verification
+## Rules
 
-- [ ] check
+1. check
 
 ## Workflow
 
@@ -79,19 +79,23 @@ description: Long tripwire table
 
 - other
 
-## Verification
+## Rules
 
-- [ ] check
+1. check
 
 ## Tripwires
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "Shortcut one" | Use the skill when the shortcut appears. | None. |
-| "Shortcut two" | Keep the corrective action positive. | None. |
-| "Shortcut three" | Move rare exceptions to references. | None. |
-| "Shortcut four" | Keep this list shorter than the main guidance. | None. |
-| "Shortcut five" | Omit this section when no row pays for its tokens. | None. |
+| "Shortcut 1" | Do the thing. | None. |
+| "Shortcut 2" | Do the thing. | None. |
+| "Shortcut 3" | Do the thing. | None. |
+| "Shortcut 4" | Do the thing. | None. |
+| "Shortcut 5" | Do the thing. | None. |
+| "Shortcut 6" | Do the thing. | None. |
+| "Shortcut 7" | Do the thing. | None. |
+| "Shortcut 8" | Do the thing. | None. |
+| "Shortcut 9" | Do the thing. | None. |
 `;
 
 const EM_DASH_SKILL = `---
@@ -111,9 +115,9 @@ An approving design or RFC is not this approval — the phrasing drifted.
 
 - other
 
-## Verification
+## Rules
 
-- [ ] check
+1. check
 `;
 
 const ROUTER_SKILL = `---
@@ -131,9 +135,9 @@ description: Router fixture
 
 - never
 
-## Verification
+## Rules
 
-- [ ] check
+1. check
 
 ## Workflow
 
@@ -311,7 +315,7 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("bad/SKILL.md");
     expect(result.stdout).toContain("missing section: ## When to Use");
-    expect(result.stdout).toContain("missing section: ## Verification");
+    expect(result.stdout).toContain("missing section: ## Rules");
     expect(result.stdout).toContain("inline 'per <expert>' attribution found");
     expect(result.stdout).toContain("obsolete section: ## Common Rationalizations");
     expect(result.stdout).toContain("obsolete section: ## Red Flags");
@@ -333,7 +337,7 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.stdout).toContain(`frontmatter description too long (${description.length} > 120 characters)`);
   });
 
-  it("rejects tripwires as the longest section", () => {
+  it("rejects more than eight tripwire rows", () => {
     tmp = makeTempDir();
     const skillsDir = join(tmp, "agents/.agents/skills");
     makeSkill(skillsDir, "long-tripwires", LONG_TRIPWIRES_SKILL);
@@ -342,7 +346,31 @@ describe("validate-skill-anatomy CLI", () => {
 
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("long-tripwires/SKILL.md");
-    expect(result.stdout).toContain("Tripwires must not be the longest section");
+    expect(result.stdout).toContain("Tripwires has 9 rows (max 8)");
+  });
+
+  it("rejects legacy rule sections once a skill has Rules", () => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    makeSkill(skillsDir, "stale", GOOD_SKILL.replace("## Workflow", "## Verification\n\n- [ ] check\n\n## Core Ideas\n\n1. idea\n\n## Workflow"));
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("obsolete section: ## Verification");
+    expect(result.stdout).toContain("obsolete section: ## Core Ideas");
+  });
+
+  it("rejects a body over the word budget", () => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    const padding = Array.from({ length: 700 }, () => "word").join(" ");
+    makeSkill(skillsDir, "bloated", `${GOOD_SKILL}\n${padding}\n`);
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toMatch(/body too long \(\d+ > 700 words\)/);
   });
 
   it("rejects bullet-format tripwires sections", () => {

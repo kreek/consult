@@ -8,14 +8,14 @@ need to know before opening a PR.
 - Read [`AGENTS.md`](AGENTS.md) before authoring or editing skills. It defines
   the engineering defaults the skill bodies assume.
 - Skills live under `agents/.agents/skills/<name>/SKILL.md`. The
-  `plugin/skills/` tree is symlinked from there; edit the canonical
-  copy only.
+  `plugin/skills/` and `consult/skills/` trees are generated copies; edit the
+  canonical copy only and regenerate with `./setup.sh`.
 - Each skill must conform to the anatomy enforced by
   `scripts/validate-skill-anatomy.mjs`: frontmatter (name + description),
-  `# Title`, `## When to Use`, `## When NOT to Use`, `## Verification`,
-  optional `## Tripwires`, and any other sections the skill needs.
-  Use the section ownership rules in `AGENTS.md` when choosing where content
-  belongs.
+  `# Title`, `## When to Use`, `## When NOT to Use`, `## Rules`,
+  optional `## Tripwires` (table, at most 8 rows), and a body budget of 700
+  words. Use the section ownership and knowledge-versus-policy rules in
+  `AGENTS.md` when choosing what belongs.
 - Keep skill descriptions concise (120 characters or fewer) and trigger-rich.
   Lead with verbs and named scenarios; avoid marketing language.
 - Names of authors, books, papers, or external products belong in the
@@ -24,8 +24,7 @@ need to know before opening a PR.
 ## Skill body template
 
 Use this order unless the skill has a clear reason to omit an optional section.
-Insert skill-specific contract or template sections after `## Core Ideas` and
-before `## Workflow`.
+State each rule once, under `## Rules`.
 
 ```md
 ---
@@ -47,40 +46,29 @@ One non-negotiable rule, if the skill has one.
 
 - Routing exclusions and neighboring-skill handoffs only.
 
-## Core Ideas
+## Rules
 
-1. Durable judgment rules and mental models.
-2. No ordered workflow steps, commands, examples, or completion checks.
+1. One policy rule per item, in checkable form, with a short "because" clause
+   only where a junior engineer would not see the reason.
+2. Nothing that teaches standard practice.
 
 ## Workflow
 
-1. Ordered actions the agent should take.
-2. Apply Core Ideas without re-explaining them.
-
-## Before Saying Done
-
-1. Final completion gate, only when the skill needs one.
-2. Latest request, final artifact/diff check, freshest proof, honest status.
-
-## Verification
-
-- [ ] Checks that audit the skill's output.
-- [ ] No new doctrine appears here.
+1. Optional. Ordered actions, only when the ordering is itself the policy.
 
 ## Tripwires
 
-- Take the concrete corrective action when the high-probability shortcut
-  appears.
-- Prefer positive instructions over negated warnings; move rare exceptions to
-  references.
+| Trigger | Do this instead | False alarm |
+|---|---|---|
+| "The pressure phrase" | The corrective action. | When the trigger is legitimate. |
 
 ## Handoffs
 
-- Use `neighbor-skill` when that skill owns the unresolved concern.
+- `neighbor-skill`: the unresolved concern it owns.
 
 ## References
 
-- Deeper examples, recipes, citations, and ecosystem detail.
+- `references/file.md`: load when <condition>.
 ```
 
 ## Branching and commits
@@ -101,7 +89,7 @@ pnpm run check:links
 node scripts/validate-skill-anatomy.mjs
 ```
 
-The validator checks all 21 skills, the `plugin/skills/` symlinks, and
+The validator checks every skill, both generated mirrors, and
 the Codex plugin manifest in one pass.
 
 The optional repo pre-commit hook is intentionally narrow: it checks staged
