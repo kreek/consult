@@ -100,19 +100,29 @@ export async function scanChildDirectories(cwd: string): Promise<TestProject[]> 
   return projects;
 }
 
-function buildSelectOptions(projects: TestProject[]): string[] {
-  return [...projects.map((project) => `${project.name} \u2014 ${project.command}`), "Custom command..."];
+async function scanPiExtensionDirectories(cwd: string): Promise<TestProject[]> {
+  const extensionsDir = path.join(cwd, ".pi", "extensions");
+  let entries: fs.Dirent[];
+  try {
+    entries = await fs.promises.readdir(extensionsDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  const projects: TestProject[] = [];
+  for (const entry of entries.filter((entry) => entry.isDirectory())) {
+    const dir = path.join(extensionsDir, entry.name);
+    const command = await inferTestCommand(dir);
+    if (command) projects.push({ dir, name: `.pi/extensions/${entry.name}`, command });
+  }
+  return projects;
 }
 
-export async function resolveTestConfig(
-  rootCwd: string,
-  ui: TestConfigUi | undefined,
-): Promise<TestConfig | undefined> {
-  const rootCommand = await inferTestCommand(rootCwd);
-  if (rootCommand) return { command: rootCommand, cwd: rootCwd };
+function buildSelectOptions(projects: TestProject[]): string[] {
+  return [...projects.map((project) => `${project.name} - ${project.command}`), "Custom command..."];
+}
 
-  const projects = await scanChildDirectories(rootCwd);
-
+async function chooseProject(projects: TestProject[], ui: TestConfigUi | undefined): Promise<TestConfig | undefined> {
   if (projects.length === 1) {
     return { command: projects[0].command, cwd: projects[0].dir };
   }
@@ -124,6 +134,24 @@ export async function resolveTestConfig(
     const project = projects.find((candidate) => choice.startsWith(candidate.name));
     if (project) return { command: project.command, cwd: project.dir };
   }
+
+  return undefined;
+}
+
+export async function resolveTestConfig(
+  rootCwd: string,
+  ui: TestConfigUi | undefined,
+): Promise<TestConfig | undefined> {
+  const rootCommand = await inferTestCommand(rootCwd);
+  if (rootCommand) return { command: rootCommand, cwd: rootCwd };
+
+  const piExtensionProjects = await scanPiExtensionDirectories(rootCwd);
+  if (piExtensionProjects.length > 0) {
+    return chooseProject(piExtensionProjects, ui);
+  }
+
+  const childProject = await chooseProject(await scanChildDirectories(rootCwd), ui);
+  if (childProject) return childProject;
 
   if (!ui) return undefined;
 
