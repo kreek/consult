@@ -12,8 +12,8 @@ description: Use for databases, schemas, migrations, indexes, transactions, quer
 ## When to Use
 
 - Schema design, migrations, indexes, query plans, isolation levels,
-  connection pools, soft delete, N+1 fixes, online DDL,
-  transactional outbox/CDC, or production data changes.
+  connection pools, soft delete, N+1 fixes, online DDL, transactional
+  outbox/CDC, or production data changes.
 
 ## When NOT to Use
 
@@ -21,102 +21,56 @@ description: Use for databases, schemas, migrations, indexes, transactions, quer
 - Rollout sequencing outside the database; pair with `release`.
 - Cache freshness and invalidation; use `performance`.
 
-## Core Ideas
+## Rules
 
-1. Schema, migration, and destructive data changes are the user's call.
-   Route schema and migration changes through `contract-first`; data
-   deletion and non-reversible backfills need the same approval for data
-   safety. An approving design or RFC approves the direction, not the
-   concrete shapes; the concrete schema, migration, or destructive change
-   gets its own sign-off before landing.
-2. Use the project's existing database unless the task is choosing a store.
-   For greenfield defaults and store-selection caveats, use `architecture`.
-3. Expand, migrate, verify, switch, then contract in separate
-   deployable steps.
-4. Review SQL and lock behavior, not just ORM code.
-5. Backfills are batched, resumable, observable, and reversible.
-6. Constraints enforce invariants. Every uniqueness invariant needs a DB-level
-   `UNIQUE`, `EXCLUDE`, composite, or partial equivalent. Application-layer
-   checks race under concurrency.
-7. Indexes and plans follow real access paths. New foreign keys and known
-   `WHERE`, `JOIN`, or `ORDER BY` predicates need supporting indexes in the
-   same migration, or a stated reason they do not; query changes need
-   EXPLAIN/ANALYZE plans on production-shaped data.
-8. Isolation level is a design decision; retries are part of
-   serializable correctness.
-9. State changes and durable publication need atomicity through
-   transactional outbox, CDC, or an equivalent handoff when the two
-   cannot silently diverge.
-10. Data recovery is part of the change: backup/PITR must cover the
-    blast radius.
-
-## Workflow
-
-1. Classify the change as schema, data, query, index, constraint,
-   transaction, or operational tuning. Identify table size, write rate,
-   lock risk, rollback path, and deploy order.
-2. Review migration files directly for destructive operations and lock
-   behavior. Capture EXPLAIN/ANALYZE for important query changes on
-   representative data.
-3. Split unsafe changes into expand-contract phases. Document
-   verification and rollback in the PR or deploy note.
-
-## Verification
-
-- [ ] Migration SQL was reviewed for destructive changes and locking.
-- [ ] Destructive or tightening changes are split across expand-contract
-      phases.
-- [ ] Backfills are batched and resumable; each batch holds locks
-      briefly.
-- [ ] Every uniqueness invariant in the change is enforced by a DB constraint
-      or equivalent engine-specific mechanism, not application-layer logic.
-- [ ] New FK columns and known query predicates (`WHERE`, `JOIN`, `ORDER BY`)
-      have supporting indexes in the same migration, or the omission is
-      explicitly justified.
-- [ ] Index/constraint creation uses the online mechanism for the
-      target database.
-- [ ] Engine-specific DDL uses `references/online-ddl.md` and was verified
-      against the target engine before claiming done. SQLite passing is not
-      proof of Postgres behavior.
-- [ ] Important query changes include representative EXPLAIN/ANALYZE
-      evidence.
-- [ ] Isolation level and retry behavior are explicit for transactional
-      changes.
-- [ ] State changes and event/job publication cannot diverge silently
-      when the workflow depends on both.
-- [ ] Rollback and backup/PITR coverage are documented.
-- [ ] Schema and migration changes were routed through `contract-first`,
-      and destructive data operations (deletion, non-reversible backfills)
-      had explicit user approval before landing.
-- [ ] An approving design or RFC did not stand in for sign-off on the concrete
-      schema, migration, or destructive data change. Each got explicit approval
-      before landing.
+1. Schema and migration changes route through `contract-first`. Data deletion
+   and non-reversible backfills need the same explicit approval before
+   landing, because they cannot be undone by a rollback.
+2. Use the project's existing database unless the task is choosing a store;
+   `architecture` owns store selection.
+3. Destructive or tightening changes ship as separate deployable
+   expand-contract phases: expand, migrate, verify, switch, contract.
+4. Review the migration SQL and its lock behavior directly, not just the ORM
+   code. Index and constraint creation uses the target engine's online
+   mechanism. SQLite passing is not proof of Postgres behavior; verify
+   engine-specific DDL against the target engine.
+5. Every uniqueness invariant is enforced by a DB-level `UNIQUE`, `EXCLUDE`,
+   composite, or partial constraint, because application-layer checks race
+   under concurrency.
+6. New foreign keys and known `WHERE`, `JOIN`, or `ORDER BY` predicates get
+   supporting indexes in the same migration, or a stated reason they do not.
+   Important query changes include EXPLAIN/ANALYZE on production-shaped data.
+7. Backfills are batched, resumable, observable, and reversible, and each
+   batch holds locks briefly.
+8. Isolation level and retry behavior are explicit for transactional changes.
+   State changes and durable publication (events, jobs) share a transactional
+   outbox, CDC, or equivalent when the two must not silently diverge.
+9. Rollback and backup/PITR coverage for the blast radius are documented with
+   the change.
 
 ## Tripwires
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "The table is small, ALTER it in place" | Use the target engine's online mechanism or document why production size and write rate cannot matter. | Size and write rate are verified negligible and the reasoning is recorded. |
+| "The table is small, ALTER it in place" | Use the engine's online mechanism, or record why size and write rate cannot matter. | Size and write rate are verified negligible and the reasoning is recorded. |
 | "The migration will be quick" | Measure lock behavior on representative load or assume the worst case. | None. |
 | "We can backfill later" | Ship the backfill plan now or leave the schema expand-only. | None. |
-| "Just add a `deleted_at` column" | Decide soft-delete lifecycle once and enforce reads, indexes, and schema around it. | The project already has an enforced soft-delete convention. |
-| "This index looks unused, drop it" | Observe a full traffic cycle before dropping an index. | The table itself is being removed as dead schema. |
-| "The app already checks uniqueness" | Enforce correctness invariants with DB constraints; application checks race under concurrency. | The invariant is advisory and duplicates are explicitly acceptable. |
-| "Add the index when it gets slow" | Add supporting indexes in the same migration when access paths are known. | The access path is speculative and the omission is justified in the migration. |
-| "Partial/expression indexes work the same everywhere" | Check target-engine semantics for partial, expression, deferrable, exclusion, and specialized indexes before relying on them. | The behavior was verified on the target engine. |
+| "The app already checks uniqueness" | Enforce it with a DB constraint. | The invariant is advisory and duplicates are explicitly acceptable. |
+| "Add the index when it gets slow" | Add supporting indexes in the same migration. | The access path is speculative and the omission is justified in the migration. |
+| "This index looks unused, drop it" | Observe a full traffic cycle first. | The table itself is being removed. |
 | "It's just another column" | Load `security` before adding password, token, API key, MFA, recovery-code, or sensitive-PII storage. | The column holds no credentials or sensitive data. |
 
 ## Handoffs
 
-- `contract-first`: schema, migration, or stored-shape approval before
-  implementation locks the change.
+- `contract-first`: schema and migration approval.
 - `release`: deploy ordering, rollback rehearsal, feature flags.
 - `performance`: measured query latency or throughput change.
-- `observability`: migration and query dashboards/alerts.
+- `observability`: migration and query dashboards and alerts.
 - `async-systems`: stream or worker consumers after durable handoff.
 - `security`: credentials, secrets, tokens, MFA factors, sensitive PII.
 
 ## References
 
-- `references/online-ddl.md`: online migration patterns.
-- `references/explain-and-isolation.md`: EXPLAIN and isolation notes.
+- `references/online-ddl.md`: load before any DDL on a production table.
+- `references/explain-and-isolation.md`: load when reading a query plan or
+  choosing an isolation level.

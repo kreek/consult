@@ -11,142 +11,88 @@ description: "Use to design before building: discovery, tradeoffs, ADRs, RFCs, t
 
 ## When to Use
 
-- Feature work, refactors, migrations, or bug fixes that touch more than one
-  contract, component, module boundary, state transition, or domain invariant.
-- Adding or changing a public surface: function signature, exported type,
-  endpoint, event/queue payload, CLI flag, environment variable, config key,
-  file format, or database schema/migration step.
-- Choosing shared project/package/module structure or a structural runtime
-  dependency such as a framework, database, ORM, auth client, SDK, state
-  library, or job queue.
-- Ambiguous or risky implementation intent where the agent should turn fuzzy
-  goals into an approved design direction before code lands.
-- Significant new code with no caller-facing boundary: a substantial new module
-  or component, new or rewritten non-trivial logic or an algorithm, or a
-  deliberate change to observable behavior. Agree the plan or shape before
-  implementing.
-- The user asks to design, specify, draft an ADR/RFC/tech spec, or capture a
+- Work that touches more than one contract, component, module boundary, state
+  transition, or domain invariant.
+- Adding or changing a public surface, shared structure, or a structural
+  runtime dependency (framework, database, ORM, auth client, SDK, job queue).
+- Significant new code with no caller-facing boundary: a substantial module,
+  non-trivial logic, or a deliberate change to observable behavior.
+- Ambiguous or risky intent, or the user asks for an ADR, RFC, tech spec, or
   design note.
-- `workflow` chooses the Design-partner mode because architecture, domain
-  modeling, caller-facing interfaces, cross-boundary contracts, or
-  multi-component choices need human participation.
 
 ## When NOT to Use
 
-- Typos, formatting, comment-only edits, or docs-only changes with no
-  executable or contract effect.
-- Internal helper extraction with no caller-visible boundary.
-- Narrow bug fixes that restore intended behavior with no contract, state,
-  data, or boundary change.
-- Pure dependency bumps with no public surface change.
-- Small local file moves or private implementation organization that does not
-  establish a package/module boundary future work will depend on.
-- The user wants a concrete task plan after the design is already settled; use
-  workflow or the harness planning mode instead.
+- Typos, docs-only edits, internal helper extraction, private file moves,
+  dependency bumps with no public surface change, or narrow bug fixes that
+  restore intended behavior.
+- The design is settled and the user wants a task plan; use `workflow` or the
+  host's planning mode.
 - A caller-facing interface is already concrete and only needs approval; use
-  `contract-first` directly.
+  `contract-first`.
 
-## Core Ideas
+## Rules
 
-1. Specify turns fuzzy intent into shared design. Its output is agreement on
-   the current surface, target shape, tradeoffs, decisions, and open questions;
-   it is not autonomous coding or document theater.
-2. Stay above implementation sequencing. Specify owns contracts, states,
+1. Design-partner means the agent proposes concrete options and the human
+   approves, revises, or rules them out. Neither "the agent decides alone"
+   nor "the human should come up with the design" is this mode.
+2. Consultation is not constant interruption. Gate only decisions that are
+   expensive to reverse (caller-facing shape, shared structure, data model,
+   structural dependency) or significant enough that the user should shape
+   them. Routine, local, and disposable work gets no gate.
+3. Stay above implementation sequencing. Specify owns contracts, states,
    tradeoffs, risks, and decisions. File-by-file edits, pseudocode, and task
-   checklists belong to planning after the design direction is agreed.
-3. Contracts are any caller-facing boundary: function signature, module export,
-   public type, error vocabulary, CLI flag, environment variable, database
-   schema or migration step, event payload, file format, or config key. "API"
+   checklists belong to planning after the direction is agreed.
+4. Contracts are any caller-facing boundary: function signature, module
+   export, public type, error vocabulary, CLI flag, environment variable,
+   schema or migration step, event payload, file format, config key. "API"
    does not mean only HTTP.
-4. Consultation is not constant interruption. Ask when a decision would be
-   expensive to reverse (caller-facing shape, shared structure, data model, or
-   structural dependency) or when the work is significant enough that the user
-   should shape it: a substantial new module or component, non-trivial logic, or
-   a deliberate observable behavior change. Routine, local, and disposable work
-   does not need a gate.
+5. A design written before reading code is speculation. Cite the current
+   surface with `file:line` evidence, or name the adjacent convention for
+   greenfield work.
+6. Ask the smallest question that changes the shape: one recommended option
+   with its key tradeoff and approve/revise/rule-out, secondary uncertainties
+   as notes. Open questions that block the design are asked now, not left for
+   code review.
+7. An approving design or RFC approves the direction, not the concrete shapes.
+   Interfaces and domain shapes still get `contract-first` and
+   `domain-modeling` sign-off at build time. When an artifact lists them,
+   mark each one approved or proposed.
+8. Spikes are disposable: ask first, keep them local and small, discard or
+   rewrite after convergence.
+9. When the host has a plan or approval mode, converge inside it. One
+   approval loop, not two.
+10. Capture only what will be used, in the smallest useful form, in
+    checked-in `docs/` when the team should keep it. Record what the user
+    approved, not what was proposed.
 
 ## Workflow
 
-1. **Frame the design task.** State the intended outcome and the decision that
-   needs collaboration. Say that coding waits until the shape is agreed.
-2. **Read before proposing.** Summarize current contracts, data shapes, states,
-   constraints, and ownership with citations. For greenfield work, name the
-   adjacent convention.
-3. **Learn with disposable spikes only when needed.** If code is the fastest
-   way to reveal the shape, ask first, keep it local and small, and discard or
-   rewrite it after convergence.
-4. **Propose one target shape.** Recommend one option, name the key tradeoff,
-   and mention rejected alternatives only when they explain the choice.
-5. **Ask the next design question.** Ask the smallest question that changes the
-   shape: approve, revise, or rule out the recommendation. List secondary
-   uncertainties as notes, then revise the proposal from the user's answer.
-6. **Route specialist design risks.** Use `domain-modeling` for data, state,
-   effects, and invariants; `contract-first` for contract approval; and the
-   domain skill for API, persistence, async, security, errors, observability,
-   performance, UI, accessibility, or release risks.
-7. **Converge before planning.** Iterate until the human agrees on the design
-   direction or rules it out. When the host has a plan or approval mode,
-   converge inside it: present the recommended shape as the plan and iterate
-   there rather than running a second approval loop beside it. Then hand off
-   to planning, implementation, proof, or review.
-8. **Capture only what will be used.** If an artifact is needed, choose the
-   smallest useful form after convergence and save it in checked-in `docs/`
-   when the team should keep it. Record what the user actually approved, not
-   just what was proposed.
-
-## Artifact Types
-
-- ADR: accepted decision with context and consequences.
-- RFC: proposal needing review, with tradeoffs and approval state.
-- Tech spec: implementation-ready design for a scoped change, including proof
-  obligations.
-- Note: lightweight memory that is useful but not yet a formal decision.
-
-When an artifact lists interfaces or domain shapes, mark each one approved or
-proposed, so the build inherits an explicit list of what still needs sign-off.
-
-## Verification
-
-- [ ] Current surface is backed by `file:line` evidence or named greenfield
-      conventions.
-- [ ] The proposed shape recommends one option, names the key tradeoff,
-      compatibility pressure, unresolved decisions, and proof obligations.
-- [ ] User-owned decisions are approved, narrowed, or explicitly left open.
-- [ ] Open questions are genuine blockers that change the design, not template
-      residue or deferrable details.
-- [ ] Caller-facing interfaces have `contract-first` approval before
-      implementation, or implementation remains out of scope.
-- [ ] An approving design or RFC approves the direction, not the concrete
-      shapes. Interfaces and domain structure still get `contract-first` and
-      `domain-modeling` applied during build, with sign-off on the concrete
-      shapes.
-- [ ] Any artifact records the agreed shape and has a purpose-fit destination.
+1. Frame the design task: intended outcome and the decision that needs
+   collaboration. Say that coding waits until the shape is agreed.
+2. Read before proposing (Rule 5).
+3. Propose one target shape and ask the next design question (Rule 6).
+4. Route specialist risks: `domain-modeling` for data, state, effects, and
+   invariants; `contract-first` for contract approval; the domain skill for
+   the rest.
+5. Iterate until the human agrees on the direction or rules it out, then hand
+   off to planning, implementation, proof, or review.
 
 ## Tripwires
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "I already know what the design should be" | A design written before reading code is speculation. Read and cite the current surface first. | Greenfield work where the adjacent convention is named instead. |
-| "I'll build it to discover the shape" | Ask first, keep spikes local, small, and disposable; building the whole thing turns discovery into unapproved implementation. | The user approved a disposable spike. |
-| "The design file exists, so the contract is approved" | A design file is not approval for a contract, migration, config surface, or caller dependency; get the explicit decision. | The user explicitly approved those decisions in the artifact. |
-| "Ask about everything at once" | Ask the smallest question that changes the shape; one recommended decision with notes beats a question barrage. | None. |
-| "The human should come up with the design" | Design-partner means the agent proposes concrete options; the human approves, revises, or rules them out. | None. |
-| "Leave the open question for code review" | Open questions that block the design get asked now. | The question is a deferrable detail that does not change the shape. |
-| "Run the design gate alongside the host's plan mode" | Converge inside the host's planning surface; one approval loop, not two. | The host has no plan or approval mode. |
+| "I already know what the design should be" | Read and cite the current surface first. | Greenfield work with the adjacent convention named. |
+| "I'll build it to discover the shape" | Ask first; keep spikes local, small, and disposable. | The user approved a disposable spike. |
+| "The design file exists, so the contract is approved" | Get the explicit decision on each concrete surface. | The user explicitly approved those surfaces in the artifact. |
+| "Ask about everything at once" | One recommended decision with notes. | None. |
+| "The human should come up with the design" | Propose concrete options; the human approves, revises, or rules out. | None. |
+| "Run the design gate alongside the host's plan mode" | Converge inside the host's planning surface. | The host has no plan or approval mode. |
 
 ## Handoffs
 
 - `contract-first`: contract approval.
-- `documentation`: docs placement and rot risk once the artifact exists.
-- `domain-modeling`: data shapes, invariants, transitions, and effects.
-- `architecture`: boundaries, ownership, layering, and system shape.
-- `proof`: design proof obligations.
-- `api`, `database`, `async-systems`, `security`, `error-handling`,
-  `observability`, `performance`, `ui-design`, `accessibility`, and `release`:
-  specialist lenses when the design touches those domains.
-
-## References
-
-- ADR template: status, date, context, decision, consequences.
-- The standalone Pi contract-first runtime package has been removed; use this
-  skill directly when interface design needs an explicit gate.
+- `domain-modeling`: data shapes, invariants, transitions, effects.
+- `architecture`: boundaries, ownership, layering, system shape.
+- `proof`: the design's proof obligations.
+- `documentation`: docs placement once the artifact exists.
+- Domain skills as specialist lenses when the design touches them.

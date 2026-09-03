@@ -9,133 +9,71 @@ description: Use for async systems, concurrency, queues, streams, pub/sub, order
 
 `EVERY ASYNC BOUNDARY NAMES OWNERSHIP, LIFETIME, BACKPRESSURE, AND FAILURE SEMANTICS.`
 
-Async work fails when ownership, cancellation, retry, ordering, and
-failure handling are left implicit.
-
 ## When to Use
 
-- Designing or reviewing async execution, coordination primitives, background
-  work, live updates, streams, brokers, ordering, and backpressure.
-- Investigating races, deadlocks, stuck tasks, event-loop blocking, starvation,
-  memory growth, retry exhaustion, dead jobs, lag, poison messages, replay,
-  ordering, or delivery issues.
+- Designing or reviewing async execution, background work, live updates,
+  streams, brokers, ordering, and backpressure.
+- Investigating races, deadlocks, stuck tasks, starvation, retry exhaustion,
+  dead jobs, lag, poison messages, or delivery issues.
 
 ## When NOT to Use
 
-- Ordinary request/response API design only; use `api`.
-- Remote-call timeout/circuit-breaker policy outside async mechanics;
-  use `error-handling`.
-- Metrics, dashboards, alerts, and runbooks only; use
-  `observability`.
-- Performance measurement without async design changes; use
-  `performance`.
-- Database transaction isolation; use `database`.
+- Request/response API design; use `api`.
+- Remote-call timeout and retry policy; use `error-handling`.
+- Metrics, alerts, runbooks; use `observability`.
+- Transaction isolation; use `database`.
 
-## Core Ideas
+## Rules
 
-1. For user-facing live updates, start with polling, SSE, or
-   WebSockets. Escalate to Kafka/Kinesis/Redis Streams only after
-   naming the requirement the simpler transport cannot satisfy:
-   independent replay, long retention, audit history, offline
-   catch-up, multi-service fanout, consumer-group scaling, partitioned
-   throughput, or durable recovery.
-2. Send immutable data across async boundaries. Keep mutable state owned by
-   one scope.
-3. Every spawned task belongs to a scope that cancels, awaits, or
-   supervises it.
-4. Every queue, channel, worker pool, semaphore, stream, and buffer has
-   a bound and overflow policy.
-5. Locks are an escape hatch: keep them short, ordered, and away from
-   I/O, awaits, or callbacks.
-6. Job payloads contain stable identifiers and immutable inputs, not
-   live session/request/thread-local state.
-7. Retried jobs and stream consumers are idempotent, deduplicated, or
-   explicitly non-retryable.
-8. Event schemas are contracts; version them and keep consumers
-   compatible.
-9. Delivery guarantees, ordering keys, retention, replay, offsets,
-   DLQs, retry budgets, and poison-message handling are explicit.
-10. Silent async failure is a bug: exhausted jobs, lag, dropped events,
-    and dead work need visible signals.
-
-## Workflow
-
-1. Name producers, consumers, shared state, owners, transport, queue,
-   broker, lifecycle, and user-facing latency expectation.
-2. Pick the simplest coordination/transport that preserves ownership.
-   For live updates, try polling/SSE/WebSockets first; if a broker is
-   chosen, record the requirement that forced it.
-3. Define task scope, cancellation path, shutdown behavior, queue
-   bounds, overflow behavior, lock ordering, worker concurrency,
-   timeout, retry budget, backoff, and terminal failure behavior.
-4. For jobs, decide payload, idempotency, uniqueness, atomic enqueue, priority,
-   and deploy compatibility.
-5. For streams, decide schema, version, order key, delivery, retention, replay,
-   ack/offset, DLQ, poison-message policy, and backpressure.
-6. Add observability for enqueue/start/success/retry/exhaustion,
-   latency, queue depth, dead jobs, lag, throughput, errors,
-   reconnects, dropped events, and consumer health.
-7. Test contention, cancellation, shutdown, duplicate execution,
-   retry exhaustion, missing/changing data, expired sessions,
-   duplicates, reordering, drops, reconnects, replay, slow consumers,
-   and poison messages as applicable.
-
-## Verification
-
-- [ ] Every task has a governing scope and deterministic shutdown
-      path.
-- [ ] Every queue/channel/pool/stream/buffer is bounded with an
-      explicit overflow policy.
-- [ ] No lock is held across I/O, await/yield, or user callbacks; lock
-      acquisition order is global where multiple locks remain.
-- [ ] Blocking work cannot starve async or latency-sensitive work.
-- [ ] Payloads use stable IDs and immutable data; they do not rely on
-      request, session, thread-local, open connection, or in-memory
-      object state.
-- [ ] Retry policy has bounded attempts, delay/backoff, and terminal
-      handling.
-- [ ] Retried side effects are idempotent, deduplicated, or marked
-      non-retryable with a documented reason.
-- [ ] Polling, SSE, or WebSockets were considered first for
-      user-facing live updates; any broker choice names the specific
-      requirement simple HTTP/browser streaming could not satisfy.
-- [ ] Event schema, versioning, delivery guarantee, ordering key,
-      retention, replay, offset/ack, DLQ, and poison-message handling
-      are explicit where streams are involved.
-- [ ] Async failure modes are observable and tested.
+1. For user-facing live updates, start with polling, SSE, or WebSockets.
+   Escalate to Kafka, Kinesis, or Redis Streams only after naming the
+   requirement the simpler transport cannot meet: independent replay, long
+   retention, audit history, offline catch-up, multi-service fanout,
+   consumer-group scaling, partitioned throughput, or durable recovery.
+   Record that requirement with the choice.
+2. Immutable data crosses async boundaries; mutable state has one owning
+   scope. Job payloads carry stable identifiers and immutable inputs, never
+   live session, request, or thread-local state.
+3. Every spawned task belongs to a scope that cancels, awaits, or supervises
+   it, with a deterministic shutdown path.
+4. Every queue, channel, pool, stream, and buffer has a bound and an overflow
+   policy. Blocking work cannot starve latency-sensitive work.
+5. Locks are an escape hatch: short, globally ordered, and never held across
+   I/O, awaits, or user callbacks.
+6. Retried jobs and stream consumers are idempotent, deduplicated, or marked
+   non-retryable with a reason. Retry policy itself belongs to
+   `error-handling`.
+7. Event schemas are contracts: versioned, consumer-compatible, and routed
+   through `contract-first` when durable. Delivery guarantee, ordering key,
+   retention, replay, ack/offset, DLQ, and poison-message handling are
+   explicit for streams.
+8. Silent async failure is a bug. Exhausted jobs, lag, dropped events, and
+   dead work have visible signals and tests.
 
 ## Tripwires
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "Pass the session/request object to the job" | Pass stable IDs and immutable parameters across async boundaries; reload live state inside the job when needed. | The payload already is stable IDs and immutable data. |
-| "Retries will sort it out" | Name retryable errors, retry budget, backoff, and terminal behavior. | The policy is already defined at this boundary. |
-| "Rescue the job failure and log it" | Make exhausted or rescued work visible by re-raising, marking terminal, or recording failure. | Best-effort work with an explicit drop policy. |
-| "Enqueue inside the transaction" | Enqueue after commit or use transactional outbox/enqueue when the job reads transaction-written state. | The job reads none of the transaction's writes. |
+| "Pass the session/request object to the job" | Pass stable IDs and immutable parameters; reload live state inside the job. | The payload already is stable IDs and immutable data. |
+| "Rescue the job failure and log it" | Re-raise, mark terminal, or record the failure so exhausted work is visible. | Best-effort work with an explicit drop policy. |
+| "Enqueue inside the transaction" | Enqueue after commit or use a transactional outbox when the job reads transaction-written state. | The job reads none of the transaction's writes. |
 | "One queue is enough for everything" | Isolate user-facing work from bulk queues with priority, concurrency, timeout, or separate workers. | The workload is uniform with no user-facing latency expectation. |
+| "We need Kafka for this" | Name the requirement polling, SSE, or WebSockets cannot meet before choosing a broker. | The requirement is named and recorded. |
 
 ## Handoffs
 
-- `contract-first`: durable event-schema or topic-contract approval before
-  consumers bind to it.
-- `domain-modeling`: remove shared mutable state from core design.
-- `api`: public subscription, webhook, SSE, or event-contract surface.
-- `error-handling`: retry budgets and dependency failure policy.
-- `database`: transactional enqueue, outbox/CDC, locking, isolation, schema.
-- `observability`: dashboards, alerts, traces, runbooks.
-- `release`: worker draining, deploy compatibility, migrations, rollout gates.
-- `debugging`: existing races, deadlocks, stuck jobs, or lag.
-- `proof`: assert at every async handoff (producer → queue → consumer,
-  pub/sub seams, worker-pool boundaries) for ownership, ordering,
-  backpressure, and failure semantics.
+- `contract-first`: durable event-schema or topic-contract approval.
+- `domain-modeling`: remove shared mutable state from the core.
+- `api`: public subscription, webhook, or SSE surface.
+- `error-handling`: retry budgets and dependency-failure policy.
+- `database`: transactional enqueue, outbox/CDC, locking.
+- `observability`: queue depth, lag, dead-job dashboards and alerts.
+- `release`: worker draining and deploy compatibility.
+- `debugging`: existing races, deadlocks, stuck jobs.
+- `proof`: assert ownership, ordering, backpressure, and failure semantics at
+  every producer, queue, and consumer seam.
 
 ## References
 
-- `references/browser-streaming.md`: polling, SSE, and WebSocket
-  choices.
-- `references/kafka.md`: topics, partitions, consumer groups, offsets,
-  delivery semantics.
-- `references/kinesis.md`: streams, shards, partition keys, sequence
-  numbers, retention, consumers.
-- `references/redis-streams.md`: Redis Streams, consumer groups,
-  pending entries, acknowledgements, claiming.
+- `references/browser-streaming.md`: load when choosing between polling, SSE,
+  and WebSockets for live updates.
