@@ -9,8 +9,8 @@ description: Use for branches, history edits, conflicts, rebases, recovery, forc
 
 `NEVER REWRITE SHARED HISTORY OR SKIP RECOVERY.`
 
-The host owns git mechanics. This skill owns the gates: recoverability,
-GitHub permission, and approval of published text.
+The host owns git mechanics and access permission. This skill owns the
+gates: recoverability and approval of published text.
 
 ## When to Use
 
@@ -25,15 +25,16 @@ GitHub permission, and approval of published text.
 
 ## Rules
 
-1. At the start of a feature or bug fix, ask the user once: create or switch
-   to a topic branch in the current checkout. On a topic branch with distinct
-   new work, ask once between continuing here or branching off `main`. Do not
-   re-prompt during the same piece of work.
-2. Ask before any GitHub access, including reads such as viewing a PR, its
-   diff, or a CI run, because every call runs under the user's authenticated
-   account. Identify the surface first (`gh` CLI, GitHub MCP server, or host
-   tools); `gh` is absent from some sandboxes, which does not mean GitHub is
-   out of reach.
+1. Branch without ceremony. Starting new work on the default branch, create
+   a topic branch first. On an existing topic branch, keep going unless the
+   new work is clearly unrelated; then branch off `main` and say which branch
+   received the work. Do not ask which branch to use.
+2. The host's permission system owns GitHub access. Hosts already gate network
+   calls and `gh` under the user's account, so do not add a second chat-level
+   ask on top of an approval the host granted. Reserve your own questions for
+   writes that publish user-owned text and for destructive operations.
+   Identify the surface first (`gh` CLI, GitHub MCP, or host tools); `gh` is
+   absent from some sandboxes, which does not mean GitHub is out of reach.
 3. Humans approve PR and issue text before it is published. Draft the title
    and body locally, show them, and get approval of that exact text. Never
    let a tool open an editor or send unreviewed text.
@@ -57,8 +58,8 @@ GitHub permission, and approval of published text.
 | "Force push should fix it" | Verify the branch is local/solo or approved, then use lease and inclusion protection. | Disposable local-only branch with no remote. |
 | "Rewrite this shared branch" | Stop and ask for explicit approval plus a recovery point. | The branch is confirmed local and unpublished. |
 | "Resolve conflict by taking ours/theirs" | Preserve intent from both sides, then run checks. | A generated file regenerated after the source conflict is resolved. |
-| "Reading from GitHub is harmless" | Ask first. | The user already approved that exact operation class. |
-| "`gh` isn't installed, so GitHub is out of reach" | Check for a GitHub MCP server or host tools, then ask before using them. | The host exposes no GitHub surface. |
+| "The host approved `gh` once, so publish freely" | Host permission covers access; publishing user-owned text still needs the user's approval of that text. | The user already approved that exact text and operation. |
+| "`gh` isn't installed, so GitHub is out of reach" | Check for a GitHub MCP server or host tools and go through the host's permission flow. | The host exposes no GitHub surface. |
 | "Just open the PR with a quick title" | Draft title and body, get approval, then create it. | The user already approved that exact title and body. |
 
 ## Handoffs

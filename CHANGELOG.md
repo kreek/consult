@@ -6,7 +6,7 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [13.0.0] (2026-09-02)
+## [14.0.0] (2026-09-02)
 
 ### Changed
 
@@ -17,9 +17,16 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Explanations of standard engineering practice a current model applies
   unprompted are removed; sign-off gates, house thresholds, philosophy, and
   tripwires are kept. Canonical SKILL.md text drops from 23,337 words to
-  under 11,000.
-- The contract-first gate ("an approving design or RFC approves the direction,
-  not the concrete shapes") is defined only in `contract-first` and `workflow`.
+  roughly 14,000.
+- The 12.1.0 host-harness alignment and the 13.1.0 fresh-context review and
+  proof-narrowing rules are carried into the new structure unchanged in
+  meaning: `contract-first` keeps its reversal-cost test and no-human
+  provisional fallback, `git-workflow` keeps host-owned GitHub access and
+  ceremony-free branching, `commit` keeps trailers as host configuration,
+  `code-review` and `workflow` keep fresh-context review as a requirement,
+  `scaffolding` keeps free research, and `proof` keeps iterate-on-the-failing
+  test with a full run before commit.
+- The contract-first gate is defined only in `contract-first` and `workflow`.
   `api`, `architecture`, `domain-modeling`, `async-systems`, and `database`
   keep one routing line each instead of restating it.
 - Retry policy lives in `error-handling`, the middleware-vs-handler rule in
@@ -41,6 +48,64 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `async-systems/references/{kafka,kinesis,redis-streams}.md`. They were
   vendor documentation recall; `browser-streaming.md` stays because it carries
   the polling-first decision.
+
+## [13.1.0] (2026-08-26)
+
+### Changed
+
+- Pi runtime updated for Pi 0.84: the `consult` package now targets
+  `@earendil-works/pi-coding-agent` 0.84 and registers only the proof and
+  independent-review extensions.
+- Code review runs in a fresh agent. On Pi, once production changes settle, a
+  sessionless read-only Pi subprocess reviews the diff (tracked and untracked
+  files) with the `code-review` skill and its findings return as a follow-up;
+  `/consult:self-review` triggers it on demand. Automatic rounds are capped at
+  three per user task, and shell writes are detected by redirect target and
+  write verb rather than by any `>`. `code-review` and `workflow` prose now
+  require a fresh-context subagent, review agent, or session on every host;
+  same-context review is a labelled fallback only.
+- Proof mode chooses targeted versus full-suite runs the way an experienced
+  developer does. After the specifying run fails, IMPLEMENTING reruns only the
+  known failing Vitest test (by file and escaped `-t` name) when the command
+  is a recognised Vitest or Jest invocation, including package-manager `test`
+  scripts that resolve to a bare runner. REFACTORING and `proof_done` require
+  the full configured command with no extra arguments; a vacuous pass (exit 0,
+  no tests run) never advances the phase. The `proof` skill prose carries the
+  same rule for attended hosts.
+
+
+## [12.1.0] (2026-08-23)
+
+### Changed
+
+- Host-harness alignment pass across 14 skills, grounded against the published
+  Codex CLI harness source and Claude Code host behavior:
+  - `contract-first` scopes its gate to shapes outside callers bind to, adds a
+    reversal-cost test (additive, easily reversed changes proceed with the
+    shape stated in the close-out), and defines a no-human fallback for
+    headless, scheduled, and delegated runs: build the conservative version,
+    mark the contract provisional, flag the pending decision. `api` and
+    `database` inherit the same scoping; `workflow` carries the fallback in
+    its sign-off step.
+  - `commit` treats attribution trailers as host configuration: point at the
+    host setting that disables them (such as `includeCoAuthoredBy: false` in
+    Claude Code) instead of instructing per-commit overrides of host
+    guidance. This replaces the 11.12.0 stance of omitting trailers against
+    host defaults.
+  - `git-workflow` drops the chat-level ask before GitHub reads and the
+    topic-branch menu; the host's permission system owns access, and
+    branching follows the host default. The PR/issue-text approval,
+    recovery-point, and force-push gates remain. `code-review` follows the
+    same read/write split.
+  - `scaffolding` no longer asks before dependency research; approval gates
+    selection and installation only.
+  - Routing descriptions carry task vocabulary and complexity floors for
+    hosts that select skills lexically: `workflow` names concrete task types;
+    `security`, `observability`, and `error-handling` scope to real stakes.
+  - The approval-scope rule (a design approves the direction, not the
+    concrete shapes) now lives in `workflow` and `contract-first` only;
+    `specify`, `domain-modeling`, `architecture`, and `database` route to
+    it. `error-handling` merges its most generic core ideas.
 
 ## [12.0.0] (2026-08-20)
 

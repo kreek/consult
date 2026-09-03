@@ -1,6 +1,6 @@
 ---
 name: error-handling
-description: Use for error handling, error types, propagation, retries, user messages, recovery.
+description: "Use when failure contracts matter: error types, propagation, retries, recovery, user-facing messages."
 ---
 
 # Error Handling

@@ -199,13 +199,20 @@ export const defaultParsers: TestLineParser[] = [
 export function parseTestOutput(raw: string, parsers: TestLineParser[] = defaultParsers): TestSummary {
   const lines = raw.split("\n").map(stripAnsi);
   const tests: TestResult[] = [];
+  let currentVitestFile: string | undefined;
 
   for (const line of lines) {
     const trimmed = line.trim();
+    const vitestFileMatch = trimmed.match(/^[❯>]\s+(\S+\.(?:test|spec)\.[cm]?[jt]sx?)\s+\(/);
+    if (vitestFileMatch) currentVitestFile = vitestFileMatch[1];
+
     for (const parser of parsers) {
       const result = parser.parseLine(trimmed);
       if (result) {
-        tests.push(result);
+        const name = !result.passed && currentVitestFile && !/\.(?:test|spec)\.[cm]?[jt]sx?\s+>/.test(result.name)
+          ? `${currentVitestFile} > ${result.name}`
+          : result.name;
+        tests.push({ ...result, name });
         break;
       }
     }

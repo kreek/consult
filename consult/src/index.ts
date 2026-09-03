@@ -1,11 +1,9 @@
+// Registers Consult's default Pi runtime extensions.
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import selfReviewGuard from "../extensions/self-review-guard.js";
 import proofExtension from "./proof/index.js";
-import selfReviewGuard from "../extensions/self-review-guard.ts";
-import openaiCodexFastMode from "../extensions/openai-codex-fast-mode.ts";
-import consultHeader from "../extensions/consult-header.ts";
 
-export default function agentBoosterPack(pi) {
+export default function consult(pi: ExtensionAPI) {
   proofExtension(pi);
   selfReviewGuard(pi);
-  openaiCodexFastMode(pi);
-  consultHeader(pi);
 }

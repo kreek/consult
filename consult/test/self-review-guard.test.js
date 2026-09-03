@@ -1,122 +1,243 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import selfReviewGuard, {
+import {
+  REVIEW_STATE_ENTRY,
   SELF_REVIEW_MARKER,
-  selfReviewPromptFor,
-  selfReviewPromptForSessionEntries,
-  shouldRequestSelfReview,
+  createIndependentReviewExtension,
 } from "../extensions/self-review-guard.ts";
 
-const assistantToolCall = (name, args = {}) => ({
-  role: "assistant",
-  content: [{ type: "toolCall", name, arguments: args }],
-});
+function makeHarness(runReview = vi.fn().mockResolvedValue({ output: "No findings.\nResidual risk: none." })) {
+  const handlers = new Map();
+  const commands = new Map();
+  const entries = [];
+  const sent = [];
+  const pi = {
+    appendEntry: (customType, data) => entries.push({ type: "custom", customType, data }),
+    registerCommand: (name, command) => commands.set(name, command),
+    sendMessage: (message, options) => sent.push({ message, options }),
+    on: (eventName, handler) => handlers.set(eventName, handler),
+  };
 
-const assistantText = (text) => ({
-  role: "assistant",
-  content: [{ type: "text", text }],
-});
+  createIndependentReviewExtension({ runReview })(pi);
+  return { commands, entries, handlers, pi, runReview, sent };
+}
 
-const entry = (role, content) => ({ type: "message", message: { role, content } });
+function context(entries = []) {
+  return {
+    cwd: "/repo",
+    model: { provider: "openai-codex", id: "gpt-5.5" },
+    thinkingLevel: "high",
+    signal: undefined,
+    sessionManager: { getBranch: () => entries },
+    waitForIdle: vi.fn(),
+  };
+}
 
-describe("self-review guard", () => {
-  it("registers the manual self-review command and passive message_end hook", () => {
-    const commands = new Map();
-    const handlers = new Map();
-    const fakePi = {
-      registerCommand: (name, definition) => commands.set(name, definition),
-      on: (eventName, handler) => handlers.set(eventName, handler),
-    };
+describe("independent review guard", () => {
+  it("registers the existing command and task-level lifecycle hooks", () => {
+    const harness = makeHarness();
 
-    selfReviewGuard(fakePi);
-
-    expect(commands.get("consult:self-review")).toBeTruthy();
-    expect(handlers.get("message_end")).toBeTruthy();
+    expect(harness.commands.has("consult:self-review")).toBe(true);
+    expect(harness.handlers.has("tool_result")).toBe(true);
+    expect(harness.handlers.has("agent_settled")).toBe(true);
+    expect(harness.handlers.has("before_agent_start")).toBe(true);
+    expect(harness.handlers.has("session_start")).toBe(true);
+    expect(harness.handlers.has("message_end")).toBe(false);
   });
 
-  it("asks for a hidden follow-up self-review after production changes", async () => {
-    const handlers = new Map();
-    const sent = [];
-    const sessionEntries = [
-      entry("user", "implement the cache"),
-      entry("assistant", [{ type: "toolCall", name: "write", arguments: { path: "src/cache.js" } }]),
-    ];
-    const fakePi = {
-      registerCommand() {},
-      sendMessage: (message, options) => sent.push({ message, options }),
-      on: (eventName, handler) => handlers.set(eventName, handler),
-    };
+  it("spawns a fresh reviewer after successful production changes settle", async () => {
+    const harness = makeHarness();
+    const ctx = context();
 
-    selfReviewGuard(fakePi);
-    const result = await handlers.get("message_end")(
-      { message: assistantText("Done.") },
-      { sessionManager: { getBranch: () => sessionEntries } },
+    await harness.handlers.get("before_agent_start")({ prompt: "Implement the cache" }, ctx);
+    await harness.handlers.get("tool_result")(
+      { toolName: "write", input: { path: "src/cache.ts" }, isError: false },
+      ctx,
     );
+    await harness.handlers.get("agent_settled")({}, ctx);
 
-    expect(result).toBeUndefined();
-    expect(sent).toHaveLength(1);
-    expect(sent[0].message).toMatchObject({ customType: "consult-self-review", display: false });
-    expect(sent[0].options).toEqual({ triggerTurn: true, deliverAs: "followUp" });
-    expect(sent[0].message.content).toContain(SELF_REVIEW_MARKER);
-    expect(sent[0].message.content).toMatch(/run a final-pass self-review/i);
-    expect(sent[0].message.content).toMatch(/Previous final response:\nDone\./);
+    expect(harness.runReview).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/repo",
+        model: "openai-codex/gpt-5.5",
+        thinkingLevel: "high",
+        changedPaths: ["src/cache.ts"],
+        intent: "Implement the cache",
+      }),
+    );
+    expect(harness.sent).toHaveLength(1);
+    expect(harness.sent[0].message.content).toContain(SELF_REVIEW_MARKER);
+    expect(harness.sent[0].message.content).toContain("No findings.");
+    expect(harness.sent[0].options).toEqual({ triggerTurn: true, deliverAs: "followUp" });
   });
 
-  it("manual command asks for the same self-review gate", async () => {
-    const commands = new Map();
-    const sent = [];
-    const fakePi = {
-      registerCommand: (name, definition) => commands.set(name, definition),
-      sendUserMessage: (message) => sent.push(message),
-      on() {},
-    };
+  it("does not accept ordinary proof wording as an independent review", async () => {
+    const harness = makeHarness();
+    const ctx = context();
 
-    selfReviewGuard(fakePi);
-    await commands.get("consult:self-review").handler("focus on auth", {
-      sessionManager: { getBranch: () => [] },
-    });
+    await harness.handlers.get("tool_result")(
+      { toolName: "edit", input: { path: "src/cache.ts" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
 
-    expect(sent).toHaveLength(1);
-    expect(sent[0]).toContain(SELF_REVIEW_MARKER);
-    expect(sent[0]).toMatch(/focus on auth/i);
+    expect(harness.runReview).toHaveBeenCalledTimes(1);
   });
 
-  it("does not request self-review for read-only or docs-only turns", () => {
-    expect(shouldRequestSelfReview([assistantToolCall("read"), assistantText("Inspected it.")])).toBe(false);
-    expect(selfReviewPromptFor([assistantToolCall("write", { path: "README.md" }), assistantText("Updated docs.")])).toBeNull();
+  it("reviews each corrective mutation with a new agent", async () => {
+    const runReview = vi
+      .fn()
+      .mockResolvedValueOnce({ output: "Warning: fix src/cache.ts:4" })
+      .mockResolvedValueOnce({ output: "No findings." });
+    const harness = makeHarness(runReview);
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")(
+      { toolName: "write", input: { path: "src/cache.ts" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+    await harness.handlers.get("agent_settled")({}, ctx);
+    expect(runReview).toHaveBeenCalledTimes(1);
+
+    await harness.handlers.get("tool_result")(
+      { toolName: "edit", input: { path: "src/cache.ts" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(runReview).toHaveBeenCalledTimes(2);
   });
 
-  it("does not request self-review when the final response already acknowledges it", () => {
-    const turnMessages = [
-      assistantToolCall("write", { path: "src/cache.js" }),
-      assistantText("Self-review: no findings. Proof: npm test passed. Unproven: CI not checked."),
+  it("ignores docs, failed writes, and review subprocess messages", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")(
+      { toolName: "write", input: { path: "README.md" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("tool_result")(
+      { toolName: "write", input: { path: "src/cache.ts" }, isError: true },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).not.toHaveBeenCalled();
+  });
+
+  it("ignores shell redirects that do not write production files", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")(
+      { toolName: "bash", input: { command: "pnpm test 2>&1 | tail -30" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("tool_result")(
+      { toolName: "bash", input: { command: "git diff > /dev/null" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).not.toHaveBeenCalled();
+  });
+
+  it("caps automatic review rounds for repeated corrective mutations", async () => {
+    const runReview = vi.fn().mockResolvedValue({ output: "Warning: still found a nit" });
+    const harness = makeHarness(runReview);
+    const ctx = context();
+
+    for (let index = 0; index < 4; index += 1) {
+      await harness.handlers.get("tool_result")(
+        { toolName: "edit", input: { path: "src/cache.ts" }, isError: false },
+        ctx,
+      );
+      await harness.handlers.get("agent_settled")({}, ctx);
+    }
+
+    expect(runReview).toHaveBeenCalledTimes(3);
+    expect(harness.sent.at(-1).message.content).toMatch(/review limit/i);
+  });
+
+  it("resets the automatic review budget when a new user task starts", async () => {
+    const runReview = vi.fn().mockResolvedValue({ output: "Warning: still found a nit" });
+    const harness = makeHarness(runReview);
+    const ctx = context();
+
+    for (let index = 0; index < 4; index += 1) {
+      await harness.handlers.get("tool_result")({ toolName: "edit", input: { path: "src/cache.ts" }, isError: false }, ctx);
+      await harness.handlers.get("agent_settled")({}, ctx);
+    }
+    expect(runReview).toHaveBeenCalledTimes(3);
+
+    await harness.handlers.get("before_agent_start")({ prompt: "Now add the store" }, ctx);
+    await harness.handlers.get("tool_result")({ toolName: "write", input: { path: "src/store.ts" }, isError: false }, ctx);
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(runReview).toHaveBeenCalledTimes(4);
+    expect(runReview.mock.calls.at(-1)[0].intent).toBe("Now add the store");
+  });
+
+  it("still detects write verbs when a redirect only targets a log or /dev/null", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")({ toolName: "bash", input: { command: "cp a src/b.ts 2>&1" }, isError: false }, ctx);
+    await harness.handlers.get("tool_result")(
+      { toolName: "bash", input: { command: "sed -i 's/a/b/' src/x.ts > /dev/null" }, isError: false },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).toHaveBeenCalledTimes(1);
+    expect(harness.runReview.mock.calls[0][0].changedPaths).toEqual(["<shell mutation>"]);
+  });
+
+  it("ignores redirects into log and scratch files", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")({ toolName: "bash", input: { command: "pnpm test > out.log" }, isError: false }, ctx);
+    await harness.handlers.get("tool_result")({ toolName: "bash", input: { command: "pnpm test | tee run.txt" }, isError: false }, ctx);
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).not.toHaveBeenCalled();
+  });
+
+  it("recognizes PowerShell production writes", async () => {
+    const harness = makeHarness();
+    const ctx = context();
+
+    await harness.handlers.get("tool_result")(
+      {
+        toolName: "powershell",
+        input: { command: "Set-Content -Path src/cache.ts -Value 'x'" },
+        isError: false,
+      },
+      ctx,
+    );
+    await harness.handlers.get("agent_settled")({}, ctx);
+
+    expect(harness.runReview).toHaveBeenCalledTimes(1);
+  });
+
+  it("restores branch-local dirty state after reload", async () => {
+    const harness = makeHarness();
+    const restored = [
+      {
+        type: "custom",
+        customType: REVIEW_STATE_ENTRY,
+        data: { generation: 2, reviewedGeneration: 1, changedPaths: ["src/cache.ts"], intent: "Fix cache" },
+      },
     ];
+    const ctx = context(restored);
 
-    expect(shouldRequestSelfReview(turnMessages)).toBe(false);
-  });
+    await harness.handlers.get("session_start")({}, ctx);
+    await harness.handlers.get("agent_settled")({}, ctx);
 
-  it("treats pathless mutating shell commands as production changes", () => {
-    const turnMessages = [
-      assistantToolCall("bash", { command: "python - <<'PY'\nopen('src/cache.js', 'w').write('x')\nPY" }),
-      assistantText("Updated cache handling."),
-    ];
-
-    expect(selfReviewPromptFor(turnMessages)).toMatch(/Consult self-review/);
-  });
-
-  it("detects changes from session entries scoped to the latest user turn", () => {
-    const sessionEntries = [
-      entry("user", "older request"),
-      entry("assistant", [{ type: "toolCall", name: "write", arguments: { path: "src/old.js" } }]),
-      entry("assistant", [{ type: "text", text: "Self-review: old change checked." }]),
-      entry("user", "implement the cache"),
-      entry("assistant", [{ type: "toolCall", name: "write", arguments: { path: "src/cache.js" } }]),
-      entry("assistant", [{ type: "text", text: "Implemented the cache." }]),
-    ];
-
-    const prompt = selfReviewPromptForSessionEntries(sessionEntries);
-
-    expect(prompt).toMatch(/Previous final response:\nImplemented the cache\./);
-    expect(prompt).toMatch(/run a final-pass self-review/i);
+    expect(harness.runReview).toHaveBeenCalledWith(
+      expect.objectContaining({ changedPaths: ["src/cache.ts"], intent: "Fix cache" }),
+    );
   });
 });

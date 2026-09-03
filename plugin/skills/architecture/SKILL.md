@@ -52,7 +52,7 @@ description: Use for architecture decisions, module boundaries, coupling, layeri
    workflow, or a word that means different things in different places.
 7. Shared structure is user-owned. Project layout, package/module boundaries,
    public library shape, and cross-component ownership future work will
-   depend on route through `contract-first` before code locks them in.
+   depend on route through `contract-first`, which owns the approval scope.
 8. Decisions future readers cannot recover from the code (why this boundary,
    why this shape, what was rejected) are recorded in an ADR, comment, or
    commit message.

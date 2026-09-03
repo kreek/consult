@@ -1,10 +1,13 @@
+// Optional legacy extension for users who explicitly accept OpenAI priority-tier billing.
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+
 const SERVICE_TIER = "priority";
 
-function isRecord(value) {
+function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isOpenAICodexResponsesPayload(payload) {
+function isOpenAICodexResponsesPayload(payload: unknown): payload is Record<string, unknown> {
   if (!isRecord(payload)) return false;
 
   const model = payload.model;
@@ -19,7 +22,7 @@ function isOpenAICodexResponsesPayload(payload) {
   );
 }
 
-export default function openaiCodexFastMode(pi) {
+export default function openaiCodexFastMode(pi: ExtensionAPI) {
   pi.on("before_provider_request", (event) => {
     if (!isOpenAICodexResponsesPayload(event.payload)) return;
 

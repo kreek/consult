@@ -17,10 +17,11 @@ repo maintenance helpers, plugin packaging, and extension packages.
 
 - **Canonical skills**: `agents/.agents/skills/<name>/SKILL.md`. Every skill
   lives here; siblings may add `agents/`, `references/`, and `scripts/`.
-- **Repo instructions**: this `AGENTS.md` is the only agent instruction file in
-  the repo. Normal Consult use relies on skill frontmatter, plugin metadata, and the
-  `workflow` skill; users do not need to install or merge system instruction
-  files.
+- **Repo instructions**: `AGENTS.md` is the main portable instruction file in
+  the repo. `CLAUDE.md` mirrors the same maintainer guidance for hosts that read
+  Claude-specific files. Normal Consult use relies on skill frontmatter, plugin
+  metadata, and the `workflow` skill; users do not need to install or merge
+  system instruction files.
 - **Claude Code plugin mirror**: `plugin/skills/<name>` contains generated
   copies of canonical skills from `agents/.agents/skills/<name>`.
   `.claude-plugin/marketplace.json` points Claude Code at the `plugin/` root,
@@ -48,6 +49,31 @@ repo maintenance helpers, plugin packaging, and extension packages.
 When you add, rename, or delete a skill, the canonical file under
 `agents/.agents/skills/` is the only place to write. Everything else is
 regenerated.
+
+## Pi self-improvement source access
+
+Pi can inspect its own installed package when runtime behavior, extension APIs,
+or self-improvement work depends on Pi internals. Treat that package as a
+read-only upstream source: read it to confirm current APIs and behavior, but
+make Consult changes in this repository unless the user explicitly asks to work
+on Pi itself.
+
+For most npm-style installs, find Pi's package with:
+
+```sh
+npm root -g
+```
+
+Then look under `@earendil-works/pi-coding-agent` in that global
+`node_modules` directory. Package-manager installs usually place the same global
+`node_modules` tree under the manager prefix, for example
+`<prefix>/lib/node_modules/@earendil-works/pi-coding-agent`. Do not hard-code a
+machine-specific absolute path in repo docs or committed code. Resolve it at
+runtime with `npm root -g`, `which pi`, or the package manager's prefix command.
+
+Useful read-only entry points are the package `README.md`, `docs/`, `examples/`,
+`package.json`, and exported type declarations. Follow linked docs before
+changing Consult extensions that depend on Pi APIs.
 
 ## Host posture: attended vs unattended
 
@@ -166,9 +192,12 @@ Every `SKILL.md` must have:
   inner colon and revealed the pack had been over the old limit all along. Raise
   it again only with a stated reason.
 - Required sections: `## When to Use`, `## When NOT to Use`, `## Rules`.
-- Body budget: 700 words after frontmatter (900 for `proof` and
-  `code-review`, 1,000 for `workflow` because it carries the routing table).
-  Table pipes and separator rows do not count. The budget is the regression guard for the knowledge-vs-policy
+- Body budget: 700 words after frontmatter. Raised for three skills, each
+  with a reason recorded next to the constant: 950 for `proof` and
+  `code-review` and 1,050 for `workflow`, which carry the routing and sign-off
+  tables plus the host-harness and fresh-context-review policy. Table pipes
+  and separator rows do not count. Raise a skill's budget only with a stated
+  reason. The budget is the regression guard for the knowledge-vs-policy
   rule below. Raise a single skill's budget only with a stated reason.
 - Optional section: `## Tripwires` when a skill has known agent failure modes.
   Table format only, at most 8 rows. Use them only for high-probability

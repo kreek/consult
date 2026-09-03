@@ -26,8 +26,11 @@ const OBSOLETE_RULE_SECTIONS = ["Core Ideas", "Verification", "Before Saying Don
 // guard for the knowledge-vs-policy trim: rules the model cannot derive fit
 // in this space; explanations of standard practice do not.
 const MAX_BODY_WORDS = 700;
-// workflow carries the validator-mandated 23-row routing table (~200 words).
-const BODY_WORD_EXCEPTIONS = { workflow: 1000, proof: 900, "code-review": 900 };
+// Raised budgets, each with a reason. workflow carries the validator-mandated
+// 23-row routing table (~200 words) plus the sign-off table. workflow,
+// code-review, and proof also absorbed the 12.1.0 host-harness and 13.1.0
+// fresh-context-review policy, which is rule text, not explanation.
+const BODY_WORD_EXCEPTIONS = { workflow: 1050, proof: 950, "code-review": 950 };
 const MAX_TRIPWIRE_ROWS = 8;
 const MAX_DESCRIPTION_LENGTH = 120;
 // ~600 tokens of routing surface that every host loads before picking a skill.

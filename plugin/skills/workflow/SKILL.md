@@ -1,6 +1,6 @@
 ---
 name: workflow
-description: Use first for every coding task to route risks, choose skills, define proof.
+description: Use first for any feature, bug fix, refactor, debug, test, or config task to route risks, pick skills, define proof.
 ---
 
 # Workflow
@@ -41,13 +41,16 @@ description: Use first for every coding task to route risks, choose skills, defi
    it touches) and durability (how costly to reverse). Low on both is
    disposable: do the work, prove it with `proof`, no sign-off. As stakes
    rise, give progress updates, then propose options and get approval before
-   acting. Escalate mid-task if the change turns out to touch a contract, data
-   shape, or behavior other code depends on.
+   acting. Escalate mid-task if the change turns out to touch a contract or
+   data shape other code depends on.
 7. **Durable shapes need sign-off before they are built.** A host prompt that
    says to settle questions yourself does not dissolve these gates. Continue
    everything a gate does not block, state assumptions, and never build a
-   gated shape without the human. Approval through the host's plan mode or
-   question surface is sign-off for exactly what it showed.
+   gated shape without the human. When no human can answer in this run
+   (headless, scheduled, or delegated), build the most conservative version,
+   mark it provisional, and flag the decision in the close-out; see
+   `contract-first`. Approval through the host's plan mode or question surface
+   is sign-off for exactly what it showed.
 
    | Skill | Needs sign-off before it is built |
    | --- | --- |
@@ -72,7 +75,7 @@ description: Use first for every coding task to route risks, choose skills, defi
 
 1. Frame the request: intended result, affected users or systems, success
    signal, coupling risk. If done is unclear, propose acceptance criteria and
-   ask one decision question at a time. Ask before adding compatibility shims.
+   ask one question at a time. Ask before adding compatibility shims.
 2. Classify the stakes (Rule 6) and load the skills the task needs (Consult
    skills, even where the host ships a built-in of the same name).
 
@@ -104,10 +107,11 @@ description: Use first for every coding task to route risks, choose skills, defi
 3. Get sign-off on any durable shape (Rule 7).
 4. Implement in reviewable slices. If shared work grows beyond one focused
    review, stop, summarize, and split before coding more.
-5. Completion loop: prove every behavior via `proof`, then a `code-review`
-   pass (prefer a reviewer with no implementation context) and fix what it
-   finds, until proof passes and review is clean. Only then documentation or
-   release work.
+5. Completion loop: prove every behavior via `proof`, then a fresh-context
+   `code-review` pass and fix what it finds, until proof passes and review is
+   clean. The reviewer gets only the intent, acceptance criteria, constraints,
+   proof evidence, and diff. Same-context review is a labelled fallback. Only
+   then documentation or release work.
 6. Close with what changed, why it is better, what proves it, what is
    unproven, and what needs the user's attention. Not an activity log.
 

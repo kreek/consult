@@ -30,14 +30,21 @@ description: Use before locking in public functions, types, endpoints, schemas, 
 
 1. A contract is any shape concrete enough that another caller, process,
    service, user, migration step, package, or future module will depend on
-   it. Working out the actual signatures, types, and shapes is this skill's
-   job.
-2. Approval covers the named shape only. Compatibility (renames, removals,
+   it. An export with no caller outside the change is not yet a contract.
+   Working out the actual signatures, types, and shapes is this skill's job.
+2. The gate scales with reversal cost. Gate a shape when outside callers will
+   bind to it and changing it later means breakage or migration. An additive,
+   easily reversed change gets its shape stated in the close-out and
+   continues; do not stop the work for it.
+3. Approval covers the named shape only. Compatibility (renames, removals,
    aliases, shims, deprecation paths) needs its own explicit decision.
-3. An approving design or RFC approves the direction, not the concrete shapes.
+4. An approving design or RFC approves the direction, not the concrete shapes.
    The list of proposed surfaces with evidence is the approval.
-4. Silence is not approval. Wait for an explicit approve, revise, or reject.
-5. If implementation discovers a materially different contract, reopen the
+5. Silence is not approval. Wait for an explicit approve, revise, or reject.
+   When no human can answer in this run (headless, scheduled, or delegated
+   sessions), do not deadlock: build the most conservative version, mark the
+   contract provisional, and flag the pending decision in the close-out.
+6. If implementation discovers a materially different contract, reopen the
    gate.
 
 ## Workflow
@@ -60,7 +67,7 @@ description: Use before locking in public functions, types, endpoints, schemas, 
 |---|---|---|
 | "The design doc already covers this interface" | List each concrete surface with evidence and get one approve/revise/reject. | The exact signature, schema, or surface was itself listed and approved. |
 | "I'll implement it first and show the interface after" | Stop before implementation lands; propose the concrete shape and wait for the decision. | The surface is purely internal with no caller-facing or shared boundary. |
-| "No objection means it's approved" | Wait for an explicit approve, revise, or reject. | None. |
+| "No objection means it's approved" | Wait for an explicit approve, revise, or reject. | No human can answer in this run; the shape was built conservatively, marked provisional, and flagged. |
 | "The rename is implied by the approved shape" | Compatibility needs its own explicit decision. | The approval already named that compatibility path. |
 
 ## Handoffs

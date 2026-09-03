@@ -40,8 +40,7 @@ wrong.
 3. Test at boundaries, in the caller's words: where the data's shape, value,
    state, or error visibly changes, and always at the outermost boundary the
    caller sees (endpoint, CLI, UI, public API). Boundary tests survive
-   refactors and drive helpers for free; unit-test only non-trivial pure
-   logic.
+   refactors; unit-test only non-trivial pure logic.
 4. One behavior per test. Real collaborators inside; mock only true system
    edges (network, clock, filesystem) or write the reason. Never test the
    framework, the language, or static text.
@@ -49,23 +48,23 @@ wrong.
    No sleeps, no retries.
 6. Red before green when the failing test is itself the evidence: a
    reproducible bug, a behavior change with a clear observable, a contract
-   change. A test that passes on its first run proves nothing about your
-   change; verify the red as deliberately as the green.
+   change. A test that passes on its first run proves nothing; verify the red
+   as deliberately as the green.
 7. Prove artifacts the way the system uses them: run, load, parse, render, or
-   inspect config, wiring, generated output, and documents. Never assert their
+   inspect config, wiring, generated output, and documents. Never assert
    literal text.
 8. For a removal, prove the behavior that remains and confirm the old code is
    gone with a search. Test the removal itself only when it now returns an
    explicit rejection (404, 410, deprecation error): that is new behavior.
-9. Narrowest check first: one test by name or line, then the file, then the
-   package, then the suite once the narrow check is green and wider breakage
-   is plausible. An unrelated broad failure is reported separately, not
-   treated as blocking.
+9. Narrowest check first: one test by name or line, then the file. Once a
+   failing test is known, iterate on that failure until it is green. Run the
+   whole package or suite after major changes, before completion or commit,
+   or when targeted green evidence suggests wider breakage. An unrelated broad
+   failure is reported separately, not treated as blocking.
 10. "Done" is a claim. Before saying it: re-read the latest request and any
     corrections, look at every named file as it stands after your last edit,
     run the chosen check fresh, and report proven, partly proven, blocked, or
-    unproven. Smoke checks and helper-only checks are partial, not
-    acceptance.
+    unproven. Smoke and helper-only checks are partial, not acceptance.
 
 ### Proof Contract
 
@@ -79,14 +78,14 @@ here expecting them.
 - **Check**: the runnable test or command that would fail if the claim were
   false.
 - **Evidence**: the command and output, the test name and result, the
-  artifact inspected, or a plain reason you could not run it.
+  artifact inspected, or why you could not run it.
 
 ## Tripwires
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
 | "The suite is green, so the change is proven" | Run the check that would fail if this change were wrong; a green check that never touches the change is partial. | The green check enters at the changed boundary. |
-| "Run the whole suite for this one-line edit" | Run the single relevant test or file first. | The change is cross-cutting and no narrower check exists. |
+| "Run the whole suite for this one-line edit" | Run the relevant test or file first; widen after major changes, before commit, or when wider breakage is plausible. | The change is cross-cutting and no narrower check exists. |
 | "Add a unit test for every helper" | Test the contract at the boundary. | The helper has branching or state a boundary test cannot drive. |
 | "The types already prove it" | Check the invariant or behavior the types do not cover. | The claim is exactly what the type checker enforces. |
 | "There's no way to test this, so skip proof" | Record the manual check: command, output, and the claim it proves. | An existing check already loads or runs the artifact. |

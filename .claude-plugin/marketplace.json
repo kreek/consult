@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Consult: collaborative engineering-discipline skills for Claude Code.",
-    "version": "13.0.0",
+    "version": "14.0.0",
     "license": "MIT"
   },
   "plugins": [
     {
       "name": "consult",
       "description": "Portable, collaborative engineering-discipline skill pack: data, proof, security, design, and more.",
-      "version": "13.0.0",
+      "version": "14.0.0",
       "author": {
         "name": "Alastair Dawson"
       },

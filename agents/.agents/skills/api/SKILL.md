@@ -29,7 +29,9 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 1. Sketch the contract (OpenAPI or the repo's contract source) before
    controller code and implement from it. Every response shape is explicit,
    including errors, empty states, pagination, and auth failures. Durable
-   API interfaces route through `contract-first`.
+   API interfaces route through `contract-first`. Additive changes old callers
+   cannot notice (a new optional field, param, or endpoint) proceed without a
+   stop; state the shape in the close-out.
 2. Never break in place. Optional fields, params, headers, methods, and
    endpoints evolve in place. Renames, removals, required additions,
    status-code changes, and semantic changes need a successor contract or a

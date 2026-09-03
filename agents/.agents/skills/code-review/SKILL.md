@@ -11,9 +11,10 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 ## When to Use
 
-- Self-review of your own diff in the `workflow` completion loop, after
-  `proof` and before claiming done. Default for any non-trivial agent-generated
-  change.
+- Independent review of your diff in the `workflow` completion loop, after
+  `proof` and before claiming done. Default for any non-trivial
+  agent-generated change; use a fresh-context subagent, review agent, or
+  separate session when the host provides one.
 - Diff review: local, branch, or a GitHub PR through the host's GitHub surface.
 - Review-comment follow-up on the user's own PRs.
 
@@ -29,8 +30,8 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
    regressions, unsafe edge cases, missing evidence, and merge blockers.
 2. Findings come first, in severity order, each with a file/line or thread
    anchor, the issue, its impact, a fix direction, and the evidence or missing
-   proof. Summaries and compliments come after. Use a question only when
-   ambiguity blocks the finding.
+   proof. Summaries come after. Use a question only when ambiguity blocks the
+   finding.
 
    | Severity | When to use |
    |---|---|
@@ -51,40 +52,40 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
    compatibility, unreachable paths. Style is not blocking unless it hides
    ambiguity or unsafe control flow.
 6. Agent-written code gets an AI-generated risk pass: speculative abstraction,
-   unnecessary compatibility shims, dead defensive code, test theater,
-   fabricated APIs, scope creep, refactor drift, and code too large or vague
-   for the human to keep a mental model of. Hand-rolled versions of solved
-   problems (HTTP clients, ORMs, parsers, retry loops, validators, crypto)
-   are findings.
+   unnecessary shims, dead defensive code, test theater, fabricated APIs,
+   scope creep, refactor drift, and code too large or vague for the human to
+   keep a mental model of. Hand-rolled versions of solved problems (HTTP
+   clients, ORMs, parsers, retry loops, validators, crypto) are findings.
 7. A diff the human cannot review in one sitting gets a declared partial
    scope, and split/scope becomes a finding. Bundled reformatting or unrelated
    edits are split before deep review. Sample generated, vendored, and
    lockfile churn only enough to detect obvious risk.
-8. GitHub: never reach it without explicit permission (`git-workflow` owns
-   that gate). Modify a PR only when it belongs to the user or the user asks.
-   Ask before every write: comments, reviews, thread resolution, pushes. When
+8. GitHub reads run through the host's permission surface; `git-workflow`
+   owns which surface. Modify a PR only when it belongs to the user or the
+   user asks, and get explicit user permission for every write that publishes
+   text: comments, reviews, thread resolution, pushes. When
    addressing feedback, fix the smallest coherent set of actionable requests
    and surface conflicting comments before editing.
 
 ### Independent Review
 
-The strongest review comes from a reviewer with no implementation context: a
-subagent, a fresh session, or the same agent reading the diff cold after the
-reasoning has left context. A host review surface satisfies this when it
-receives exactly these inputs and nothing more:
+Code review runs in a fresh context: a subagent, review agent, fresh session,
+or host review command. Claude Code, Codex, Cursor, and Pi all have a
+mechanism. Same-context review is not code review, only a labelled fallback
+when the host truly lacks one. The reviewer gets exactly these inputs:
 
 - The diff.
 - The stated intent and acceptance criteria.
 - The repo's declared constraints: runtime, framework, support policy, test
   command.
 
-Withhold the implementation rationale. Why a line is there is precisely what
-biases a reviewer into accepting it; a reviewer who has to work out the intent
-from the diff finds what the author's own second pass cannot. Answer questions
-the reviewer asks, but do not pre-empt them with justification.
+Withhold the implementation rationale. Why a line is there is what biases a
+reviewer into accepting it; one who works the intent out from the diff finds
+what the author's second pass cannot. Answer the reviewer's questions, but do
+not pre-empt them with justification.
 
-When no independent reviewer is available, say the review was same-context
-and treat its clean result as weaker evidence.
+When no independent reviewer is available, label the review same-context and
+treat its clean result as weaker evidence.
 
 ## Workflow
 
@@ -93,8 +94,8 @@ and treat its clean result as weaker evidence.
 2. Load only what the diff needs: the language guide for each language present
    and the domain skill for each touched risk. Load `release` only for
    concrete release artifacts or explicit release-readiness review.
-3. Sweep by risk: security, behavior, evidence, dead surface, reuse and
-   composition, build-vs-adopt, AI-generated risk.
+3. Sweep by risk: security, behavior, evidence, dead surface, reuse,
+   build-vs-adopt, AI-generated risk.
 4. Write findings first. If none, name residual risk and unreviewed scope.
 
 ## Tripwires

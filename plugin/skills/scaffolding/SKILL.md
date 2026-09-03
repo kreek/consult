@@ -32,8 +32,9 @@ the baseline without local knowledge.
    1. Approve: create files, install packages, run generators
    2. Refine: change the scaffold plan
    3. Cancel: stop scaffolding
-2. Ask before researching or selecting a structural runtime dependency
-   (framework, database, ORM, auth client, SDK, state library, job queue)
+2. Research is free. Audit candidate dependencies without asking, then get
+   approval before selecting or installing a structural runtime dependency
+   (framework, database, ORM, auth client, SDK, state library, job queue),
    unless the user or the selected stack already named it.
 3. Recommend one option per choice in priority order (language/runtime,
    deployment assumption, framework/template, framework-local choices) and
@@ -73,7 +74,7 @@ the baseline without local knowledge.
 | "The command passed, so the scaffold works" | Verify the requirement, artifact, and command mapping, not only command success. | None. |
 | "Set up git later" | Initialize git and `.gitignore` before feature code. | The user or environment blocks repo creation and the skip is reported. |
 | "Approval would slow this down, just create the files" | Present Approve, Refine, and Cancel before scaffold mutation. | The request already specified every material setup choice. |
-| "I'll pick the framework/ORM myself" | Ask before researching or selecting structural dependencies. | The user or selected stack already named the choice, or it is a small dev-only utility. |
+| "I'll pick the framework/ORM myself" | Research candidates freely; get approval before selecting or installing one. | The user or selected stack already named the choice, or it is a small dev-only utility. |
 
 ## Handoffs
 

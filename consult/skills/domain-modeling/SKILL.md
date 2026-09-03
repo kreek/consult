@@ -55,8 +55,8 @@ against it.
 9. Each non-trivial invariant or transition gets a Proof Contract (claim,
    data invariant, boundary, check, evidence) via `proof`.
 10. A core model, shared invariant, or state machine future work will bind to
-    is listed for approval before implementation, through `contract-first`.
-    Disposable or purely local shapes are not gated.
+    is listed for approval before implementation; `contract-first` owns the
+    approval scope. Disposable or purely local shapes are not gated.
 11. Load `references/dates.md` whenever the diff stores, compares, formats,
     serializes, or computes on dates or times, and `references/money.md`
     whenever it does so on monetary amounts.

@@ -1,6 +1,6 @@
 ---
 name: security
-description: Use for security, auth, secrets, crypto, input validation, dependency risk, trust boundaries.
+description: Use when auth, secrets, crypto, trust boundaries, dependency risk, or untrusted input are at stake.
 ---
 
 # Security
