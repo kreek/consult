@@ -6,6 +6,42 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.0.0] (2026-09-02)
+
+### Changed
+
+- Every skill body is rewritten from knowledge to policy. Each rule is now
+  stated once under a new `## Rules` section; the `## Core Ideas`,
+  `## Workflow` (where ordering was not itself the policy), `## Verification`,
+  and `## Before Saying Done` sections that restated the same rules are gone.
+  Explanations of standard engineering practice a current model applies
+  unprompted are removed; sign-off gates, house thresholds, philosophy, and
+  tripwires are kept. Canonical SKILL.md text drops from 23,337 words to
+  under 11,000.
+- The contract-first gate ("an approving design or RFC approves the direction,
+  not the concrete shapes") is defined only in `contract-first` and `workflow`.
+  `api`, `architecture`, `domain-modeling`, `async-systems`, and `database`
+  keep one routing line each instead of restating it.
+- Retry policy lives in `error-handling`, the middleware-vs-handler rule in
+  `api`, and the redaction allowlist in `security`; neighbors hand off.
+- Every `## References` entry names when to load it.
+- `scripts/validate-skill-anatomy.mjs` requires `## Rules`, rejects the
+  retired sections, caps Tripwires at 8 rows, drops the "Tripwires must not be
+  the longest section" rule, and enforces a body budget of 700 words (900 for
+  `proof` and `code-review`, 1,000 for `workflow`). Table pipes do not count.
+- `AGENTS.md` and `CONTRIBUTING.md` carry the new template and the
+  knowledge-versus-policy authoring rule.
+
+### Removed
+
+- `accessibility` skill, merged into `ui-design`. The WCAG 2.2 AA floor, the
+  focus-indicator threshold, and the accessibility tripwires move into
+  `ui-design`; `references/accessibility.md` moves with them. `workflow`
+  routes keyboard, focus, ARIA, and contrast work to `ui-design`.
+- `async-systems/references/{kafka,kinesis,redis-streams}.md`. They were
+  vendor documentation recall; `browser-streaming.md` stays because it carries
+  the polling-first decision.
+
 ## [12.0.0] (2026-08-20)
 
 ### Removed

@@ -19,12 +19,8 @@ import { fileURLToPath } from "node:url";
 import { MIRROR_DESTS } from "./generate-plugin-symlinks.mjs";
 
 const REQUIRED_SECTIONS = ["When to Use", "When NOT to Use", "Rules"];
-// Migration allowance: until every skill carries ## Rules, a skill that still
-// has the old ## Verification / ## Core Ideas / ## Before Saying Done sections
-// passes, and the word budget applies only once it has migrated. Flip to false
-// when the last skill migrates.
-const LEGACY_SECTIONS_ALLOWED = true;
-const LEGACY_RULES_SECTION = "Verification";
+// Retired by the Rules-section anatomy. A skill that still carries one of
+// these restates its rules; the validator rejects it.
 const OBSOLETE_RULE_SECTIONS = ["Core Ideas", "Verification", "Before Saying Done"];
 // A SKILL.md is steering context, not a book. The budget is the regression
 // guard for the knowledge-vs-policy trim: rules the model cannot derive fit
@@ -162,20 +158,15 @@ export function validateSkillFile(path) {
     problems.push(`frontmatter description too long (${description.length} > ${MAX_DESCRIPTION_LENGTH} characters)`);
   }
 
-  const hasRules = sectionRe("Rules").test(body);
-  const legacy = LEGACY_SECTIONS_ALLOWED && !hasRules && sectionRe(LEGACY_RULES_SECTION).test(body);
   for (const heading of REQUIRED_SECTIONS) {
-    if (heading === "Rules" && legacy) continue;
     if (!sectionRe(heading).test(body)) problems.push(`missing section: ## ${heading}`);
   }
-  if (!legacy) {
-    for (const heading of OBSOLETE_RULE_SECTIONS) {
-      if (sectionRe(heading).test(body)) problems.push(`obsolete section: ## ${heading} -- state the rule once under ## Rules`);
-    }
-    const words = bodyWordCount(body);
-    const budget = BODY_WORD_EXCEPTIONS[skillName(head)] ?? MAX_BODY_WORDS;
-    if (words > budget) problems.push(`body too long (${words} > ${budget} words) -- keep policy, drop explanation`);
+  for (const heading of OBSOLETE_RULE_SECTIONS) {
+    if (sectionRe(heading).test(body)) problems.push(`obsolete section: ## ${heading} -- state the rule once under ## Rules`);
   }
+  const words = bodyWordCount(body);
+  const budget = BODY_WORD_EXCEPTIONS[skillName(head)] ?? MAX_BODY_WORDS;
+  if (words > budget) problems.push(`body too long (${words} > ${budget} words) -- keep policy, drop explanation`);
 
   if (sectionRe("Common Rationalizations").test(body)) {
     problems.push("obsolete section: ## Common Rationalizations -- use ## Tripwires");
@@ -190,7 +181,7 @@ export function validateSkillFile(path) {
     problems.push("Tripwires must use the '| Trigger | Do this instead | False alarm |' table format");
   }
   const tripwireRows = tripwireRowCount(body);
-  if (!legacy && tripwireRows > MAX_TRIPWIRE_ROWS) {
+  if (tripwireRows > MAX_TRIPWIRE_ROWS) {
     problems.push(`Tripwires has ${tripwireRows} rows (max ${MAX_TRIPWIRE_ROWS}) -- keep only high-probability failure moments`);
   }
 
