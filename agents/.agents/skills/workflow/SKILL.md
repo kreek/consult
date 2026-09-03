@@ -89,8 +89,7 @@ description: Use first for every coding task to route risks, choose skills, defi
    | `security` | Auth, secrets, trust boundaries, user-controlled input. |
    | `error-handling` | Error types, propagation, recovery, retries, user-facing failures. |
    | `async-systems` | Queues, workers, streams, ordering, concurrency. |
-   | `ui-design` | Any user-facing UI surface, including basic styling. |
-   | `accessibility` | Keyboard, focus, semantics, ARIA, contrast, inclusive UI. |
+   | `ui-design` | Any user-facing UI surface, including basic styling, keyboard, focus, ARIA, contrast. |
    | `observability` | Logs, metrics, traces, health, SLOs, alerts. |
    | `performance` | Latency, throughput, memory, CPU, caching, resource use. |
    | `documentation` | Existing-code docs are the deliverable or a validator-required obligation. |

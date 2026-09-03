@@ -159,7 +159,7 @@ are present. End-user installs do not need Python or uv.
 
 ## Skills
 
-Consult includes 24 skills. Open a skill for its triggers, workflow, and
+Consult includes 23 skills. Open a skill for its triggers, workflow, and
 verification.
 
 - Routing and proof:
@@ -183,8 +183,7 @@ verification.
 - Public surfaces:
   - [`api`](agents/.agents/skills/api/SKILL.md): REST API contracts: endpoints, fields, evolution, status codes, errors, pagination, idempotency.
   - [`documentation`](agents/.agents/skills/documentation/SKILL.md): READMEs, ADRs, runbooks, API docs, and comments.
-  - [`ui-design`](agents/.agents/skills/ui-design/SKILL.md): Frontend UI, layouts, components, responsive behavior, and usability.
-  - [`accessibility`](agents/.agents/skills/accessibility/SKILL.md): WCAG, ARIA, keyboard, focus, contrast, and inclusive states.
+  - [`ui-design`](agents/.agents/skills/ui-design/SKILL.md): Frontend UI, layouts, components, responsive behavior, accessibility, WCAG, keyboard, and focus.
 - Production quality:
   - [`async-systems`](agents/.agents/skills/async-systems/SKILL.md): Concurrency, queues, streams, pub/sub, ordering, and backpressure.
   - [`observability`](agents/.agents/skills/observability/SKILL.md): Logs, metrics, traces, health checks, dashboards, alerts, and SLOs.

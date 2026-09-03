@@ -1,87 +1,94 @@
 ---
 name: ui-design
-description: Use for frontend UI, layouts, components, responsive behavior, visual design, usability.
+description: Use for frontend UI, layouts, components, responsive behavior, accessibility, WCAG, keyboard, focus.
 ---
 
 # UI Design
 
 ## Iron Law
 
-`START FROM THE USER TASK AND HIERARCHY; EVERY ELEMENT EARNS ITS PLACE.`
+`START FROM THE USER TASK AND HIERARCHY; EVERY ELEMENT EARNS ITS PLACE. WCAG 2.2 AA IS THE FLOOR.`
 
 ## When to Use
 
-- Building or changing any user-facing UI surface: layout, components, design
-  systems, typography, color, motion, responsive behavior, or frontend
-  structure. Simple forms, single-page apps, and "just basic styling" all
-  qualify; the polished-product threshold is too high a bar.
+- Building, changing, or reviewing any user-facing UI surface: layout,
+  components, design systems, typography, color, motion, responsive
+  behavior, forms, navigation, modals, custom controls, interactive states.
+  Simple forms, single-page apps, and "just basic styling" all qualify; the
+  polished-product threshold is too high a bar.
+- Testing keyboard flow, focus order, screen-reader behavior, contrast,
+  reduced motion, forced colors, or accessible names.
 
 ## When NOT to Use
 
 - Backend API shape; use `api`.
-- Accessibility-specific implementation or review; use `accessibility`.
 - Frontend runtime debugging or tests only; pair with `proof` and browser
   tooling.
 - Performance profiling beyond UI design choices; use `performance`.
 
-## Core Ideas
+## Rules
 
-1. One screen has one primary action and a clear information order.
-2. Use a small token system for spacing, type, color, radius, and motion.
-   Apply tokens consistently; avoid stray one-off values.
-3. Accessibility is a design input, not a later review pass. Design keyboard,
-   focus, contrast, reduced motion, touch targets, and screen-reader flow up
-   front.
-4. Component APIs express intent and state, not implementation convenience.
-5. Modern CSS should reduce JavaScript and layout hacks when browser support
-   allows it.
-
-## Workflow
-
-1. Identify the user, task, device constraints, and primary action. Choose
-   existing framework/design-system patterns before inventing new ones.
-2. Define hierarchy, layout, states, empty/error/loading behavior, and
-   responsive rules.
-3. Apply tokens consistently. Remove elements that do not improve
+1. One screen has one visually dominant primary action and an information
+   order that survives a squint test. Remove elements that do not improve
    comprehension, trust, or action.
-4. Verify with real rendering, keyboard navigation, contrast, and
-   reduced-motion behavior.
-
-## Verification
-
-- [ ] Hierarchy survives a squint/blur test, and one primary action is
-      visually dominant per screen.
-- [ ] Token system covers spacing, type, color, radius, motion; no stray
-      one-off values in committed CSS.
-- [ ] Accessibility inputs were considered at design time, not patched after:
-      keyboard reach, focus order, contrast, reduced motion, touch target,
-      screen-reader flow.
-- [ ] UI states exist for loading, empty, error, disabled, and success where
-      applicable.
+2. Define the user task, state, and flow before choosing a framework, and
+   choose existing framework or design-system patterns before inventing new
+   ones.
+3. A small token system covers spacing, type, color, radius, and motion. No
+   stray one-off values in committed CSS.
+4. Loading, empty, error, disabled, and success states are defined with the
+   layout, not later.
+5. Accessibility is a design input, not a later review pass. Native HTML
+   controls and semantics come before ARIA: `<button type="button">` for
+   actions, `<a href>` for navigation, `<nav>` with links for site
+   navigation, `<dialog>` with `.showModal()` for modals. Every interactive
+   element has name, role, value, state, and keyboard behavior.
+6. Focus is visible: at least a 2px outline at 3:1 contrast against both
+   adjacent surfaces, with a transparent fallback for Forced Colors. Tab
+   order follows DOM order; positive `tabindex` has no safe use. Focus is
+   restored after a modal or overlay closes.
+7. Color is never the only signal. Text and non-text contrast, target size,
+   and reflow meet WCAG 2.2 AA. Reduced motion, forced colors, high
+   contrast, and dark mode follow user preferences.
+8. Forms have explicit labels, grouped controls, errors tied to fields, and
+   no placeholder-only instructions. Dragging has a single-pointer
+   alternative. Authentication never depends on a cognitive test.
+9. Automated checks catch only part of the problem. Meaningful UI changes get
+   manual keyboard testing, and custom controls, dialogs, menus, tabs, forms,
+   and live updates get screen-reader testing. Remaining gaps are recorded as
+   explicit blockers or deferred work, never left implicit.
 
 ## Tripwires
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "Add a card/section so it looks richer" | Start from the user task and hierarchy. Remove elements that do not improve comprehension, trust, or action. | The card groups repeated peer items or frames a real tool surface. |
+| "Add a card/section so it looks richer" | Start from the user task and hierarchy. | The card groups repeated peer items or frames a real tool surface. |
 | "We'll add loading/error/empty states later" | Define the required states with the layout. | The component cannot load, fail, or be empty. |
-| "One-off spacing fixes this screen" | Use or extend the token system intentionally. | A browser or platform quirk needs a documented local fix. |
-| "Custom control first, semantics later" | Start with native controls and route accessibility-specific behavior to `accessibility`. | The existing design system control already proves semantics and keyboard behavior. |
-| "Pick the frontend framework before the interaction model" | Define the UI task, state, and flow first; use existing repo patterns where possible. | The user explicitly asked to compare frameworks. |
+| "One-off spacing fixes this screen" | Use or extend the token system. | A browser or platform quirk needs a documented local fix. |
+| "A styled div works as a button" | Use the native control. | A design-system control that already proves semantics and keyboard behavior. |
+| "Hand-roll the modal focus trap" | Use native `<dialog>` and `.showModal()`. | Target browsers lack `<dialog>` support and the fallback is documented. |
+| "Remove the ugly focus outline" | Replace `outline: none` with a measured 2px outline and Forced Colors fallback. | An equivalent focus indicator meeting contrast is applied. |
+| "Add an `aria-label` to be safe" | Keep visible text as the accessible name; `aria-label` only for icon-only controls. | The control is icon-only. |
+| "Fix the order with `tabindex='1'`" | Fix tab order by DOM order. | None. |
 
 ## Handoffs
 
-- Use `proof` for UI behavior tests and browser-verified flows.
-- Use `accessibility` for WCAG, ARIA, semantic HTML, keyboard, focus, contrast,
-  screen-reader, and inclusive-design work.
-- Use `performance` for measured Core Web Vitals or rendering regressions.
-- Use `documentation` for design-system usage docs and ADRs.
+- `proof`: UI behavior tests and browser-verified flows, including
+  accessibility-critical paths.
+- `performance`: measured Core Web Vitals or rendering regressions.
+- `documentation`: design-system usage docs and accessibility statements.
 
 ## References
 
-- `references/canon.md`: design principles, product/tool defaults, common
-  failure modes.
-- `references/frameworks.md`: frontend framework tradeoffs.
-- `references/platforms.md`: platform and government design systems.
-- `references/css.md`: modern CSS capabilities.
-- `references/typography.md`: Bringhurst-informed typography for product UI.
+- `references/accessibility.md`: load when the diff touches focus, dialogs,
+  ARIA, forms, live regions, or a WCAG criterion you need to quote.
+- `references/canon.md`: load when choosing product or tool defaults, or
+  reviewing a screen against common failure modes.
+- `references/typography.md`: load when setting type scale, measure, or
+  rhythm.
+- `references/css.md`: load when a layout or interaction is about to reach
+  for JavaScript that modern CSS can do.
+- `references/frameworks.md`: load when the user asks to compare frontend
+  frameworks.
+- `references/platforms.md`: load when targeting a platform or government
+  design system.

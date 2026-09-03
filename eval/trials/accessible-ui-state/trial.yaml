@@ -3,6 +3,5 @@ taskFile: task.md
 plugin: engineering-maturity
 features:
   - ui-design
-  - accessibility
 variants:
   default: {}

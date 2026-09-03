@@ -1,4 +1,0 @@
-interface:
-  display_name: "Consult: Accessibility"
-  short_description: "Verify inclusive, accessible UI"
-  default_prompt: "Use $accessibility to review this interface for WCAG, keyboard, focus, and screen-reader issues."
