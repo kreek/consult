@@ -21,6 +21,10 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   drafted for PR authors. Author-facing feedback stays courteous and specific,
   labels required versus optional changes, and uses questions for genuine
   clarification or alternatives without softening verified blockers.
+- The `async-systems` skill treats cross-process job, event, and stream messages
+  as versioned contracts. It now names schema sources, producer and consumer
+  ownership, compatibility checks, rollout and replay needs, and contract
+  proof across producer and consumer boundaries.
 
 ## [14.0.0] (2026-09-02)
 

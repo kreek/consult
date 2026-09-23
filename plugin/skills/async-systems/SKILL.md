@@ -1,18 +1,18 @@
 ---
 name: async-systems
-description: Use for async systems, concurrency, queues, streams, pub/sub, ordering, backpressure.
+description: Use for async systems, message contracts and schemas, queues, streams, concurrency, ordering, backpressure.
 ---
 
 # Async Systems
 
 ## Iron Law
 
-`EVERY ASYNC BOUNDARY NAMES OWNERSHIP, LIFETIME, BACKPRESSURE, AND FAILURE SEMANTICS.`
+`EVERY ASYNC BOUNDARY NAMES ITS CONTRACT, OWNER, LIFETIME, BACKPRESSURE, AND FAILURE SEMANTICS.`
 
 ## When to Use
 
-- Designing or reviewing async execution, background work, live updates,
-  streams, brokers, ordering, and backpressure.
+- Designing or reviewing async execution, cross-process message contracts,
+  background work, live updates, streams, brokers, ordering, and backpressure.
 - Investigating races, deadlocks, stuck tasks, starvation, retry exhaustion,
   dead jobs, lag, poison messages, or delivery issues.
 
@@ -43,11 +43,20 @@ description: Use for async systems, concurrency, queues, streams, pub/sub, order
 6. Retried jobs and stream consumers are idempotent, deduplicated, or marked
    non-retryable with a reason. Retry policy itself belongs to
    `error-handling`.
-7. Event schemas are contracts: versioned, consumer-compatible, and routed
-   through `contract-first` when durable. Delivery guarantee, ordering key,
-   retention, replay, ack/offset, DLQ, and poison-message handling are
-   explicit for streams.
-8. Silent async failure is a bug. Exhausted jobs, lag, dropped events, and
+7. Cross-process jobs, events, and stream records have versioned contracts.
+   Name the producer and consumers, channel or topic, message meaning,
+   key/headers, payload schema, and serialization. Keep the schema in the
+   system's versioned source of truth, such as a native schema definition,
+   JSON Schema, Avro, Protobuf, or an existing registry. Route contracts that
+   independently deployed producers or consumers, or retained messages, bind
+   to through `contract-first`.
+8. Choose compatibility direction and history range from rollout order,
+   retention, and replay. When using a registry, confirm its compatibility
+   mode covers every still-deliverable or replayable schema version. Exercise
+   affected producers and consumers against each contract version they may
+   encounter. Delivery guarantee, ordering key, retention, replay, ack/offset,
+   DLQ, and poison-message handling are explicit for streams.
+9. Silent async failure is a bug. Exhausted jobs, lag, dropped events, and
    dead work have visible signals and tests.
 
 ## Tripwires
@@ -59,10 +68,12 @@ description: Use for async systems, concurrency, queues, streams, pub/sub, order
 | "Enqueue inside the transaction" | Enqueue after commit or use a transactional outbox when the job reads transaction-written state. | The job reads none of the transaction's writes. |
 | "One queue is enough for everything" | Isolate user-facing work from bulk queues with priority, concurrency, timeout, or separate workers. | The workload is uniform with no user-facing latency expectation. |
 | "We need Kafka for this" | Name the requirement polling, SSE, or WebSockets cannot meet before choosing a broker. | The requirement is named and recorded. |
+| "It's just JSON on a topic" | Define a versioned message schema and check consumer compatibility, using the existing registry when present. | The channel is in-process, with no retained messages or independent consumer. |
 
 ## Handoffs
 
-- `contract-first`: durable event-schema or topic-contract approval.
+- `contract-first`: message or topic contracts that deployed participants or
+  retained work bind to.
 - `domain-modeling`: remove shared mutable state from the core.
 - `api`: public subscription, webhook, or SSE surface.
 - `error-handling`: retry budgets and dependency-failure policy.
@@ -70,8 +81,10 @@ description: Use for async systems, concurrency, queues, streams, pub/sub, order
 - `observability`: queue depth, lag, dead-job dashboards and alerts.
 - `release`: worker draining and deploy compatibility.
 - `debugging`: existing races, deadlocks, stuck jobs.
-- `proof`: assert ownership, ordering, backpressure, and failure semantics at
-  every producer, queue, and consumer seam.
+- `official-source-check`: registry and schema-format compatibility behavior.
+- `proof`: validate serialized producer output and show affected consumers
+  handle every contract version still deliverable or replayable; assert
+  ownership, ordering, backpressure, and failure at the async boundary.
 
 ## References
 
