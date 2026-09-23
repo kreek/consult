@@ -7,7 +7,7 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 
 ## Iron Law
 
-`DESIGN THE CONTRACT FIRST. EVOLVE WITHOUT BREAKING. PICK STATUS BY ORIGIN.`
+`DEFINE THE CONTRACT FIRST. PRESERVE SHIPPED CALLERS. PICK STATUS BY FAILURE.`
 
 ## When to Use
 
@@ -26,24 +26,31 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 
 ## Rules
 
-1. Sketch the contract (OpenAPI or the repo's contract source) before
-   controller code and implement from it. Every response shape is explicit,
-   including errors, empty states, pagination, and auth failures. Durable
-   API interfaces route through `contract-first`. Additive changes old callers
-   cannot notice (a new optional field, param, or endpoint) proceed without a
-   stop; state the shape in the close-out.
-2. Never break in place. Optional fields, params, headers, methods, and
-   endpoints evolve in place. Renames, removals, required additions,
-   status-code changes, and semantic changes need a successor contract or a
-   deprecation path with an overlap window. One versioning strategy per
-   service, applied consistently; compatible additions never re-version.
-3. Status by origin: `4xx` for consumer-request problems, `5xx` for upstream
-   or your-service problems. Never mix origins in one response. Never leak raw
-   upstream or internal errors.
-4. Default to JSON:API for REST resource APIs. Switch only when the domain has
-   its own standard (FHIR for healthcare, HAL for hypermedia, JSON-LD for
-   semantic-web interop). The chosen model's native error shape is the error
-   contract; these conventions are not interchangeable. Document deviations.
+1. Sketch new or changed caller-visible behavior in OpenAPI or the repo's
+   contract source before controller code, then implement from it. For a fix
+   that restores existing behavior, use the current contract as the source of
+   truth. Make every response shape explicit, including errors, empty states,
+   pagination, and auth failures. Durable API interfaces route through
+   `contract-first`. Additive changes old callers cannot notice (a new
+   optional field, param, or endpoint) proceed without a stop; state the shape
+   in the close-out.
+2. Preserve shipped contracts with independent callers. Optional fields,
+   params, headers, methods, and endpoints evolve in place when old callers
+   can ignore them. When they alter a shipped contract, renames, removals,
+   required additions, status-code changes, and semantic changes need a
+   successor contract or a deprecation path with an overlap window. An
+   explicitly unstable contract or one whose callers are all known and
+   updated atomically may change in place. Use one versioning strategy per
+   service; compatible additions never re-version.
+3. Use `4xx` for caller-side conditions such as invalid input, missing
+   resources, authorization, or rate limits; use `5xx` when this service or a
+   dependency cannot fulfill a valid request.
+   Never mix origins in one response or leak raw upstream or internal errors.
+4. Preserve an existing service's representation and error contract. For a new
+   REST resource API with no established format, default to JSON:API unless a
+   domain standard or client interoperability need favors another documented
+   choice. New APIs use the chosen model's native error shape; document
+   deviations.
 5. Non-idempotent mutations define idempotency key scope, replay window,
    duplicate response, and conflict semantics, or are documented as unsafe to
    retry.
@@ -61,8 +68,8 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "Renaming this field is harmless" | Treat renames and removals as breaking unless a successor contract or deprecation path exists. | The field never shipped to any caller. |
-| "Any error can be a 400 (or a 500)" | Pick status by origin. | None. |
+| "Renaming this field is harmless" | Preserve shipped callers with a successor contract or deprecation path. | The field never shipped, or all callers are known and updated atomically. |
+| "Any error can be a 400 (or a 500)" | Classify caller-side conditions and service failures separately. | None. |
 | "Return whatever the handler has" | Define response and error shape in the contract first. | None. |
 | "The list is small, skip pagination" | Define bounded pagination and invalid-token behavior before the endpoint can grow. | The collection is provably bounded, such as an enum-sized set. |
 | "Callers can just retry the mutation" | Define the idempotency contract first, or document the mutation as unsafe to retry. | The mutation is naturally idempotent and documented as such. |
@@ -72,8 +79,8 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 ## Handoffs
 
 - `contract-first`: durable API approval.
-- `proof`: assert status codes, error envelopes, and pagination at the
-  request-to-handler and handler-to-response seams.
+- `proof`: test request-to-response behavior, including status codes, error
+  envelopes, and pagination.
 - `error-handling`: internal failure mapping, timeouts, retries behind the API.
 - `security`: authn/authz, input trust, SSRF, data exposure.
 - `async-systems`: SSE, subscriptions, event streams.

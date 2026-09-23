@@ -6,6 +6,18 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [15.0.0] (2026-09-23)
+
+### Changed
+
+- The `api` skill preserves shipped contracts with independent callers while
+  allowing explicitly unstable or fully coordinated contracts to change in
+  place. Existing service representations take precedence; JSON:API remains
+  the default for new resource APIs without an established format or stronger
+  interoperability need. Contract-first work distinguishes new behavior from
+  fixes that restore an existing contract, and proof targets the full HTTP
+  request-to-response boundary.
+
 ## [14.0.0] (2026-09-02)
 
 ### Changed

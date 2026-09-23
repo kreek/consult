@@ -57,9 +57,10 @@ major version only if `GET /claims` does not silently become paged.
 
 ## Versioning Strategies
 
-When a change cannot be evolved in place, ship the successor contract
-under a new version. Pick one strategy per service and apply it
-consistently:
+When a shipped contract with independent callers cannot be evolved in place,
+ship the successor under a new version. An explicitly unstable contract or one
+whose callers are all known and updated atomically may change in place. Pick
+one versioning strategy per service and apply it consistently:
 
 - **URL path** (`/v1/...`, `/v2/...`): most discoverable, simplest to
   route and cache. Major versions only; minor and patch live inside
@@ -78,8 +79,8 @@ strategy in the API reference and stick to it.
 
 ## Bumping
 
-- Bump the major version only when the change is breaking under the
-  Evolutionary/Breaking rules above.
+- Bump the major version when a shipped contract with independent callers
+  needs a breaking successor under the Evolutionary/Breaking rules above.
 - Compatible additive changes never re-version; the same major can
   carry many minor additions.
 - Pre-release contracts (`v0.x`, alpha, beta) may break without a
@@ -87,8 +88,8 @@ strategy in the API reference and stick to it.
 
 ## Overlap Windows and Sunset
 
-Every retired version needs an overlap window during which both
-versions serve traffic:
+Every retired version with independent callers needs an overlap window during
+which both versions serve traffic:
 
 - Announce deprecation in API docs, response headers (`Deprecation`,
   `Sunset`), and changelog entries.

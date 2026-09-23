@@ -7,11 +7,12 @@ are expensive to re-invent.
 
 ## Rule
 
-For any new REST API, default to **JSON:API**. Switch to a
-domain-specific standard only when one applies. Document any
-deviations from the chosen standard explicitly.
+Preserve an existing service's representation. For a new REST resource API
+with no established format, default to **JSON:API** unless a domain standard
+or client interoperability need favors another documented choice. Document
+the reason for that choice and any deviations from the chosen standard.
 
-## JSON:API (default)
+## JSON:API (new resource API default)
 
 JSON:API (jsonapi.org) standardizes the resource envelope, error
 shape, relationships, and pagination for REST APIs. It is the
@@ -56,8 +57,12 @@ without the relationship and error conventions.
 
 ## Choosing
 
-- **Domain fit first.** Healthcare → FHIR. Hypermedia navigation →
-  HAL. Linked data → JSON-LD. Everything else → JSON:API.
+- **Existing contracts first.** Keep a service's established representation
+  unless the change explicitly includes a migration.
+- **Domain and client fit.** Healthcare → FHIR. Hypermedia navigation →
+  HAL. Linked data → JSON-LD. For a new resource API with no established
+  format, use JSON:API unless client interoperability needs favor another
+  documented model.
 - **Ecosystem and tooling.** Validators, code generators, IDE
   support, mock servers, and conformance test suites compound
   productivity.
@@ -67,12 +72,14 @@ without the relationship and error conventions.
 
 ## Errors Within the Model
 
-Use the chosen model's native error shape; do not mix or hybridize:
+Preserve an existing service's error contract unless migration is in scope.
+For a new API, use the chosen model's native error shape; do not mix or
+hybridize:
 
 - **JSON:API** → top-level `errors` *array* of error objects (fields
   above).
 - **FHIR** → `OperationOutcome` resource with `issue[]` entries.
-- **Plain JSON / custom** → RFC 9457 Problem Details: a single
+- **New plain JSON / custom API** → RFC 9457 Problem Details: a single
   top-level object with `type` (URI), `title`, `status` (integer),
   `detail`, and `instance` (URI).
 
@@ -89,9 +96,10 @@ field-name variants:
 - Problem Details has `instance` (URI for this occurrence); JSON:API
   has `id` (string for this occurrence).
 
-Pick one shape per API and apply it consistently. Translating between
-shapes at gateways or proxies requires a documented mapping; consumer
-tooling cannot assume one shape decodes the other.
+Pick one shape per new API and apply it consistently. Preserve an established
+error envelope in an existing API; change it through an explicit migration.
+Translating between shapes at gateways or proxies requires a documented
+mapping; consumer tooling cannot assume one shape decodes the other.
 
 Mixing shapes within an API breaks consumer tooling.
 

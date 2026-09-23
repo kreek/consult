@@ -1,12 +1,14 @@
 # REST Error Status Codes
 
 Use this decision tree when choosing HTTP status codes for REST API errors.
-Choose by where the failure originates, then translate to a stable public error
+Choose by whether the failure is a caller-side condition or a valid request
+failed in the service or a dependency. Then translate to a stable public error
 contract. Never pass raw upstream or internal errors through to consumers.
 
 ## Request-Origin Errors
 
-Use `4xx` when the consumer can change the request to make it succeed.
+Use `4xx` for caller-side conditions such as invalid input, missing resources,
+authorization, or rate limits.
 
 - `401 Unauthorized`: the caller is not authenticated or the credentials are
   missing, expired, malformed, or invalid.
