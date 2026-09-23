@@ -28,10 +28,9 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
 
 1. Review owns defect discovery; `proof` owns checks. Find behavioral bugs,
    regressions, unsafe edge cases, missing evidence, and merge blockers.
-2. Findings come first, in severity order, each with a file/line or thread
-   anchor, the issue, its impact, a fix direction, and the evidence or missing
-   proof. Summaries come after. Use a question only when ambiguity blocks the
-   finding.
+2. Reports to the requester put findings first by severity. Each names a
+   file/line or thread anchor, issue, impact, fix direction, and evidence or
+   missing proof. Summaries follow. Ask only when uncertainty blocks a finding.
 
    | Severity | When to use |
    |---|---|
@@ -60,12 +59,16 @@ description: Use to review diffs and PRs for bugs, regressions, edge cases, proo
    scope, and split/scope becomes a finding. Bundled reformatting or unrelated
    edits are split before deep review. Sample generated, vendored, and
    lockfile churn only enough to detect obvious risk.
-8. GitHub reads run through the host's permission surface; `git-workflow`
-   owns which surface. Modify a PR only when it belongs to the user or the
-   user asks, and get explicit user permission for every write that publishes
-   text: comments, reviews, thread resolution, pushes. When
-   addressing feedback, fix the smallest coherent set of actionable requests
-   and surface conflicting comments before editing.
+8. GitHub reads use host permissions; `git-workflow` owns access. Modify a PR
+   only if it belongs to the user or the user asks. Get explicit permission
+   for every published write: comment, review, thread resolution, or push.
+   Address the smallest coherent set of feedback and surface conflicts before
+   editing.
+9. PR comments are courteous and specific: critique code, explain impact, and
+   label required versus optional feedback. Ask genuine questions for
+   clarification or alternatives; state verified blockers plainly. Suggest
+   fixes and acknowledge specific strengths when useful. Match the GitHub
+   review decision to requiredness.
 
 ### Independent Review
 

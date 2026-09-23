@@ -17,6 +17,10 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   interoperability need. Contract-first work distinguishes new behavior from
   fixes that restore an existing contract, and proof targets the full HTTP
   request-to-response boundary.
+- The `code-review` skill separates private findings reports from comments
+  drafted for PR authors. Author-facing feedback stays courteous and specific,
+  labels required versus optional changes, and uses questions for genuine
+  clarification or alternatives without softening verified blockers.
 
 ## [14.0.0] (2026-09-02)
 
