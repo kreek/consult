@@ -1,5 +1,7 @@
 # Simple, Not Easy
 
+Source: Rich Hickey, [Simple Made Easy](https://www.infoq.com/presentations/Simple-Made-Easy/).
+
 Use this when a change risks ceremony, helper layers, broad skill loading,
 or hidden coupling disguised as safety.
 

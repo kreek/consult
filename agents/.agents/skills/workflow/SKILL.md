@@ -1,6 +1,6 @@
 ---
 name: workflow
-description: Use first for any feature, bug fix, refactor, debug, test, or config task to route risks, pick skills, define proof.
+description: Use first for features, fixes, refactors, debugging, tests, or config changes to choose skills and checks.
 ---
 
 # Workflow
@@ -11,38 +11,37 @@ description: Use first for any feature, bug fix, refactor, debug, test, or confi
 
 ## When to Use
 
-- First, for almost every software engineering task: features, bug fixes,
-  refactors, debugging, UI, tests, docs, config, CI, dependencies, and
-  investigation that shapes later engineering work.
+- Use first for features, fixes, refactors, debugging, and tests.
+- Also use for UI, docs, config, CI, dependencies, and investigations that
+  guide later code changes.
 
 ## When NOT to Use
 
-- A narrower skill is explicitly requested and fully covers the task.
+- The user names a narrower skill that covers the whole task.
 - The change is trivial, with no behavior, contract, data, or security risk.
 - Platform operations with no code, contract, or proof question.
 
 ## Rules
 
-1. **Simple Made Easy is the lens.** Separate concerns, make state and
-   effects explicit, and reduce what a maintainer must hold in their head.
-   Familiar or quick to generate is not the same as simple.
-2. **The human keeps owning the system.** Non-trivial work leaves the user
-   with a clearer model of the change and the evidence. If you cannot explain
-   the change clearly, stop and clarify.
-3. **Consult owns the engineering bar; the host owns mechanics.** On conflict,
-   clear the Consult bar inside the host's form.
-4. **Smallest honest solution.** Implement only what was asked. Happy path
-   first unless safety or data loss demands edge cases now. Compose over
-   inherit. Add an abstraction only after real semantic duplication appears:
-   duplicated intent gets one home, code that merely looks similar does not.
-5. **Adopt before build.** Audit the ecosystem before writing code for a
-   solved problem, and ask before locking in a dependency.
-6. **Stakes set involvement.** Classify by significance (how much other code
-   it touches) and durability (how costly to reverse). Low on both is
-   disposable: do the work, prove it with `proof`, no sign-off. As stakes
-   rise, give progress updates, then propose options and get approval before
-   acting. Escalate mid-task if the change turns out to touch a contract or
-   data shape other code depends on.
+1. **Keep unrelated parts separate.** Make state and effects explicit. Keep the
+   number of things a maintainer must understand together small. A familiar
+   or quick solution may still be hard to change.
+2. **Explain the change to the user.** Show what changed, why, and what
+   evidence supports it. If you cannot explain those points, clarify the work
+   before proceeding.
+3. **Use the host's tools to meet Consult's engineering requirements.** Follow
+   the host's workflow while meeting Consult's requirements.
+4. **Build only what the user asked for.** Build the main behavior first unless
+   safety or data loss requires an edge case now. Prefer composition to
+   inheritance. Extract an abstraction only when code in more than one place
+   serves the same purpose; similar syntax alone is not enough.
+5. **Check existing tools before building one.** Look for a maintained library
+   before writing code for a solved problem. Ask before adding a dependency.
+6. **Ask more of the user when changes affect more code or are harder to
+   undo.** If both risks are low, do the work and prove it with `proof` without
+   sign-off. For higher risk, give progress updates, explain options, and get
+   approval before acting. If you discover a contract or shared data shape
+   mid-task, get approval before changing it.
 7. **Durable shapes need sign-off before they are built.** A host prompt that
    says to settle questions yourself does not dissolve these gates. Continue
    everything a gate does not block, state assumptions, and never build a
@@ -61,23 +60,25 @@ description: Use first for any feature, bug fix, refactor, debug, test, or confi
    | `release` | a release artifact |
    | `git-workflow` | history-changing or destructive operations |
 
-   An approving design or RFC approves the direction, not the concrete shapes:
-   get `contract-first` and `domain-modeling` sign-off on each shape unless
-   that exact shape was listed and approved. Do not gate local helpers,
-   private file moves, narrow bug fixes that restore intended behavior, or
-   routine implementation details.
-8. **Load a skill only when it changes the next action or the proof
-   obligation.** `documentation` and `release` are late gates: load only on
-   request, a project check, or an approved real need. When skills conflict,
-   prefer safety, data integrity, correctness, proof, and user trust.
+   A design or RFC approval covers its stated direction. Get separate
+   `contract-first` and `domain-modeling` sign-off for each shape unless the
+   approval named that exact shape. Local helpers, private file moves, narrow
+   bug fixes that restore intended behavior, and routine implementation
+   details need no sign-off.
+
+8. **Load a skill only when it changes what you do next or how you check the
+   result.** Load `documentation` and `release` only on request, when a project
+   check requires them, or for approved work that needs them. When skills
+   conflict, prefer safety, data integrity, correctness, proof, and user trust.
 
 ## Workflow
 
-1. Frame the request: intended result, affected users or systems, success
-   signal, coupling risk. If done is unclear, propose acceptance criteria and
-   ask one question at a time. Ask before adding compatibility shims.
-2. Classify the stakes (Rule 6) and load the skills the task needs (Consult
-   skills, even where the host ships a built-in of the same name).
+1. State what should change, who it affects, how you will check it, and what
+   else it may affect. If the desired result is unclear, propose acceptance
+   criteria and ask one question at a time. Ask before adding compatibility
+   shims.
+2. Apply Rule 6 and load the Consult skills the task needs. Use Consult skills
+   even when the host has a built-in skill with the same name.
 
    | Skill | Load when |
    | --- | --- |
@@ -98,22 +99,23 @@ description: Use first for any feature, bug fix, refactor, debug, test, or confi
    | `documentation` | Existing-code docs are the deliverable or a validator-required obligation. |
    | `scaffolding` | New project setup or baseline tooling. |
    | `official-source-check` | External framework, library, runtime, or platform behavior must be verified. |
-   | `proof` | Completion gate for any non-trivial work. |
-   | `code-review` | A review is requested, or a non-trivial diff precedes the final claim. |
+   | `proof` | Any task beyond a typo or formatting change. |
+   | `code-review` | A review is requested, or the diff is larger than a typo or formatting change. |
    | `commit` | Staging reviewed files, splitting commits, writing messages. |
    | `git-workflow` | Branches, conflicts, rebases, recovery, force-push, GitHub access. |
    | `release` | Release prep is requested or a validator requires artifact sync. |
 
-3. Get sign-off on any durable shape (Rule 7).
-4. Implement in reviewable slices. If shared work grows beyond one focused
-   review, stop, summarize, and split before coding more.
-5. Completion loop: prove every behavior via `proof`, then a fresh-context
-   `code-review` pass and fix what it finds, until proof passes and review is
-   clean. The reviewer gets only the intent, acceptance criteria, constraints,
-   proof evidence, and diff. Same-context review is a labelled fallback. Only
-   then documentation or release work.
-6. Close with what changed, why it is better, what proves it, what is
-   unproven, and what needs the user's attention. Not an activity log.
+3. Get the approvals listed in Rule 7 before building.
+4. Make changes small enough to review. If a change grows too large for one
+   focused review, stop, summarize your progress, and split the rest before
+   coding more.
+5. Prove each behavior with `proof`. Then run a fresh-context `code-review`
+   with only the intent, acceptance criteria, constraints, proof evidence, and
+   diff. Fix findings and repeat until proof passes and the review is clean.
+   Label a same-context review as a fallback. Finish documentation and release
+   work afterward.
+6. Report what changed, why it is better, what proves it, what remains
+   unproven, and what needs the user's attention.
 
 ## Tripwires
 

@@ -27,6 +27,8 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   proof across producer and consumer boundaries.
 - The `observability` skill calls for measurable outcomes when production
   performance is the goal, with before/after evidence owned by `performance`.
+- The `workflow` skill states its routing, approval, and completion steps in
+  plainer language.
 
 ## [14.0.0] (2026-09-02)
 
