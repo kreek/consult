@@ -25,6 +25,8 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   as versioned contracts. It now names schema sources, producer and consumer
   ownership, compatibility checks, rollout and replay needs, and contract
   proof across producer and consumer boundaries.
+- The `observability` skill calls for measurable outcomes when production
+  performance is the goal, with before/after evidence owned by `performance`.
 
 ## [14.0.0] (2026-09-02)
 

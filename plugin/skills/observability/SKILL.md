@@ -1,6 +1,6 @@
 ---
 name: observability
-description: "Use for production observability: logs, metrics, traces, health, dashboards, alerts, SLOs; not debug prints."
+description: "Use for production logs, metrics, traces, health, alerts, SLOs, and performance measurement; not debug prints."
 ---
 
 # Observability
@@ -13,6 +13,7 @@ description: "Use for production observability: logs, metrics, traces, health, d
 
 - Logs, metrics, traces, health checks, dashboards, SLOs, alerts, dependency
   health, incident diagnosis, OpenTelemetry, cardinality, burn-rate alerts.
+- Improving production performance; relevant metrics must be in place.
 
 ## When NOT to Use
 
@@ -25,21 +26,25 @@ description: "Use for production observability: logs, metrics, traces, health, d
    signals, and traces cover its inbound and outbound boundaries. Critical
    dependencies expose latency, error, timeout, retry, circuit state, and
    saturation.
-2. Logs are structured events with stable names, typed fields, severity,
+2. When improving production performance, put relevant performance metrics in
+   place before changing behavior and verify their values afterward. Use
+   `performance` for the baseline and comparable before/after evidence; without
+   that evidence, do not claim an improvement.
+3. Logs are structured events with stable names, typed fields, severity,
    outcome, and trace or correlation ID, using OpenTelemetry semantic
    conventions where they exist. Levels distinguish expected client failures
    from operator-actionable errors. Load `references/logging.md` for any
    logging change.
-3. Metric labels are bounded. User IDs, request IDs, and paths go in logs or
+4. Metric labels are bounded. User IDs, request IDs, and paths go in logs or
    traces, because cardinality is a production cost.
-4. Sensitive data is redacted at the source with a field allowlist (see
+5. Sensitive data is redacted at the source with a field allowlist (see
    `security`); collector filtering is defense in depth only.
-5. Liveness never depends on external systems. Readiness does.
-6. Alerts fire on user impact, SLO burn, or actionable dependency failure,
+6. Liveness never depends on external systems. Readiness does.
+7. Alerts fire on user impact, SLO burn, or actionable dependency failure,
    and link to a runbook with action and escalation. Tune noisy alerts by
    signal, owner, or threshold; never silence them.
-7. Dashboards answer current health and likely fault location.
-8. A prototype may defer observability only if the deferral is recorded and
+8. Dashboards answer current health and likely fault location.
+9. A prototype may defer observability only if the deferral is recorded and
    the path is promoted before real users reach it.
 
 ## Tripwires
@@ -58,6 +63,7 @@ description: "Use for production observability: logs, metrics, traces, health, d
 - `documentation`: runbook shape.
 - `async-systems`: stream lag, fanout, replay, delivery semantics.
 - `release`: rollout gates and production verification.
+- `performance`: target measure, baseline, and comparable result.
 - `error-handling`: timeout, retry, and circuit-breaker behavior.
 - `security`: redaction allowlists and security-event alerts.
 
