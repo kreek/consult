@@ -1,0 +1,11 @@
+# Harbor AgentConfig fragment for Codex. eval/scripts/run.py merges it into a job.
+# Auth: CODEX_FORCE_AUTH_JSON uploads ~/.codex/auth.json (ChatGPT login) into the
+# sandbox, so no OPENAI_API_KEY is needed. Set CODEX_AUTH_JSON_PATH for another file.
+# host_env is exported by run.py into the `harbor run` process, not written into
+# the job config (see agents/claude-code.yaml for why).
+name: codex
+model_name: openai/gpt-5.5
+kwargs:
+  reasoning_effort: medium
+host_env:
+  CODEX_FORCE_AUTH_JSON: "true"

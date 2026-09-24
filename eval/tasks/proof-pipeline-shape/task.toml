@@ -1,0 +1,20 @@
+schema_version = "1.3"
+
+[task]
+name = "consult/proof-pipeline-shape"
+description = "Build a multi-stage transformation that surfaces seam-shape coverage."
+
+[metadata]
+kind = "code"
+features = ["proof", "domain-modeling", "error-handling"]
+
+[agent]
+timeout_sec = 900.0
+
+[verifier]
+timeout_sec = 600.0
+
+[verifier.env]
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN:-}"
+REWARDKIT_FORCE_SUBSCRIPTION = "${REWARDKIT_FORCE_SUBSCRIPTION:-1}"
+REWARDKIT_JUDGE = "${CONSULT_EVAL_JUDGE:-claude-code}"

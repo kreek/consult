@@ -1,9 +1,0 @@
-description: Extend a tangled order flow and prove discount rules at a clean seam.
-taskFile: task.md
-plugin: engineering-maturity
-features:
-  - proof
-  - refactoring
-  - architecture
-variants:
-  default: {}

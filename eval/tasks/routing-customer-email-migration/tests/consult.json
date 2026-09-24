@@ -1,0 +1,12 @@
+{
+  "task": "routing-customer-email-migration",
+  "kind": "routing",
+  "intended_skills": [
+    "workflow",
+    "database",
+    "release",
+    "domain-modeling",
+    "proof",
+    "code-review"
+  ]
+}

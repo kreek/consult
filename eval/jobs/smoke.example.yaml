@@ -1,0 +1,20 @@
+# A hand-runnable Harbor job: Claude Code with Consult skills on the smoke task.
+#   CLAUDE_FORCE_OAUTH=true harbor run -c eval/jobs/smoke.example.yaml --yes
+# CLAUDE_CODE_OAUTH_TOKEN must be exported. Keep the FORCE flag in the host
+# environment: Harbor scrubs AUTH-named agent env values from trial files.
+# eval/scripts/run.py generates the same shape per suite, agent, and arm.
+job_name: smoke-claude-code-consult
+jobs_dir: eval/runs
+n_attempts: 1
+n_concurrent_trials: 1
+tasks:
+  - path: eval/tasks/routing-checkout-payment
+agents:
+  - name: claude-code
+    model_name: anthropic/claude-sonnet-5
+    skills:
+      - agents/.agents/skills
+    kwargs:
+      reasoning_effort: medium
+      permission_mode: bypassPermissions
+      max_budget_usd: "2"

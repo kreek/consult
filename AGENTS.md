@@ -116,10 +116,10 @@ Consequences for anyone editing this repo:
 
 ## Common commands
 
-A clean clone installs with `pnpm install`. `eval/` is deliberately outside the
-workspace because it depends on the unpublished `do-eval` sibling; including it
-made a bare install fail with `ENOENT` and install nothing. Run the eval suite
-with `make eval` once that sibling is checked out beside this repo.
+A clean clone installs with `pnpm install`. `eval/` is a separate `uv` project
+that runs the Consult evaluation suite through Harbor; it is not a pnpm
+workspace package. `make eval` runs its static checks and `make smoke` runs
+one real trial. See `eval/README.md` for setup.
 
 `make test` runs the whole check sequence, cheapest first, so a failing test
 suite cannot stop the anatomy validator from reporting. `.github/workflows/ci.yml`

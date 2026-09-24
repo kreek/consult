@@ -1,0 +1,3 @@
+# Synced from eval/verifier/shared/no_file_writes/reward.toml. Do not edit in tests/.
+[scoring.no_file_writes]
+aggregation = "all-pass"

@@ -1,8 +1,5 @@
-# `eval/` is deliberately NOT a workspace package. It depends on `do-eval` via
-# `file:../../do-eval`, an unpublished sibling checkout, so including it here made
-# a bare `pnpm install` fail with ENOENT and install nothing — taking root
-# `vitest` and `remark` down with it. Install the eval suite from `eval/` itself
-# once the sibling is checked out beside this repo.
+# `eval/` is not a workspace package: it is a `uv` project that drives the
+# Harbor evaluation suite (see eval/README.md), with no Node dependencies.
 packages:
   - consult
 

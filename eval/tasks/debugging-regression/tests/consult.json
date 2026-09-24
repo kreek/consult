@@ -1,0 +1,12 @@
+{
+  "task": "debugging-regression",
+  "kind": "code",
+  "intended_skills": [
+    "workflow",
+    "debugging",
+    "code-review",
+    "proof"
+  ],
+  "visible_test_cmd": "npm test",
+  "test_file": "test/profile.test.js"
+}

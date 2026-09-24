@@ -1,9 +1,0 @@
-description: Improve a background worker under load.
-taskFile: task.md
-plugin: engineering-maturity
-features:
-  - observability
-  - async-systems
-  - performance
-variants:
-  default: {}

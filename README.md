@@ -238,9 +238,11 @@ for sign-off on interfaces and shared structure.
 
 ## Evaluation
 
-[`eval/README.md`](eval/README.md) benchmarks Codex with and without Consult
-against shared engineering tasks. It combines deterministic hidden tests with
-LLM-judged engineering maturity, proof quality, simplicity, and risk handling.
+[`eval/README.md`](eval/README.md) benchmarks Claude Code and Codex with and
+without Consult on shared engineering tasks, using Harbor for sandboxed trials
+and RewardKit for scoring. It combines deterministic hidden tests with
+LLM-judged engineering maturity, proof quality, simplicity, and risk handling,
+and reports the lift from installing Consult.
 
 ## Contributing
 

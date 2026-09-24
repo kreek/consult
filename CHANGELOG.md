@@ -15,6 +15,23 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `AGENTS.md`. The validator allows exactly this one hook, and plugin manifests
   still declare none. Codex runs the hook after the user trusts it.
 
+### Changed
+
+- The evaluation suite under `eval/` now runs on Harbor instead of the
+  unpublished `do-eval` sibling. Trials are Harbor tasks under `eval/tasks/`,
+  scoring is RewardKit criteria vendored into each task from `eval/verifier/`,
+  and `eval/scripts/run.py` runs a suite with and without Consult skills and
+  reports per-task lift. Claude Code and Codex are both measured through
+  subscription auth. Hidden checks are keyed by task name, which fixes the
+  `large-checkout-workflow` trial running the wrong check because its scaffold
+  also contains `src/orders.js`.
+
+### Removed
+
+- `scripts/claude-smoke.mjs` and the do-eval config, plugin, and vitest
+  harness under `eval/`. `make smoke` now runs the Harbor smoke suite and
+  `make eval` runs the suite's static checks.
+
 ## [15.0.0] (2026-09-23)
 
 ### Changed

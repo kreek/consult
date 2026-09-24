@@ -1,0 +1,12 @@
+{
+  "task": "routing-worker-retry",
+  "kind": "routing",
+  "intended_skills": [
+    "workflow",
+    "async-systems",
+    "error-handling",
+    "observability",
+    "proof",
+    "code-review"
+  ]
+}

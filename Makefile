@@ -15,18 +15,18 @@ test:
 	pnpm test
 	pnpm --dir consult test
 
-# Requires the unpublished `do-eval` sibling checked out beside this repo, so it
-# is opt-in rather than part of `make test`.
+# Static checks for the Harbor eval suite: the vendored verifier copies match
+# their source, and the smoke job config resolves. Needs `harbor` and `uv` on
+# PATH, so it is opt-in rather than part of `make test`.
 eval:
-	pnpm --dir eval test
-	pnpm --dir eval typecheck
+	uv run --project eval eval/scripts/sync_tests.py --check
+	harbor run -c eval/jobs/smoke.example.yaml --dry-run --yes
 
-# Smoke-test changed skills against a real Claude Code process. Uses the existing
-# Claude Code login, so it does not bill the API. `make smoke ARGS=--load-only`
-# skips the one billed session and only checks that the host registers every skill,
-# which `make test` cannot see. Forward other flags the same way.
+# Run the smoke suite through Harbor with Consult skills against a real Claude
+# Code session. Uses the subscription token (CLAUDE_CODE_OAUTH_TOKEN), so it does
+# not bill the API. See eval/README.md for setup and other suites.
 smoke:
-	node scripts/claude-smoke.mjs $(ARGS)
+	uv run --project eval eval/scripts/run.py --suite smoke --agent claude-code --arms consult $(ARGS)
 
 update-installed-plugins:
 	scripts/update-installed-plugins.sh

@@ -1,9 +1,0 @@
-description: Adjust a migration path for a rollout-sensitive change.
-taskFile: task.md
-plugin: engineering-maturity
-features:
-  - database
-  - release
-  - domain-modeling
-variants:
-  default: {}

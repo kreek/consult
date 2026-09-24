@@ -27,10 +27,16 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      # `eval/` is not a workspace package (it needs the unpublished do-eval
-      # sibling), so a plain install is expected to succeed here. If this step
-      # fails, the clean-clone contract is broken.
+      # `eval/` is a separate uv project, not a workspace package, so a plain
+      # install is expected to succeed here. If this step fails, the
+      # clean-clone contract is broken.
       - run: pnpm install --frozen-lockfile
+
+      # The Harbor verifier is vendored into every eval task; this fails when a
+      # copy drifts from eval/verifier/. Standard library only, no Docker.
+      - name: Eval verifier sync
+        if: ${{ !cancelled() }}
+        run: python3 eval/scripts/sync_tests.py --check
 
       # Each check is its own step so one failure does not mask the others. The
       # cheap deterministic checks run first: skill prose is the common change,

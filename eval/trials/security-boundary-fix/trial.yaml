@@ -1,9 +1,0 @@
-description: Fix a boundary issue in a small request handler.
-taskFile: task.md
-plugin: engineering-maturity
-features:
-  - workflow
-  - proof
-  - security
-variants:
-  default: {}

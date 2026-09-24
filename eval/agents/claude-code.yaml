@@ -1,0 +1,15 @@
+# Harbor AgentConfig fragment for Claude Code. eval/scripts/run.py merges it into a job.
+# Auth: export CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`) on the host.
+# host_env is exported by run.py into the `harbor run` process, not written into
+# the job config: Harbor scrubs every value of an AUTH/TOKEN-named agent env var
+# from the persisted trial files, and a literal "1" there corrupts trajectory.json.
+# CLAUDE_FORCE_OAUTH drops ANTHROPIC_API_KEY so the run bills the subscription and
+# fails loudly when the token is missing.
+name: claude-code
+model_name: anthropic/claude-sonnet-5
+kwargs:
+  reasoning_effort: medium
+  permission_mode: bypassPermissions
+  max_budget_usd: "2"
+host_env:
+  CLAUDE_FORCE_OAUTH: "true"

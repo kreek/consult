@@ -1,130 +1,164 @@
 # Consult Evals
 
-This eval suite measures whether Codex behaves better when Consult is installed
-as a Codex plugin, and gates Consult changes against regressions.
+This suite measures whether a coding agent does better work on the same task
+with Consult skills installed than without them. It runs on
+[Harbor](https://docs.harborframework.com). Harbor sandboxes each trial in
+Docker, injects the skills into the agent's native skills directory, and
+records an ATIF trajectory.
+[RewardKit](https://docs.harborframework.com/core-concepts/rewardkit/quick-start)
+scores the result.
 
-**Measurement scope.** Every number here comes from one harness and one model
-family: `harness: "codex"` with `CONSULT_EVAL_MODEL` and
-`CONSULT_EVAL_JUDGE_MODEL` defaulting to `gpt-5.5`. The other supported hosts —
-Claude Code, Cursor, Pi, and the rest — are **unmeasured**. Trigger phrasing
-and instruction-following are exactly the properties that do not transfer
-cleanly across model families, so a green regression here is evidence about
-Codex, not about the pack everywhere. Treat skill-description edits in
-particular as unvalidated for other hosts until someone runs them there.
-Adding a second harness profile needs `do-eval` support for that harness plus
-a plugin-install layer equivalent to the codex one; it is not a config
-override.
+The number to read is **lift**: the Consult arm's reward minus the bare arm's
+reward, per task and per suite. The bare arm is the same agent, model, and
+settings with no skills. Absolute rewards drift with model versions; lift is
+the comparison that holds.
 
-**One profile, automatic baseline + lift.** There is a single profile,
-`codexWithConsultSkills` (Codex with Consult enabled). Running a `regression`
-over a suite automatically derives a **bare** baseline — the same profile with
-its Consult layers stripped (plain Codex) — runs it once, caches it, and reports
-**lift** = Consult score − bare score. So a normal regression run both tracks
-drift against history *and* shows the directional win over unaided Codex, with no
-separate cross-profile benchmark step.
-
-Profile:
-
-- `codexWithConsultSkills`: Codex with an isolated, freshly-authed home and the
-  local repo registered as a codex plugin marketplace with the `consult@consult`
-  plugin enabled — the same flow a real user gets after
-  `codex plugin marketplace add`. Consult is applied entirely through the
-  profile's `setup.layers`, so do-eval's `bareProfileOf` cleanly strips it to
-  form the bare baseline.
-
-Suites (membership in `eval/suites/*.yaml`; `eval.config.ts` owns profile, judge,
-timeout, and budget policy only):
-
-- `smoke`: one cheap read-only routing task for wiring checks.
-- `core`: tasks for Consult's always-on and core design/correctness skills.
-- `allSkills` / `engineeringMaturity`: a larger suite exercising every Consult
-  skill at least once.
-- `routing`: read-only triage/planning tasks.
-- `largeProject` / `linkShortener`: larger project-style tasks for cross-file
-  reasoning and end-to-end proof.
-- `regressionCheck`: trials known to have regressed under Consult; rerun after
-  fixes to confirm they landed.
-
-The suite uses an LLM judge for qualitative output (engineering maturity, proof
-quality, simplicity, risk handling). Deterministic scoring covers objective
-evidence: forbidden file writes (routing), change quality, submitted/post-change
-proof, and executable tests + hidden implementation checks. **Plugin activation
-and baseline isolation are structural now:** the baseline literally has no
-Consult layers, so it cannot load Consult, and each run reports how many Consult
-skills it read as a finding — the lift number is the readout that activation
-worked. The judge runs by default; pass `--no-judge` to inspect objective harness
-checks only.
-
-Trial prompts and starter files are intentionally neutral: they describe the
-product or maintenance task without naming Consult, skills, or the quality lens
-being scored. Intended skill coverage lives in each trial manifest's `features:`
-list so suite coverage has one source of truth without leaking skill names into
-the agent-visible task.
-
-**Zero-weight readouts: trigger rate and interruption count.** Each run also
-records two regression-grade numbers that deliberately carry zero weight in the
-overall score: `skill_triggering` (the share of the trial's intended `features:`
-skills the agent actually read) and `non_interruption` (100 minus 25 per
-assistant message that ends by asking the user a question). Under-triggering and
-gate fatigue are Consult's two field failure modes; these readouts make both
-visible per run and diffable across runs, and a bench can gate on them via
-`requiredDeterministicScores`, without letting either number distort the lift
-comparison (the bare baseline reads no skills by construction). Per-run skill
-names live in the workdir's `.has-eval/consult-metrics.json`.
+Measured hosts: `claude-code` and `codex`. Harbor also has skill-aware
+integrations for Cursor, Gemini CLI, Copilot, OpenCode, and Pi. Adding one of
+them is an agent fragment under `agents/`, not a harness change.
 
 ## Setup
 
-This package depends on the local `do-eval` checkout through `package.json`:
-
 ```sh
-cd eval
-pnpm install
+uv tool install harbor            # 0.23.0 at the time of writing
+docker info                       # Docker must be running
+cd eval && uv sync                 # pyyaml for the driver scripts
 ```
 
-The workspace uses pnpm's `minimumReleaseAge` setting to avoid installing
-registry versions published in the last 24 hours.
+Auth uses subscriptions, not API keys:
 
-Set a model if the default is not what you want:
+- Claude Code and the judge: run `claude setup-token` and export the result as
+  `CLAUDE_CODE_OAUTH_TOKEN`. The driver sets `CLAUDE_FORCE_OAUTH=true` so the
+  agent bills the subscription and aborts the run when the token is missing.
+- Codex: a ChatGPT-authenticated `~/.codex/auth.json`. The driver sets
+  `CODEX_FORCE_AUTH_JSON=true`, which uploads that file into the sandbox.
 
-```sh
-export CONSULT_EVAL_MODEL=gpt-5.3-codex
-export CONSULT_EVAL_JUDGE_MODEL=gpt-5.3-codex
-export CONSULT_EVAL_REASONING_EFFORT=low
-```
+Keep those two `FORCE` flags in the host environment rather than in a job
+config. Harbor scrubs the value of every credential-named agent env var from
+the trial files. A literal `1` there rewrites every `1` in `trajectory.json`.
 
-By default, both eval workers and the judge use `gpt-5.5` with medium reasoning
-effort. Codex worker effort is passed through `model_reasoning_effort`; the judge
-receives the same value as its thinking setting. Epoch count defaults to 1;
-override per run with `CONSULT_EVAL_EPOCHS` (the `core`/`routing` scripts set 3).
-
-Codex authentication is read from `CODEX_HOME/auth.json` when set, otherwise from
-`~/.codex/auth.json`. Each run gets a temporary isolated Codex home.
-
-## Commands
+## Run
 
 ```sh
-pnpm run check            # validate config, suites, trials, plugins, coverage
-pnpm run list             # show the profile, suites, and trials
-pnpm run view             # start the do-eval web UI
-
-# Regression — the default. Runs codexWithConsultSkills, auto-derives + caches a
-# bare baseline, and reports lift vs that baseline (and drift vs history).
-pnpm run regression:check # the two trials known to have regressed
-pnpm run regression:core  # always-on and core design/correctness skills (3 epochs)
-pnpm run regression:smoke # cheap routing wiring check
-pnpm run regression:all   # full sweep
-
-# Baseline — force-recompute the bare-Codex baseline for a suite (regression
-# reuses the cached one automatically; run this to refresh it).
-pnpm run baseline:all
-pnpm run baseline:smoke
-
-pnpm run trial -- proof-first-bugfix   # debug one trial
-
-pnpm test                 # run eval harness tests
-pnpm run typecheck        # type-check the eval harness
+uv run scripts/run.py --suite smoke --agent claude-code --install-only   # wiring and auth only
+uv run scripts/run.py --suite smoke --agent codex --arms bare,consult    # cheapest real run
+uv run scripts/run.py --suite core --agent claude-code --attempts 3      # both arms, lift table
+harbor view runs                                                          # browse trials and rewards
 ```
 
-Results are written under `~/.cache/consult/eval/runs/` by default (override with
-`CONSULT_EVAL_RUNS_DIR`). Trial workdirs live outside the repo to keep codex's
-ancestor walk from auto-discovering Consult skills into the bare baseline.
+`run.py` writes one Harbor job per arm under `runs/`, runs them in order, then
+calls `scripts/lift.py <bare-job> <consult-job>`, which prints a per-task table
+and writes `runs/lift/<job>.json` and `.md`. Pass `--concurrency` to change
+`n_concurrent_trials`. The default of 2 suits subscription rate limits.
+
+Judge routing: the default judge is RewardKit's `claude-code` agent judge
+running `claude-sonnet-5` through the subscription token. It installs the
+Claude Code CLI in the verifier container, because Anthropic answers a
+subscription token sent straight from LiteLLM with a bare 429. Set
+`CONSULT_EVAL_JUDGE=openai/gpt-5.5` and pass `--ve OPENAI_API_KEY=...` to use
+another provider as a plain LLM judge. Set
+`CONSULT_EVAL_SKIP_JUDGE=1` to score deterministic dimensions only. When the
+environment holds no judge credential, the verifier skips the judge and the
+reward excludes it.
+
+## Suites and tasks
+
+Suites live in `suites/*.yaml` and list task names. Tasks live in
+`tasks/<name>/` in Harbor's task format:
+
+```text
+tasks/<name>/
+  task.toml                 name, kind, features, timeouts, judge env
+  instruction.md            the prompt the agent receives
+  environment/Dockerfile    synced; Node 22, git, python3, rewardkit
+  environment/workspace/    the starting repository, committed at build time
+  solution/solve.sh         oracle reference (routing: no-op)
+  tests/
+    consult.json            kind, intended skills, visible test command
+    hidden.mjs              hidden implementation check (code tasks)
+    proof/submitted.py      per-task submitted-proof regex
+    ...                     synced dimension scripts and judge rubric
+```
+
+Two kinds of task exist. `code` tasks change a small Node repository; their
+score covers verification, proof, change quality, and the judge. `routing`
+tasks ask for a read-only planning note; their score covers an untouched
+workspace plus the judge.
+
+- `smoke`: one routing task, for wiring checks.
+- `core`: always-on and core design skills (4 tasks).
+- `allSkills` / `engineeringMaturity`: every skill at least once (12 tasks).
+- `routing`: the four read-only planning tasks.
+- `largeProject` / `linkShortener`: larger cross-file tasks.
+- `regressionCheck`: tasks that once regressed under Consult.
+
+Prompts and starting repositories never name Consult or a skill. The intended
+skills for a task live in `tests/consult.json` and only feed the trigger-rate
+readout.
+
+## Scoring
+
+RewardKit combines dimension scores with `tests/reward.toml`. The weights keep
+the split from the previous harness: 55 percent deterministic, 45 percent
+judge.
+
+| Dimension | Kind | Weight | What it measures |
+| --- | --- | ---: | --- |
+| `verification` | code | 0.275 | Visible `npm test` and the hidden check both pass |
+| `proof` | code | 0.1925 | 1.0 submitted proof and a post-write test command, 0.85 submitted only, 0.6 post-write only, 0.35 verification passed, else 0.15 |
+| `change_quality` | code | 0.0825 | 1.0 source and tests changed, 0.7 source only, else 0.25 |
+| `no_file_writes` | routing | 0.55 | Workspace unchanged and no write tool calls |
+| `judge` | both | 0.45 | Claude Code judge, four numeric criteria: engineering maturity 0.35, proof quality 0.25, simplicity 0.2, risk handling 0.2 |
+| `skill_triggering` | both | 0 | Share of intended skills the agent read or invoked |
+| `non_interruption` | both | 0 | 1 minus 0.25 per agent message that ends with a question |
+
+The two zero-weight readouts stay in `reward.json` for regression tracking
+without distorting lift. The bare arm reads no skills by construction, so the
+consult arm's `skill_triggering` is also the check that injection worked.
+
+The judge receives the task instruction, a bundle with the git diff, new files
+and the agent's final message, and the ATIF trajectory. The rubric and prompt
+are `verifier/shared/judge/quality.toml` and `prompt.md`.
+
+## Editing the verifier
+
+Harbor uploads only a task's own `tests/` directory, so the sync script copies
+the shared verifier code into every task. Edit the source under `verifier/`
+and resync:
+
+```sh
+uv run scripts/sync_tests.py          # copy shared files into every task
+uv run scripts/sync_tests.py --check  # fail on drift; run in CI and `make eval`
+```
+
+- `verifier/shared/consult_lib.py`: trajectory parsing, git helpers, judge
+  bundle, and the `prepare` step that drops the judge when it cannot run.
+- `verifier/shared/<dimension>/`: one RewardKit script per dimension.
+- `verifier/hidden/<task>.mjs`: the hidden check for each code task, keyed by
+  task name.
+
+To add a task:
+
+1. Copy a task directory of the same kind.
+2. Replace `instruction.md` and `environment/workspace/`.
+3. Edit `tests/consult.json`.
+4. For a code task, write `verifier/hidden/<task>.mjs` and `tests/proof/submitted.py`.
+5. Add the name to a suite and run the sync.
+
+Check the task with the oracle before spending model calls:
+
+```sh
+harbor run -p tasks -i <task> -a oracle -o runs --yes
+```
+
+## Known gaps
+
+- Only `proof-first-bugfix` and the routing tasks have oracle solutions. The
+  other code tasks run without `solution/`, so `-a oracle` cannot check them.
+- The previous harness could execute the migration in a real Postgres given
+  `CONSULT_EVAL_POSTGRES_URL`. The Harbor port checks the SQL text only.
+- `routing-settings-copy` listed `accessibility` as a feature. It is not a
+  shipped skill, so the intended list leaves it out.
+- Harbor injects the canonical skills as plain user skills. The Claude Code
+  plugin packaging under `plugin/` and its `consult:<name>` slash commands are
+  not exercised here.
