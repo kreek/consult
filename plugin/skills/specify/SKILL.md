@@ -35,42 +35,34 @@ description: "Use to design before building: discovery, tradeoffs, ADRs, RFCs, t
 1. Design-partner means the agent proposes concrete options and the human
    approves, revises, or rules them out. Neither "the agent decides alone"
    nor "the human should come up with the design" is this mode.
-2. Consultation is not constant interruption. Gate only decisions that are
-   expensive to reverse (caller-facing shape, shared structure, data model,
-   structural dependency) or significant enough that the user should shape
-   them. Routine, local, and disposable work gets no gate.
-3. Stay above implementation sequencing. Specify owns contracts, states,
+2. Stay above implementation sequencing. Specify owns contracts, states,
    tradeoffs, risks, and decisions. File-by-file edits, pseudocode, and task
    checklists belong to planning after the direction is agreed.
-4. Contracts are any caller-facing boundary: function signature, module
+3. Contracts are any caller-facing boundary: function signature, module
    export, public type, error vocabulary, CLI flag, environment variable,
    schema or migration step, event payload, file format, config key. "API"
    does not mean only HTTP.
-5. A design written before reading code is speculation. Cite the current
+4. A design written before reading code is speculation. Cite the current
    surface with `file:line` evidence, or name the adjacent convention for
    greenfield work.
-6. Ask the smallest question that changes the shape: one recommended option
+5. Ask the smallest question that changes the shape: one recommended option
    with its key tradeoff and approve/revise/rule-out, secondary uncertainties
    as notes. Open questions that block the design are asked now, not left for
    code review.
-7. An approving design or RFC approves the direction, not the concrete shapes.
-   Interfaces and domain shapes still get `contract-first` and
-   `domain-modeling` sign-off at build time. When an artifact lists them,
-   mark each one approved or proposed.
-8. Spikes are disposable: ask first, keep them local and small, discard or
+6. When a design artifact lists interfaces or domain shapes, mark each one
+   approved or proposed.
+7. Spikes are disposable: ask first, keep them local and small, discard or
    rewrite after convergence.
-9. When the host has a plan or approval mode, converge inside it. One
-   approval loop, not two.
-10. Capture only what will be used, in the smallest useful form, in
-    checked-in `docs/` when the team should keep it. Record what the user
-    approved, not what was proposed.
+8. Capture only what will be used, in the smallest useful form, in
+   checked-in `docs/` when the team should keep it. Record what the user
+   approved, not what was proposed.
 
 ## Workflow
 
 1. Frame the design task: intended outcome and the decision that needs
    collaboration. Say that coding waits until the shape is agreed.
-2. Read before proposing (Rule 5).
-3. Propose one target shape and ask the next design question (Rule 6).
+2. Read before proposing (Rule 4).
+3. Propose one target shape and ask the next design question (Rule 5).
 4. Route specialist risks: `domain-modeling` for data, state, effects, and
    invariants; `contract-first` for contract approval; the domain skill for
    the rest.
