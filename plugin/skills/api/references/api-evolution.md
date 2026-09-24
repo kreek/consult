@@ -58,9 +58,12 @@ major version only if `GET /claims` does not silently become paged.
 ## Versioning Strategies
 
 When a shipped contract with independent callers cannot be evolved in place,
-ship the successor under a new version. An explicitly unstable contract or one
-whose callers are all known and updated atomically may change in place. Pick
-one versioning strategy per service and apply it consistently:
+ship the successor under a new version. An explicitly unstable contract may
+change in place. So may one whose change no running caller can observe. Open
+browser tabs and installed apps are independent running callers that keep
+running old client code after a deploy, so shipping server and client in one
+deploy does not by itself qualify.
+Pick one versioning strategy per service and apply it consistently:
 
 - **URL path** (`/v1/...`, `/v2/...`): most discoverable, simplest to
   route and cache. Major versions only; minor and patch live inside

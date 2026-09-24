@@ -11,12 +11,14 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - The `api` skill preserves shipped contracts with independent callers while
-  allowing explicitly unstable or fully coordinated contracts to change in
-  place. Existing service representations take precedence; JSON:API remains
-  the default for new resource APIs without an established format or stronger
-  interoperability need. Contract-first work distinguishes new behavior from
-  fixes that restore an existing contract, and proof targets the full HTTP
-  request-to-response boundary.
+  allowing explicitly unstable contracts, or contracts whose change no running
+  caller can observe, to change in place. Open browser tabs and installed apps
+  count as independent running callers, so shipping server and client in one
+  deploy does not by itself qualify. Existing service representations take precedence; JSON:API
+  remains the default for new resource APIs without an established format or
+  stronger interoperability need. Contract-first work distinguishes new
+  behavior from fixes that restore an existing contract, and proof targets the
+  full HTTP request-to-response boundary.
 - The `code-review` skill separates private findings reports from comments
   drafted for PR authors. Author-facing feedback stays courteous and specific,
   labels required versus optional changes, and uses questions for genuine

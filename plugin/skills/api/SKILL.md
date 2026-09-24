@@ -39,9 +39,10 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
    can ignore them. When they alter a shipped contract, renames, removals,
    required additions, status-code changes, and semantic changes need a
    successor contract or a deprecation path with an overlap window. An
-   explicitly unstable contract or one whose callers are all known and
-   updated atomically may change in place. Use one versioning strategy per
-   service; compatible additions never re-version.
+   explicitly unstable contract, or one whose change no running caller can
+   observe, may change in place. Open browser tabs and installed apps are
+   independent running callers. Use one versioning strategy per service;
+   compatible additions never re-version.
 3. Use `4xx` for caller-side conditions such as invalid input, missing
    resources, authorization, or rate limits; use `5xx` when this service or a
    dependency cannot fulfill a valid request.
@@ -68,7 +69,7 @@ description: "Use for REST API contracts: endpoints, fields, evolution, status c
 
 | Trigger | Do this instead | False alarm |
 |---|---|---|
-| "Renaming this field is harmless" | Preserve shipped callers with a successor contract or deprecation path. | The field never shipped, or all callers are known and updated atomically. |
+| "Renaming this field is harmless" | Preserve shipped callers with a successor contract or deprecation path. | The field never shipped, or no running caller can observe the change. |
 | "Any error can be a 400 (or a 500)" | Classify caller-side conditions and service failures separately. | None. |
 | "Return whatever the handler has" | Define response and error shape in the contract first. | None. |
 | "The list is small, skip pagination" | Define bounded pagination and invalid-token behavior before the endpoint can grow. | The collection is provably bounded, such as an enum-sized set. |
