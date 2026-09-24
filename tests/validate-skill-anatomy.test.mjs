@@ -160,6 +160,10 @@ function makeSkill(skillsDir, name, body = GOOD_SKILL) {
   return skill;
 }
 
+const VALID_PLUGIN_HOOKS = {
+  hooks: { SessionStart: [{ hooks: [{ type: "command", command: "echo 'load the workflow skill'" }] }] },
+};
+
 function makeCodexPluginPackage(
   root,
   {
@@ -176,8 +180,14 @@ function makeCodexPluginPackage(
     claudeMarketplaceVersion = "2.0.0",
     claudeEntryVersion = "2.0.0",
     claudeManifestVersion = "2.0.0",
+    pluginHooks = VALID_PLUGIN_HOOKS,
   } = {},
 ) {
+  if (pluginHooks) {
+    mkdirSync(join(root, "plugin/hooks"), { recursive: true });
+    writeFileSync(join(root, "plugin/hooks/hooks.json"), JSON.stringify(pluginHooks), "utf8");
+  }
+
   if (includeMarketplace) {
     const entry = {
       name: "consult",
@@ -300,6 +310,7 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.stdout).toContain("codex plugin package valid");
     expect(result.stdout).toContain("cursor plugin package valid");
     expect(result.stdout).toContain("antigravity plugin package valid");
+    expect(result.stdout).toContain("plugin hooks valid");
     expect(readFileSync(join(tmp, "plugin/skills/good/SKILL.md"), "utf8")).toBe(
       readFileSync(join(skillsDir, "good/SKILL.md"), "utf8"),
     );
@@ -475,7 +486,7 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.stdout).toContain("must not declare hooks");
   });
 
-  it("reports host hook declarations because plugin packages are skills-only", () => {
+  it("reports hook declarations in plugin manifests", () => {
     tmp = makeTempDir();
     const skillsDir = join(tmp, "agents/.agents/skills");
     makeSkill(skillsDir, "good");
@@ -494,6 +505,37 @@ describe("validate-skill-anatomy CLI", () => {
     expect(result.stdout).toContain("plugin/.codex-plugin/plugin.json must not declare hooks");
     expect(result.stdout).toContain("plugin/.claude-plugin/plugin.json must not declare hooks");
     expect(result.stdout).toContain("plugin/.cursor-plugin/plugin.json must not declare hooks");
+  });
+
+  const sessionStart = (handler) => ({ SessionStart: [{ hooks: [handler] }] });
+  it.each([
+    ["is missing", null, "missing"],
+    [
+      "declares a second event",
+      { hooks: { ...sessionStart({ type: "command", command: "echo hi" }), PreToolUse: [] } },
+      "declares SessionStart, PreToolUse; Consult ships exactly one SessionStart command hook",
+    ],
+    [
+      "uses a non-command handler",
+      { hooks: sessionStart({ type: "prompt", prompt: "load workflow" }) },
+      "SessionStart handler must be { type: 'command', command: <non-empty string> }",
+    ],
+  ])("reports a plugin hooks file that %s", (_label, pluginHooks, message) => {
+    tmp = makeTempDir();
+    const skillsDir = join(tmp, "agents/.agents/skills");
+    makeSkill(skillsDir, "good");
+    for (const dest of ["plugin/skills", "consult/skills"]) {
+      mkdirSync(join(tmp, dest), { recursive: true });
+      cpSync(join(skillsDir, "good"), join(tmp, dest, "good"), { recursive: true });
+    }
+    makeCodexPluginPackage(tmp, { pluginHooks });
+    makeAntigravityPluginPackage(tmp);
+
+    const result = runScript(skillsDir);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("1 plugin hook problem(s)");
+    expect(result.stdout).toContain(message);
   });
 
   it("reports plugin version drift across Claude and Codex manifests", () => {

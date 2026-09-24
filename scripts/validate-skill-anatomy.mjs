@@ -458,7 +458,7 @@ export function validateCodexPluginPackage(skillsDir) {
   else if (manifest) {
     if (manifest.name !== "consult") problems.push(`${manifestPath} name must be 'consult'`);
     if (manifest.skills !== "./skills/") problems.push(`${manifestPath} skills must be './skills/'`);
-    if ("hooks" in manifest) problems.push(`${manifestPath} must not declare hooks; Consult plugin packages are skills-only`);
+    if ("hooks" in manifest) problems.push(`${manifestPath} must not declare hooks; the Consult SessionStart hook lives in plugin/hooks/hooks.json`);
 
     const iface = manifest.interface;
     if (!iface || typeof iface !== "object") {
@@ -507,7 +507,7 @@ export function validateCodexPluginPackage(skillsDir) {
         problems.push(`${manifestPath} version must match ${claudeManifestPath} version`);
       }
       if ("hooks" in claudeManifest) {
-        problems.push(`${claudeManifestPath} must not declare hooks; Consult plugin packages are skills-only`);
+        problems.push(`${claudeManifestPath} must not declare hooks; the Consult SessionStart hook lives in plugin/hooks/hooks.json`);
       }
       if (!cursorManifestProblem && cursorManifest && cursorManifest.version !== claudeVersion) {
         problems.push(`${cursorManifestPath} version must match ${claudeMarketplacePath} metadata.version`);
@@ -570,7 +570,7 @@ export function validateCursorPluginPackage(skillsDir) {
     if (manifest.name !== "consult") problems.push(`${manifestPath} name must be 'consult'`);
     if (manifest.skills !== "./skills/") problems.push(`${manifestPath} skills must be './skills/'`);
     if ("hooks" in manifest) {
-      problems.push(`${manifestPath} must not declare hooks; Consult plugin packages are skills-only`);
+      problems.push(`${manifestPath} must not declare hooks; the Consult SessionStart hook lives in plugin/hooks/hooks.json`);
     }
 
     const [claudeMarketplace, claudeProblem] = readJsonObject(claudeMarketplacePath);
@@ -614,6 +614,45 @@ export function validateAntigravityPluginPackage(skillsDir) {
     console.log(`${problems.length} antigravity plugin package problem(s)`);
   } else {
     console.log("antigravity plugin package valid");
+  }
+  return problems.length;
+}
+
+// Claude Code and Codex both discover plugin/hooks/hooks.json by convention.
+// Consult ships exactly one hook there: a SessionStart command that prints the
+// routing line. Anything more would turn the pack into a host enforcement layer.
+function sessionStartHookProblem(hooksFile) {
+  const onlyOne = "Consult ships exactly one SessionStart command hook";
+  const keys = Object.keys(hooksFile);
+  if (keys.length !== 1 || keys[0] !== "hooks") return `must contain only a 'hooks' key; ${onlyOne}`;
+  const events = hooksFile.hooks;
+  if (!events || typeof events !== "object" || Array.isArray(events)) return "hooks must be an object";
+  const names = Object.keys(events);
+  if (names.length !== 1 || names[0] !== "SessionStart") {
+    return `declares ${names.join(", ") || "no events"}; ${onlyOne}`;
+  }
+  const entries = events.SessionStart;
+  const handlers = Array.isArray(entries) && entries.length === 1 ? entries[0]?.hooks : null;
+  if (!Array.isArray(handlers) || handlers.length !== 1) return `SessionStart must hold one handler; ${onlyOne}`;
+  const [handler] = handlers;
+  if (handler?.type !== "command" || typeof handler.command !== "string" || !handler.command.trim()) {
+    return "SessionStart handler must be { type: 'command', command: <non-empty string> }";
+  }
+  return null;
+}
+
+export function validatePluginHooks(skillsDir) {
+  const hooksPath = join(repoRootForSkillsDir(skillsDir), "plugin/hooks/hooks.json");
+  const [hooksFile, readProblem] = readJsonObject(hooksPath);
+  const shapeProblem = hooksFile ? sessionStartHookProblem(hooksFile) : null;
+  const problems = [readProblem, shapeProblem && `${hooksPath} ${shapeProblem}`].filter(Boolean);
+
+  if (problems.length > 0) {
+    for (const problem of problems) console.log(`plugin hooks: ${problem}`);
+    console.log("");
+    console.log(`${problems.length} plugin hook problem(s)`);
+  } else {
+    console.log("plugin hooks valid");
   }
   return problems.length;
 }
@@ -866,7 +905,13 @@ Validate SKILL.md frontmatter, required sections, and plugin drift.`);
   const codexPluginProblems = validateCodexPluginPackage(skillsDir);
   const cursorPluginProblems = validateCursorPluginPackage(skillsDir);
   const antigravityPluginProblems = validateAntigravityPluginPackage(skillsDir);
-  return findings.length || drift || codexPluginProblems || cursorPluginProblems || antigravityPluginProblems
+  const pluginHookProblems = validatePluginHooks(skillsDir);
+  return findings.length ||
+    drift ||
+    codexPluginProblems ||
+    cursorPluginProblems ||
+    antigravityPluginProblems ||
+    pluginHookProblems
     ? 1
     : 0;
 }

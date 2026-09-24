@@ -182,8 +182,9 @@ mkdir -p ~/.cursor/plugins/local
 cp -R /path/to/consult/plugin ~/.cursor/plugins/local/consult
 ```
 
-Reload Cursor (**Developer: Reload Window**). Skills-only: do not add hooks or MCP
-to the Cursor manifest until that is an explicit pack decision.
+Reload Cursor (**Developer: Reload Window**). Do not add hooks or MCP to the
+Cursor manifest until that is an explicit pack decision. Cursor still discovers
+the shared `plugin/hooks/hooks.json` by convention.
 
 **Duplicate skills in Settings when this repo is open:** Cursor discovers
 `agents/.agents/skills/` from the workspace and also loads

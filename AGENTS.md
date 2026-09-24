@@ -20,8 +20,9 @@ repo maintenance helpers, plugin packaging, and extension packages.
 - **Repo instructions**: `AGENTS.md` is the main portable instruction file in
   the repo. `CLAUDE.md` mirrors the same maintainer guidance for hosts that read
   Claude-specific files. Normal Consult use relies on skill frontmatter, plugin
-  metadata, and the `workflow` skill; users do not need to install or merge
-  system instruction files.
+  metadata, the `workflow` skill, and the plugin SessionStart hook that tells
+  the agent to load `workflow` before non-trivial code work; users do not need
+  to install or merge system instruction files.
 - **Claude Code plugin mirror**: `plugin/skills/<name>` contains generated
   copies of canonical skills from `agents/.agents/skills/<name>`.
   `.claude-plugin/marketplace.json` points Claude Code at the `plugin/` root,
@@ -31,9 +32,17 @@ repo maintenance helpers, plugin packaging, and extension packages.
   the `plugin/` root, and `plugin/.codex-plugin/plugin.json` exposes the same
   generated skill mirror to Codex as a plugin. Keep the Codex marketplace and
   manifest in sync with Claude plugin packaging.
+- **Plugin SessionStart hook**: `plugin/hooks/hooks.json` is hand-written, not
+  generated. Claude Code and Codex discover it by convention, so no manifest
+  declares `hooks`. It holds exactly one SessionStart command that prints the
+  routing line, and the validator rejects anything more. Codex runs it only
+  after the user trusts it. Cursor and Antigravity also find the file:
+  Antigravity cannot parse the Claude Code format and still loads the skills,
+  and whether Cursor uses the plain-text output is unverified.
 - **Cursor plugin package**: `.cursor-plugin/marketplace.json` points Cursor at
   the `plugin/` root, and `plugin/.cursor-plugin/plugin.json` exposes the same
-  generated skill mirror as a skills-only Cursor plugin. Keep the Cursor
+  generated skill mirror as a Cursor plugin whose manifest declares no hooks or
+  MCP. Keep the Cursor
   marketplace and manifest in sync with Claude plugin packaging.
 - **Google Antigravity plugin package**: `plugin/plugin.json` is the
   Antigravity marker for Consult. Local installs create an Antigravity plugin
@@ -98,6 +107,9 @@ Consequences for anyone editing this repo:
   absence of those is the design. Skill prose stays portable and host-neutral.
 - Do not move Pi's enforcement into skill prose either. Runtime gates belong in
   `consult/extensions/`, where they apply only to the host that needs them.
+- The plugin SessionStart hook is context, not enforcement. It prints one
+  routing line and blocks nothing. Keep it that way: a hook that gates or
+  checks work is the host-specific enforcement the attended hosts leave out.
 - When a skill body says to get approval, it is addressing an attended session.
   Keep that phrasing about the *decision* that needs a human, not about the
   mechanism a particular host would use to block on it.

@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Consult is installed. Before a non-trivial feature, fix, refactor, debugging task, test, or config change, load the Consult workflow skill and follow the narrower Consult skills it selects. Skip it for trivial edits and questions that involve no code change.'"
+          }
+        ]
+      }
+    ]
+  }
+}

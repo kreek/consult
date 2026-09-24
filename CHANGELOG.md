@@ -6,6 +6,15 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- The Claude Code and Codex plugins ship a SessionStart hook,
+  `plugin/hooks/hooks.json`, that prints one routing line: load the `workflow`
+  skill before a non-trivial code change, and skip it for trivial edits and
+  questions. Users no longer need to add that instruction to `CLAUDE.md` or
+  `AGENTS.md`. The validator allows exactly this one hook, and plugin manifests
+  still declare none. Codex runs the hook after the user trusts it.
+
 ## [15.0.0] (2026-09-23)
 
 ### Changed

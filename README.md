@@ -66,6 +66,10 @@ built-in skills; `setup.sh` symlinks `~/.claude/skills` and registers bare
 names, so `code-review` and `security` become ambiguous with the built-ins of
 the same name. Running both also loads every skill twice. Pick one.
 
+The plugin ships a SessionStart hook that tells Claude to load the `workflow`
+skill before non-trivial code work, so you do not need a line in `CLAUDE.md`
+for that. If you added one, you can remove it.
+
 ### Codex
 
 ```sh
@@ -74,6 +78,10 @@ codex plugin marketplace add kreek/consult
 
 Then open `/plugins` in Codex, find **Consult** in the list,
 press Enter to open its details, and select `Install plugin`.
+
+Codex then asks you to review and trust Consult's SessionStart hook. The hook
+prints one line telling Codex to load the `workflow` skill before non-trivial
+code work. Until you trust it, Codex picks skills from their descriptions alone.
 
 To update:
 
