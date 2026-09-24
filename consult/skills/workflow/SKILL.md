@@ -70,6 +70,13 @@ description: Use first for features, fixes, refactors, debugging, tests, or conf
    result.** Load `documentation` and `release` only on request, when a project
    check requires them, or for approved work that needs them. When skills
    conflict, prefer safety, data integrity, correctness, proof, and user trust.
+9. **Plan with the strongest model, and save the plan so a cheaper one can
+   build it.** When Rule 6 calls for approval before building, save the
+   approved plan as Markdown: the host's plan file when the host writes one,
+   otherwise `docs/plans/<slug>.md`. Include intent, acceptance criteria,
+   constraints, approved shapes, ordered steps, and proof obligations, so a
+   fresh session can build it without the planning conversation. When building
+   from a plan, follow it, and stop to ask when it is wrong or incomplete.
 
 ## Workflow
 

@@ -194,8 +194,9 @@ Every `SKILL.md` must have:
 - Required sections: `## When to Use`, `## When NOT to Use`, `## Rules`.
 - Body budget: 700 words after frontmatter. Raised for three skills, each
   with a reason recorded next to the constant: 950 for `proof` and
-  `code-review` and 1,050 for `workflow`, which carry the routing and sign-off
-  tables plus the host-harness and fresh-context-review policy. Table pipes
+  `code-review` and 1,120 for `workflow`, which carry the routing and sign-off
+  tables plus the host-harness, fresh-context-review, and plan-handoff
+  policy. Table pipes
   and separator rows do not count. Raise a skill's budget only with a stated
   reason. The budget is the regression guard for the knowledge-vs-policy
   rule below. Raise a single skill's budget only with a stated reason.
