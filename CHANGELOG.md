@@ -24,9 +24,10 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   labels required versus optional changes, and uses questions for genuine
   clarification or alternatives without softening verified blockers.
 - The `async-systems` skill treats cross-process job, event, and stream messages
-  as versioned contracts. It now names schema sources, producer and consumer
-  ownership, compatibility checks, rollout and replay needs, and contract
-  proof across producer and consumer boundaries.
+  as versioned contracts with a versioned schema source. Every running consumer
+  version must read every message version a running producer emits or that is
+  still queued, retained, or replayable, and a registry's compatibility mode
+  must enforce that.
 - The `observability` skill calls for measurable outcomes when production
   performance is the goal, with before/after evidence owned by `performance`.
 - The `workflow` skill states its routing, approval, and completion steps in

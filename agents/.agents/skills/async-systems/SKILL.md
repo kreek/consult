@@ -43,19 +43,14 @@ description: Use for async systems, message contracts and schemas, queues, strea
 6. Retried jobs and stream consumers are idempotent, deduplicated, or marked
    non-retryable with a reason. Retry policy itself belongs to
    `error-handling`.
-7. Cross-process jobs, events, and stream records have versioned contracts.
-   Name the producer and consumers, channel or topic, message meaning,
-   key/headers, payload schema, and serialization. Keep the schema in the
-   system's versioned source of truth, such as a native schema definition,
-   JSON Schema, Avro, Protobuf, or an existing registry. Route contracts that
-   independently deployed producers or consumers, or retained messages, bind
-   to through `contract-first`.
-8. Choose compatibility direction and history range from rollout order,
-   retention, and replay. When using a registry, confirm its compatibility
-   mode covers every still-deliverable or replayable schema version. Exercise
-   affected producers and consumers against each contract version they may
-   encounter. Delivery guarantee, ordering key, retention, replay, ack/offset,
-   DLQ, and poison-message handling are explicit for streams.
+7. Cross-process jobs, events, and stream records are versioned contracts,
+   with the schema kept in a versioned source of truth. Route contracts that
+   independently deployed participants or retained messages bind to through
+   `contract-first`.
+8. Every running consumer version can read every message version that a
+   running producer emits or that is still queued, retained, or replayable. A
+   registry's compatibility mode must enforce this. Delivery guarantee, ordering key, retention, replay,
+   ack/offset, DLQ, and poison-message handling are explicit for streams.
 9. Silent async failure is a bug. Exhausted jobs, lag, dropped events, and
    dead work have visible signals and tests.
 
@@ -72,8 +67,7 @@ description: Use for async systems, message contracts and schemas, queues, strea
 
 ## Handoffs
 
-- `contract-first`: message or topic contracts that deployed participants or
-  retained work bind to.
+- `contract-first`: approval for the message contracts Rule 7 routes there.
 - `domain-modeling`: remove shared mutable state from the core.
 - `api`: public subscription, webhook, or SSE surface.
 - `error-handling`: retry budgets and dependency-failure policy.
@@ -83,8 +77,8 @@ description: Use for async systems, message contracts and schemas, queues, strea
 - `debugging`: existing races, deadlocks, stuck jobs.
 - `official-source-check`: registry and schema-format compatibility behavior.
 - `proof`: validate serialized producer output and show affected consumers
-  handle every contract version still deliverable or replayable; assert
-  ownership, ordering, backpressure, and failure at the async boundary.
+  handle every message version Rule 8 covers; assert ownership, ordering,
+  backpressure, and failure at the async boundary.
 
 ## References
 
