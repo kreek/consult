@@ -29,8 +29,8 @@ description: Use first for features, fixes, refactors, debugging, tests, or conf
 2. **Explain the change to the user.** Show what changed, why, and what
    evidence supports it. If you cannot explain those points, clarify the work
    before proceeding.
-3. **Use the host's tools to meet Consult's engineering requirements.** Follow
-   the host's workflow while meeting Consult's requirements.
+3. **Consult sets the engineering bar, and the host owns the mechanics.** When
+   they conflict, Consult's bar wins, and the host decides how to meet it.
 4. **Build only what the user asked for.** Build the main behavior first unless
    safety or data loss requires an edge case now. Prefer composition to
    inheritance. Extract an abstraction only when code in more than one place
@@ -99,8 +99,8 @@ description: Use first for features, fixes, refactors, debugging, tests, or conf
    | `documentation` | Existing-code docs are the deliverable or a validator-required obligation. |
    | `scaffolding` | New project setup or baseline tooling. |
    | `official-source-check` | External framework, library, runtime, or platform behavior must be verified. |
-   | `proof` | Any task beyond a typo or formatting change. |
-   | `code-review` | A review is requested, or the diff is larger than a typo or formatting change. |
+   | `proof` | Any non-trivial change. |
+   | `code-review` | A review is requested, or the change is non-trivial. |
    | `commit` | Staging reviewed files, splitting commits, writing messages. |
    | `git-workflow` | Branches, conflicts, rebases, recovery, force-push, GitHub access. |
    | `release` | Release prep is requested or a validator requires artifact sync. |
