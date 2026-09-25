@@ -6,6 +6,13 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `ui-design/references/editorial.md` covers editorial, brand, marketing,
+  release, and docs home pages. It draws on Peter Saville, Tomato, Vignelli,
+  Tschichold, Crouwel, Aicher, and Experimental Jetset, and lists where the
+  style conflicts with WCAG. Product tool screens do not load it.
+
 ### Changed
 
 - The `ui-design` Iron Law now says "remove any element the task does not

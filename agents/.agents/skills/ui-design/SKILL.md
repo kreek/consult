@@ -92,3 +92,5 @@ description: Use for frontend UI, layouts, components, responsive behavior, acce
   frameworks.
 - `references/platforms.md`: load for native platforms, government design
   systems, or web patterns Carbon lacks.
+- `references/editorial.md`: load for brand, editorial, and release pages,
+  not tools.
