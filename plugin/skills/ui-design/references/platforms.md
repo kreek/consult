@@ -34,9 +34,36 @@ Non-negotiable even when deviating, never rebuild these:
 Web apps have no single platform: target WCAG 2.2 AA, 44×44 CSS px tap targets,
 semantic HTML, and responsive breakpoints around 600 / 900 / 1240 px.
 
+## Web product tools: where to take patterns from
+
+Carbon sets visuals, tokens, and grid. When Carbon has no pattern for an
+interaction, take it from these pages:
+
+- HIG patterns: feedback, undo and redo, modality, loading, searching,
+  entering data, settings, drag and drop, file management.
+  https://developer.apple.com/design/human-interface-guidelines/patterns
+- HIG components for tool chrome: menus, context menus, toolbars, sidebars,
+  alerts, lists and tables. Same URL prefix, for example
+  https://developer.apple.com/design/human-interface-guidelines/toolbars
+- HIG keyboards and writing:
+  https://developer.apple.com/design/human-interface-guidelines/keyboards
+  https://developer.apple.com/design/human-interface-guidelines/writing
+- Material 3 interaction states and state layers:
+  https://m3.material.io/foundations/interaction/states/overview
+- Material 3 breakpoints and canonical layouts (list-detail, supporting pane):
+  https://m3.material.io/foundations/layout/breakpoints/overview
+  https://m3.material.io/foundations/layout/canonical-examples/overview
+- WAI-ARIA Authoring Practices for keyboard and ARIA behaviour of each widget:
+  https://www.w3.org/WAI/ARIA/apg/
+
 ## Apple: Liquid Glass
 
 Use when targeting iOS, iPadOS, macOS, watchOS, tvOS, or visionOS.
+
+The HIG's stated principles (reintroduced June 2026) are Purpose, Agency,
+Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight. It
+says simplicity is not minimalism.
+https://developer.apple.com/design/human-interface-guidelines/design-principles
 
 Rules:
 
@@ -53,7 +80,9 @@ Rules:
 
 Typography:
 
-- SF Pro (Text ≤19 pt, Display ≥20 pt, Rounded for friendliness).
+- SF Pro, with dynamic optical sizes: the system font adjusts its design to
+  the point size, so do not pick Text or Display cuts by hand. SF Pro Rounded
+  for friendliness.
 - SF Compact on watchOS.
 - SF Mono for code.
 - New York for serif reading.
@@ -69,7 +98,8 @@ Colour:
 
 Metrics:
 
-- Tap target: 44×44 pt iOS, 60×60 pt visionOS with 4 pt spacing.
+- Control size, default / minimum: 44×44 / 28×28 pt iOS and iPadOS,
+  28×28 / 20×20 pt macOS, 60×60 / 28×28 pt visionOS with 4 pt spacing.
 - Status bar: ~54 pt on Dynamic Island devices.
 - Home indicator: 34 pt reserved.
 - Nav bar: 44 pt (96 pt large-title).
@@ -77,7 +107,7 @@ Metrics:
 
 Reference: https://developer.apple.com/design/human-interface-guidelines
 
-## Google: Material Expressive
+## Google: Material 3 Expressive
 
 Use when targeting Android or Wear OS.
 
@@ -110,12 +140,13 @@ Corner radius scale (dp):
 
 Motion:
 
-- `standard` curve: `(0.2, 0, 0, 1)`.
-- `emphasized` curve for prominent transitions.
-- Duration tokens: Short1 50 ms → ExtraLong4 1000 ms.
-- Spring tokens for gestural response.
+- Springs are the primary motion system, in two schemes: standard and
+  expressive. https://m3.material.io/styles/motion/overview/how-it-works
+- Easing and duration tokens remain for non-spring transitions: `standard`
+  curve `(0.2, 0, 0, 1)`, `emphasized` for prominent transitions, durations
+  Short1 50 ms → ExtraLong4 1000 ms.
 
-Adaptive layout:
+Adaptive layout (called "Breakpoints" on the M3 site):
 
 | Window class | Width (dp) | Navigation                        |
 | ------------ | ---------- | --------------------------------- |
@@ -126,6 +157,11 @@ Adaptive layout:
 | ExtraLarge   | ≥1600      | Permanent NavigationDrawer        |
 
 Tap target: 48×48 dp.
+
+Web implementation: Material Web (`@material/web`) carries a maintenance notice
+but still ships releases, mostly M3 Expressive components under `labs/`. Use it
+when a project already has it. Do not add it as a default dependency.
+https://github.com/material-components/material-web
 
 Reference: https://m3.material.io/
 
@@ -140,8 +176,8 @@ Rules:
 - Use two token layers: **global** tokens for raw values, **alias** tokens for
   semantic meaning (`colorBrandBackground1`, `colorNeutralForeground1`). Never
   reach past aliases to globals in app code.
-- Use Segoe UI Variable on Windows (optical sizing on). Native system fonts
-  elsewhere.
+- Use Segoe UI Variable on Windows (optical sizing on) and Segoe UI on the
+  web. Native system fonts elsewhere.
 - Respect Windows material rules: they are not interchangeable:
 
 | Material | Use                                                    |

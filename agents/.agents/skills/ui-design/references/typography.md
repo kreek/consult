@@ -181,3 +181,5 @@ the text worth reading.
   https://typographica.org/typography-books/the-elements-of-typographic-style-4th-edition/
 - Richard Rutter, _The Elements of Typographic Style Applied to the Web_.
   https://webtypography.net/
+- Matthew Butterick, _Practical Typography_.
+  https://practicaltypography.com/

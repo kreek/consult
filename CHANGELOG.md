@@ -10,6 +10,19 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The `ui-design` Iron Law now says "remove any element the task does not
   need" in place of "every element earns its place".
+- `ui-design` Rule 2 names the design-system order: the product's or
+  jurisdiction's own system, then the Apple Human Interface Guidelines on Apple
+  platforms, Material 3 on Android, and Carbon for web tools. `platforms.md`
+  now also loads when a web interaction has no Carbon pattern, and lists the
+  HIG, Material 3, and WAI-ARIA Authoring Practices pages to take it from.
+- `ui-design/references/frameworks.md` adds GOV.UK design principles, Vercel
+  Geist, and Primer's UI patterns page. `platforms.md` sets Segoe UI for Fluent
+  on the web. `typography.md` cites Butterick's _Practical Typography_.
+- `ui-design/references/platforms.md` follows the current HIG and Material 3:
+  HIG design principles, dynamic optical sizes, default and minimum control
+  sizes, spring-first M3 Expressive motion, and Material Web's maintenance
+  status. A new section lists the HIG and M3 pages to use for web tool
+  patterns.
 
 ## [15.0.0] (2026-09-24)
 

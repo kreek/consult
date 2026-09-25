@@ -117,7 +117,9 @@ Refs: https://htmx.org/
 | IBM Carbon           | Preferred generic Consult product/tool reference: grid-first, IBM Plex, restrained, compact, enterprise-ready. https://carbondesignsystem.com/ |
 | Shopify Polaris      | Merchant-focused. Prefer Polaris Web Components over the legacy Polaris React package. https://polaris.shopify.com/                        |
 | Atlassian            | Complex PM tools. https://atlassian.design/                                                                                                |
-| GitHub Primer        | Mona Sans, restrained, code-adjacent. https://primer.style/                                                                                |
+| GitHub Primer        | Mona Sans, restrained, code-adjacent. https://primer.style/ (UI patterns: https://primer.style/product/ui-patterns)                                   |
+| GOV.UK               | Philosophy only outside government ("Do less", "Be consistent, not uniform"). Non-GOV.UK services may not use its crown, typeface, or colours. https://www.gov.uk/guidance/government-design-principles |
+| Vercel Geist         | Visual reference: monochrome, grid, Geist Sans and Mono. Fonts ship as `geist` on npm. https://vercel.com/geist/introduction |
 | Adobe Spectrum       | Cross-platform. React Aria + React Stately. https://spectrum.adobe.com/                                                                    |
 | Salesforce Lightning | Origin of "design token." https://www.lightningdesignsystem.com/                                                                           |
 | Ant Design           | Comprehensive; harder to customise. https://ant.design/                                                                                    |

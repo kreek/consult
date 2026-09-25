@@ -31,9 +31,9 @@ description: Use for frontend UI, layouts, components, responsive behavior, acce
 1. One screen has one visually dominant primary action and an information
    order that survives a squint test. Remove elements that do not improve
    comprehension, trust, or action.
-2. Define the user task, state, and flow before choosing a framework, and
-   choose existing framework or design-system patterns before inventing new
-   ones.
+2. Define the user task, state, and flow before choosing a framework. Use
+   the product's or jurisdiction's design system, else the HIG on Apple
+   platforms, Material 3 on Android, and Carbon for web tools.
 3. A small token system covers spacing, type, color, radius, and motion. No
    stray one-off values in committed CSS.
 4. Loading, empty, error, disabled, and success states are defined with the
@@ -90,5 +90,5 @@ description: Use for frontend UI, layouts, components, responsive behavior, acce
   for JavaScript that modern CSS can do.
 - `references/frameworks.md`: load when the user asks to compare frontend
   frameworks.
-- `references/platforms.md`: load when targeting a platform or government
-  design system.
+- `references/platforms.md`: load for native platforms, government design
+  systems, or web patterns Carbon lacks.
