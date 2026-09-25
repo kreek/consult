@@ -7,7 +7,7 @@ description: Use for frontend UI, layouts, components, responsive behavior, acce
 
 ## Iron Law
 
-`START FROM THE USER TASK AND HIERARCHY; EVERY ELEMENT EARNS ITS PLACE. WCAG 2.2 AA IS THE FLOOR.`
+`START FROM THE USER TASK AND HIERARCHY. REMOVE ANY ELEMENT THE TASK DOES NOT NEED. WCAG 2.2 AA IS THE FLOOR.`
 
 ## When to Use
 

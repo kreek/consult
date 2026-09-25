@@ -6,6 +6,11 @@ the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The `ui-design` Iron Law now says "remove any element the task does not
+  need" in place of "every element earns its place".
+
 ## [15.0.0] (2026-09-24)
 
 ### Added
